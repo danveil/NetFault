@@ -1,0 +1,10 @@
+node_modules/
+.pnpm-store/
+.next/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.env*
+.netfault/
+.netlify/
+public/sw.js

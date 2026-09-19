@@ -1,0 +1,49 @@
+# iPhone, HTTPS and manual QA
+
+Target: iPhone 11, 414 × 896 CSS pixels, portrait. Automated Chromium viewport emulation does not demonstrate native Safari or physical touch behavior. Physical device testing has not been performed.
+
+## Connection and PWA preparation
+
+For Netlify, follow [the deployment checklist](NETLIFY_DEPLOYMENT.md): use the public HTTPS URL and turn the Windows laptop off to prove hosting independence. The LAN steps below remain an optional local-development path. Test installed-app updates and offline practice on the physical device after deployment; these have not been physically verified.
+
+- [ ] Start NetFault on Windows and open localhost:3100 first.
+- [ ] Identify the active Windows LAN IPv4 address with `ipconfig`.
+- [ ] Put both devices on the same trusted network; disable guest isolation if your router intentionally separates clients.
+- [ ] Open `http://LAPTOP-IP:3100` in iPhone Safari. Allow Node through Windows Firewall on the private network if prompted; never disable the firewall globally.
+- [ ] Verify that HTTP LAN mode runs online, and do not label it offline-ready.
+- [ ] For installation/offline tests, run a production build behind HTTPS using a certificate trusted by iOS. Certificate SAN must match the URL. Keep the proxy's Host header unchanged.
+- [ ] If using your own local CA, install its public certificate/profile on your own device, then explicitly trust it under Settings → General → About → Certificate Trust Settings (wording may vary by iOS). Keep the CA private key private. Remove the profile when no longer needed.
+- [ ] Open the trusted HTTPS URL, start Practice, wait for service worker installation, and reload once online.
+- [ ] Use Safari Share → Add to Home Screen. Reopen and confirm standalone display, icon and safe-area spacing.
+
+## Complete playthrough
+
+- [ ] Read incident/design brief without clipping at 414px; rotate to landscape and back.
+- [ ] Tap all five topology devices; pan, pinch zoom, zoom buttons and fit view work. Use the device-button alternative and confirm the inspector changes.
+- [ ] Scroll the page while outside the diagram. Terminal horizontal scrolling must not make the whole page wider.
+- [ ] Run PC `ipconfig`, ping gateway and remote PC, then tracert.
+- [ ] Inspect R1/R2/R3 interfaces, neighbors, routes, protocol state and running configurations.
+- [ ] Enter an invalid destination and receive a helpful validation output. No keyboard zoom on inputs; labels remain visible.
+- [ ] Select R2/R3 configuration observations, one neighbor table and one routing table as evidence. Toggle selection from the notebook.
+- [ ] Submit area mismatch, R2+R3, and R3 Gi0/0 area 0. Receive 100/100 only with the four evidence requirements fulfilled.
+- [ ] Open the worked solution and repaired preview. Confirm both end-to-end pings succeed.
+- [ ] Reload, reopen the journal entry, inspect every recorded output, selected evidence, notes, hints and score. Export JSON.
+- [ ] Retry Practice; observations and evidence begin empty. Show all three hints and verify no fourth hint. Reveal solution and verify its assisted flag in the journal.
+
+## Offline and assessment
+
+- [ ] With a production shell and practice pack cached, disable Wi-Fi/cellular, reopen/reload, investigate, grade and reopen the journal.
+- [ ] Restore connectivity. Start Assessment; no hints/reveal, guide or journal access while active.
+- [ ] Run commands and submit before the deadline. Reload the attempt and verify no second submission changes the result.
+- [ ] Start a new assessment; background the app or lock the phone. Time must continue.
+- [ ] Disconnect during assessment. Commands should report connection failure and preserve existing evidence. Reconnect before the deadline and continue.
+- [ ] Let the deadline expire without submitting. Reconnect if needed: the attempt ends with zero and final feedback; changing the client clock cannot extend the server deadline.
+
+## Accessibility and persistence
+
+- [ ] With VoiceOver, read labels, select a device, run a command, navigate notebook controls and complete the diagnosis.
+- [ ] Test larger text, 200% browser zoom on desktop, reduced motion and a hardware keyboard. Verify focus visibility and no clipped actions.
+- [ ] Test Safari normal/private browsing and low storage. Storage failure must be visible; export is the recovery path.
+- [ ] Remember HTTP and HTTPS are different storage origins. Export before switching; automatic import/sync is not implemented.
+
+References: [MDN service workers and secure contexts](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers), [MDN PWA secure connection](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Tutorials/CycleTracker/Secure_connection). HTTPS with a trusted certificate is required over a LAN; localhost is a development-only exception on the device accessing it.

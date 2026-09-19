@@ -1,0 +1,14 @@
+# Select netfault as the base directory when importing the parent repository.
+# Next.js/OpenNext is automatically managed by Netlify; do not add a plugin pin.
+[build]
+  command = "pnpm build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "24"
+  PNPM_FLAGS = "--frozen-lockfile --shamefully-hoist"
+
+[dev]
+  command = "pnpm dev"
+  targetPort = 3100
+  port = 8888

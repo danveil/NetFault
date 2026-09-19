@@ -1,0 +1,10 @@
+node_modules/
+.pnpm-store/
+.netfault/
+.next/
+test-results/
+playwright-report/
+pnpm-lock.yaml
+next-env.d.ts
+.netlify/
+public/sw.js

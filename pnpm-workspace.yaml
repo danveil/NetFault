@@ -1,0 +1,10 @@
+packages:
+  - .
+# Match Netlify's documented Next.js dependency layout during local builds too.
+publicHoistPattern:
+  - "*"
+enableGlobalVirtualStore: false
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
