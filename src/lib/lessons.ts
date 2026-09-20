@@ -5,8 +5,9 @@ export const lessons = [
     analogy:
       "An internal letter goes straight to a colleague; an external letter goes through the mailroom. The analogy does not model ARP or binary subnet masks.",
     technical:
-      "A /24 mask is 255.255.255.0. PC-A 192.168.10.10/24 and gateway 192.168.10.1 share a subnet. For 192.168.30.10, PC-A resolves the gateway MAC using ARP and sends a frame to it while keeping PC-B as the destination IP. A /30 transit has two usable host addresses.",
-    example: "PC-A> ipconfig\nIPv4: 192.168.10.10\nMask: 255.255.255.0\nGateway: 192.168.10.1\nPC-A> ping 192.168.10.1",
+      "A /24 mask is 255.255.255.0. In this separate example, a host at 172.16.8.25/24 and router at 172.16.8.1 share a subnet. For 172.16.9.70, the host resolves the router's MAC using ARP while keeping the remote host as the destination IP. A /30 transit has two usable host addresses. Inspect the actual lab rather than copying an example gateway.",
+    example:
+      "Example host> ipconfig\nIPv4: 172.16.8.25\nMask: 255.255.255.0\nGateway: 172.16.8.1\nExample host> ping 172.16.8.1",
     symptom: "A gateway ping succeeding rules out some local problems, but does not prove remote routing works.",
     guided: "Inspect PC-A. Calculate whether 192.168.30.10 is local, then compare gateway and remote pings.",
     exercise:

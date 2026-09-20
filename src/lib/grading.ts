@@ -8,6 +8,11 @@ export function grade(s: Scenario, answer: Diagnosis, history: Observation[], ti
     ),
   }));
   const exactDevices = [...new Set(answer.devices)].sort().join(",") === [...s.fault.devices].sort().join(",");
+  const hostRepair = "gateway" in s.repair;
+  const fixCorrect =
+    s.acceptedFixes.includes(answer.fix) &&
+    (!hostRepair || ("gateway" in s.repair && answer.gateway?.trim() === s.repair.gateway));
+  const reasonCorrect = "gateway" in s.repair && answer.reason === s.repair.reason;
   const parts = [
     {
       name: "Root cause",
@@ -15,16 +20,20 @@ export function grade(s: Scenario, answer: Diagnosis, history: Observation[], ti
       possible: 30,
       message:
         answer.cause === s.fault.cause
-          ? "Correct protocol fault identified."
+          ? "Correct configuration fault identified."
           : "The selected cause does not match the observed fault. Review the explanation below.",
     },
     {
-      name: "Affected adjacency",
+      name: hostRepair ? "Affected device" : "Affected adjacency",
       earned: exactDevices ? 20 : 0,
       possible: 20,
-      message: exactDevices
-        ? "Both endpoints of the failed adjacency identified."
-        : "Select the two routers whose intended adjacency fails, not every downstream host.",
+      message: hostRepair
+        ? exactDevices
+          ? "The device with the incorrect setting is identified."
+          : "Identify the device containing the wrong setting, not every affected host."
+        : exactDevices
+          ? "Both endpoints of the failed adjacency identified."
+          : "Select the two routers whose intended adjacency fails, not every downstream host.",
     },
     {
       name: "Supporting evidence",
@@ -34,11 +43,13 @@ export function grade(s: Scenario, answer: Diagnosis, history: Observation[], ti
     },
     {
       name: "Remediation",
-      earned: s.acceptedFixes.includes(answer.fix) ? 20 : 0,
+      earned: hostRepair ? (fixCorrect ? 10 : 0) + (reasonCorrect ? 10 : 0) : fixCorrect ? 20 : 0,
       possible: 20,
-      message: s.acceptedFixes.includes(answer.fix)
-        ? "Repair preserves the documented design."
-        : "The selected repair does not restore the documented design. Review the worked repair below.",
+      message: hostRepair
+        ? `Gateway correction: ${fixCorrect ? "correct" : "incorrect or missing"}. Forwarding explanation: ${reasonCorrect ? "correct" : "incorrect or missing"}. Each contributes 10 points; free-text notes are not graded.`
+        : fixCorrect
+          ? "Repair preserves the documented design."
+          : "The selected repair does not restore the documented design. Review the worked repair below.",
     },
   ];
   return {
@@ -47,6 +58,7 @@ export function grade(s: Scenario, answer: Diagnosis, history: Observation[], ti
     explanation: s.explanation,
     solution: s.solution,
     timedOut,
+    ...(s.lesson ? { lesson: s.lesson } : {}),
   };
 }
 export function nextHint(s: Scenario, count: number) {

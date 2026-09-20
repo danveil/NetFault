@@ -1,5 +1,7 @@
 # Network correctness: OSPF lab 001
 
+Milestone 2A adds one separate lab, documented in [gateway lab correctness](gateway-lab.md). The OSPF configuration and expected behavior below remain unchanged.
+
 ## Addressing
 
 | Device           | Interface | IPv4             | OSPF / gateway                                            |

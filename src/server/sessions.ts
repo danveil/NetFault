@@ -1,18 +1,18 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { type Attempt, type Diagnosis } from "@/lib/schema";
+import { type Attempt, type Diagnosis, type ScenarioId } from "@/lib/schema";
 import { execute } from "@/lib/engine";
 import { grade } from "@/lib/grading";
-import { scenario } from "./scenario";
+import { getScenario } from "./scenarios";
 import { LabError, sessionStore, type SessionStore } from "./session-store";
 
 export const ASSESSMENT_MS = 20 * 60 * 1000;
-export async function startAssessment(store: SessionStore = sessionStore()) {
+export async function startAssessment(store: SessionStore = sessionStore(), scenarioId: ScenarioId = "ospf-01") {
   const now = Date.now();
   const a: Attempt = {
     version: 1,
     id: randomUUID(),
-    scenario: "ospf-01",
+    scenario: scenarioId,
     mode: "assessment",
     startedAt: now,
     expiresAt: now + ASSESSMENT_MS,
@@ -33,6 +33,7 @@ export async function assessmentAction(
     throw new LabError("Invalid attempt ID");
   const observationId = randomUUID();
   return store.update(id, (a) => {
+    const scenario = getScenario(a.scenario);
     const now = Date.now();
     if (!a.finishedAt && now >= a.expiresAt!) {
       const answer: Diagnosis = { cause: "unspecified", devices: [], fix: "unspecified", evidence: [], notes: "" };
@@ -46,6 +47,7 @@ export async function assessmentAction(
       if (a.history.length >= 100)
         throw new LabError("This attempt has reached its 100-command limit. Review your evidence and submit.");
       const c = input as { device: string; command: string; target: string };
+      if (!scenario.devices.some((d) => d.id === c.device)) throw new LabError("Device is not part of this lab.");
       a.history.push({ id: observationId, ...c, output: execute(scenario, c.device, c.command, c.target), at: now });
     }
     if (action === "submit") {

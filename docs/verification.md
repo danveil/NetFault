@@ -1,4 +1,44 @@
-# Milestone 1.5 verification report
+# Milestone 2A verification report
+
+Executed on Windows, 2026-09-20, using the existing Node 24 / pnpm 11.19.0 / Next.js 16.3.1 toolchain and lockfile. Scope: one additional gateway lab. Dependencies, Netlify deployment configuration and the assessment storage provider were not changed. Nothing was committed, pushed or deployed.
+
+| Check                                                            | Actual final result                                                                             |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `pnpm lint`                                                      | Pass                                                                                            |
+| `pnpm typecheck`                                                 | Pass, strict TypeScript                                                                         |
+| `pnpm test`                                                      | **93 passed**, 6 files; includes 24 new gateway tests                                           |
+| Development `pnpm test:browser` with `CI=true`                   | **18 passed**, 6 production-only tests skipped                                                  |
+| `pnpm build`                                                     | Pass; static root/manifest, dynamic Node `/api/lab`, build-specific offline worker              |
+| Production `pnpm test:browser` with `CI=true`, `PW_PRODUCTION=1` | **24 passed**, no skips; desktop and 414 × 896 mobile Chromium emulation                        |
+| `git diff --check`                                               | Pass                                                                                            |
+| Physical iPhone / Safari / controlled network emulator           | Not performed; manual checklist and reference review documented                                 |
+| Netlify adapter packaging / live deployment                      | Not rerun in 2A; no deployment authorized. Historical 1.5 tooling limitations below still apply |
+
+## What the checks demonstrated
+
+- Schema v2 validates the switch ports/VLAN, addressing and narrowly scoped gateway fault. Existing OSPF schema-v1 packs and attempts still load.
+- PC-A reaches its local router through SW1 but cannot resolve the configured default next hop for remote traffic. R1/R2 form healthy OSPF adjacency and learn the expected LAN routes. Return-path failure explains reverse ping failure. Changing only PC-A's gateway restores all modeled host/router reachability; SW1 adds no IP trace hop.
+- Every advertised command returns deterministic output. The gateway rubric accepts the correct cause, exact device, observed configuration, exact replacement address and structured forwarding explanation. Wrong components lose their corresponding points; free-text notes do not influence grading.
+- The gateway assessment survives server-module reload and browser reload, retains its selected scenario, rejects devices from the other lab, expires against its server deadline, and cannot revise a finalized grade. Existing serverless concurrency tests still pass; no storage architecture changes were needed.
+- Both complete practice workflows and both timed assessment workflows pass in desktop/mobile production browsers. New coverage includes every device, switch commands, local/remote probes, evidence selection, seven-part feedback, repaired preview, journal reopening and two independently cached practice packs across an offline reload.
+- Existing manifest/no-store/answer-boundary checks and simulated service-worker update tests pass. The fresh gateway assessment and fetched scripts do not include the private faulty address or selected explanation/rubric strings. This is a regression check, not proof of a secure exam: practice packs and source remain inspectable.
+- The mobile investigation screenshot was inspected: topology and inspector controls render, terminal output remains confined, and the full page fits 414 CSS pixels. See [iPhone manual checks](iphone-testing.md) for physical testing still required.
+
+## Failures found and resolved
+
+Initial development runs reported 17 passes, one mobile assessment submission failure and six intentional skips. The five device choices forced the fieldset wider than the mobile viewport, expanding the layout and disrupting hit testing. Device choices now wrap and the fieldset can shrink. The new gateway input also uses 16px mobile text. Regression assertions compare document width to the configured viewport rather than `innerWidth`, which mobile overflow itself can expand. After the fix, development and production suites passed without forced clicks or weakened assertions.
+
+One browser-run launch exited with Windows code 3221226505 and no diagnostic output; a fresh `CI=true` invocation ran normally. Development still logs transient React Flow container-size warnings during navigation, as in 1.5. Rendered topology checks and complete workflows pass; no fatal page errors occurred in the gateway practice test.
+
+Networking mechanisms were checked against the Microsoft, RFC and Cisco references listed in [gateway correctness and authoring](gateway-lab.md). No real IOS/Windows packet capture, CML, GNS3 or Packet Tracer validation is claimed. The model intentionally abstracts ARP timing, MAC learning and exact vendor output formatting. Assessment remains online-only.
+
+Primary implementation changes: new server-only gateway scenario/registry; additive schema, access-switch traversal, commands and grading; per-lab API/session selection; separate practice caches; lab selector/topology/diagnosis/feedback/journal UI; mobile form sizing. `src/server/session-store.ts`, the lockfile and deployment configuration remain unchanged. Tests, README, AGENTS and architecture/authoring/correctness/roadmap/iPhone/deployment documentation were updated.
+
+The reports below are retained as historical evidence, not current test counts.
+
+---
+
+# Milestone 1.5 verification report (historical)
 
 Executed on Windows, 2026-09-19. Node 24.15.0, pnpm 11.19.0, Next.js 16.3.1, Blobs SDK 11.1.0. The automatically selected Netlify build runtime was 5.16.0 (@netlify/build 37.0.0). Nothing was committed, pushed, linked to a cloud account or deployed.
 

@@ -1,17 +1,17 @@
 import { z } from "zod";
-import { diagnosisSchema } from "@/lib/schema";
-import { scenario } from "@/server/scenario";
+import { diagnosisSchema, scenarioIdSchema } from "@/lib/schema";
+import { getScenario } from "@/server/scenarios";
 import { assessmentAction, startAssessment } from "@/server/sessions";
 import { LabError } from "@/server/session-store";
 export const runtime = "nodejs";
 const requestSchema = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("practice-pack") }),
-  z.object({ action: z.literal("start") }),
+  z.object({ action: z.literal("practice-pack"), scenario: scenarioIdSchema.default("ospf-01") }),
+  z.object({ action: z.literal("start"), scenario: scenarioIdSchema.default("ospf-01") }),
   z.object({ action: z.literal("resume"), id: z.string().uuid() }),
   z.object({
     action: z.literal("command"),
     id: z.string().uuid(),
-    device: z.enum(["PC-A", "R1", "R2", "R3", "PC-B"]),
+    device: z.enum(["PC-A", "R1", "R2", "R3", "SW1", "PC-B"]),
     command: z.string().max(100),
     target: z.string().max(64),
   }),
@@ -63,8 +63,8 @@ export async function POST(request: Request) {
     const parsed = requestSchema.safeParse(JSON.parse(raw));
     if (!parsed.success) return json({ error: "Invalid lab request." }, 400);
     const p = parsed.data;
-    if (p.action === "practice-pack") return json({ pack: scenario });
-    if (p.action === "start") return json({ attempt: await startAssessment() });
+    if (p.action === "practice-pack") return json({ pack: getScenario(p.scenario) });
+    if (p.action === "start") return json({ attempt: await startAssessment(undefined, p.scenario) });
     if (p.action === "command")
       return json({
         attempt: await assessmentAction(p.id, "command", {

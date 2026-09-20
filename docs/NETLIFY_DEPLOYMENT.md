@@ -1,5 +1,7 @@
 # Deploy NetFault to Netlify
 
+Milestone 2A retains these build/runtime/storage settings and adds one gateway lab. Old OSPF data stays readable by the new release; older releases cannot parse new gateway attempts. Export journals before considering a rollback across that content boundary. No live site is changed by the 2A implementation.
+
 Milestone 1.5 prepares the existing application for hosting. A Netlify-hosted HTTPS site runs independently of your Windows laptop. No account has been connected and no deployment was made during this work. See [the audit](deployment-audit.md) and [verification](verification.md) for actual evidence and remaining checks.
 
 ## Repository and project settings

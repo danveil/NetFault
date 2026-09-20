@@ -1,9 +1,9 @@
 "use client";
 import { ReactFlow, Background, Controls, Handle, Position, type NodeProps, type Node } from "@xyflow/react";
-import { Monitor, Router } from "lucide-react";
+import { Monitor, Router, Network } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 import { useSyncExternalStore } from "react";
-import { lab } from "@/lib/catalog";
+import type { PublicLab } from "@/lib/catalog";
 const subscribe = (callback: () => void) => {
   const media = window.matchMedia("(max-width:680px)");
   media.addEventListener("change", callback);
@@ -14,7 +14,7 @@ type DeviceNode = Node<
   "device"
 >;
 function NetworkDevice({ data }: NodeProps<DeviceNode>) {
-  const Icon = data.kind === "pc" ? Monitor : Router;
+  const Icon = data.kind === "pc" ? Monitor : data.kind === "switch" ? Network : Router;
   return (
     <div className={`network-device ${data.active ? "active" : ""}`}>
       <Handle type="target" position={data.incoming} />
@@ -27,10 +27,12 @@ function NetworkDevice({ data }: NodeProps<DeviceNode>) {
 }
 const nodeTypes = { device: NetworkDevice };
 export default function Topology({
+  lab,
   selected,
   onSelect,
   compact = false,
 }: {
+  lab: PublicLab;
   selected: string;
   onSelect: (id: string) => void;
   compact?: boolean;
@@ -89,7 +91,7 @@ export default function Topology({
   return (
     <div className={compact ? "topology compact" : "topology"} aria-label="Interactive network topology">
       <ReactFlow
-        key={mobile ? "mobile" : "wide"}
+        key={`${lab.id}-${mobile ? "mobile" : "wide"}`}
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}

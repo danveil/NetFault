@@ -30,6 +30,15 @@ For Netlify, follow [the deployment checklist](NETLIFY_DEPLOYMENT.md): use the p
 - [ ] Reload, reopen the journal entry, inspect every recorded output, selected evidence, notes, hints and score. Export JSON.
 - [ ] Retry Practice; observations and evidence begin empty. Show all three hints and verify no fourth hint. Reveal solution and verify its assisted flag in the journal.
 
+## Lab 002 — gateway regression
+
+- [ ] Select **Beyond the local network**. Inspect PC-A, SW1, R1, R2 and PC-B using both topology and device controls.
+- [ ] Compare PC-A's local and remote ping, `tracert`, `ipconfig /all` and `route print`. Read both switch command outputs without page-width overflow.
+- [ ] In the diagnosis form, all five device choices wrap within the viewport. The gateway input does not zoom the page, the explanation selector is usable, and Submit remains reachable with the keyboard dismissed.
+- [ ] Select evidence, submit a diagnosis, read all seven teaching sections, verify the repaired trace and reopen the result from the journal.
+- [ ] Start and resume a gateway assessment, then submit before its server deadline. Check that reopening the original OSPF lab uses its own topology, commands and grading.
+- [ ] Start each lab's Practice Mode online. After the production worker is ready, reload online once, disconnect, and reopen both saved labs. Verify that the two practice packs and their evidence remain separate.
+
 ## Offline and assessment
 
 - [ ] With a production shell and practice pack cached, disable Wi-Fi/cellular, reopen/reload, investigate, grade and reopen the journal.

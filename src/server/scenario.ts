@@ -1,7 +1,14 @@
 import "server-only";
 import { scenarioSchema, type Interface } from "@/lib/schema";
 import { lab, routerCommands, pcCommands } from "@/lib/catalog";
-const intf = (name: string, ip: string, prefix: number, n: number, area?: number, passive = false): Interface => ({
+export const intf = (
+  name: string,
+  ip: string,
+  prefix: number,
+  n: number,
+  area?: number,
+  passive = false,
+): Interface => ({
   name,
   ip,
   prefix,

@@ -2,9 +2,9 @@
 
 A mobile-first, evidence-based network troubleshooting workspace for a Universiti Malaya student studying WIA2008 Advanced Network Technology. Independent learning aid; not an official UM or Cisco product.
 
-**Milestone 1 + 1.5 deployment readiness:** one complete OSPF area-mismatch lab, “The silent route.” No external AI service, generated gameplay text or real network probing. Local use needs no cloud account; Netlify hosting uses its serverless runtime and Blobs storage.
+**Milestone 2A:** two complete labs: OSPF area mismatch (“The silent route”) and incorrect default gateway (“Beyond the local network”). No other Milestone 2 scenarios are included. No external AI service, generated gameplay text or real network probing. Local use needs no cloud account; Netlify hosting uses its serverless runtime and Blobs storage.
 
-For a public HTTPS app that works with your laptop turned off, follow [Netlify deployment instructions](docs/NETLIFY_DEPLOYMENT.md). No public deployment has been performed. The simulator, journal and deterministic grading remain the existing Milestone 1 implementation.
+For a public HTTPS app that works with your laptop turned off, follow [Netlify deployment instructions](docs/NETLIFY_DEPLOYMENT.md). This milestone does not deploy or modify a live site. The existing simulator, journal and deterministic grading are extended for the new lab; the Netlify assessment storage architecture is unchanged.
 
 ## Run on Windows
 
@@ -42,27 +42,29 @@ For full PWA use, put the production server behind an HTTPS reverse proxy with a
 
 ## Play the lab
 
-1. Choose Practice or Assessment, then Start investigation.
+1. Select lab 001 or lab 002, choose Practice or Assessment, then Start investigation.
 2. Read the incident and expand the design brief. Tap topology nodes or use the accessible device buttons.
 3. Run the listed commands. Enter a numeric destination for ping/trace. Select useful output as evidence; revisit all outputs in the notebook.
-4. Submit a structured cause, both failed-adjacency endpoints, selected evidence and repair. Notes are stored, **not interpreted or graded**.
+4. Submit cause, affected device(s), evidence and repair. OSPF asks for both adjacency endpoints; lab 002 asks for the faulted device, a gateway IPv4 address and a structured explanation of forwarding. Notes are stored, **not interpreted or graded**.
 5. Review the rubric, explanation, worked commands and repaired-state preview. Reopen any attempt from Your journal, or export JSON.
 
 Practice is untimed with three progressive hints and a recorded solution reveal. It downloads the lab pack, which enables offline play after the production shell is cached. Assessment lasts 20 minutes, requires the server, and locks hints/guide/journal until it ends. Submit before the deadline: an expired attempt without an on-time final submission receives zero and final feedback. Draft choices are saved locally but do not count as a submitted assessment. Closing the app does not pause time.
 
 ## Commands implemented
 
+The original OSPF command set remains below. Lab 002 exposes PC-A `ipconfig`, `/all`, `route print`, `ping`, `tracert`; SW1 `show vlan brief` and `show interfaces status`; routers `show ip interface brief`, `show ip route`, `show running-config`, `ping`; PC-B `ipconfig` and `ping`. Commands are selected per device and lab. See [the gateway lab guide](docs/gateway-lab.md) for addressing, the seven-part lesson, rubric and forwarding limits.
+
 | Device   | Supported commands                                                                                                                                              |
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Routers  | `show ip interface brief`, `show ip route`, `show ip ospf neighbor`, `show ip ospf interface`, `show ip protocols`, `show running-config`, `ping`, `traceroute` |
 | PCs      | `ipconfig`, `ipconfig /all`, `ping`, `tracert`                                                                                                                  |
-| Switches | None in Milestone 1; there are no switches in this scenario                                                                                                     |
+| Switches | No switches in the OSPF lab; lab 002 adds the two access-switch commands described above                                                                        |
 
 Commands are bounded, condensed IOS-style/PC-style outputs, not byte-for-byte IOS or Windows emulation. No abbreviations, destination names, command flags, arbitrary IOS configuration or live packet probes. Unsupported commands produce an honest message. The repair is selected structurally; a separate preview derives the repaired network for verification.
 
 ## Data, assessment and offline limits
 
-- Journal, draft selections and practice pack live in browser localStorage under `netfault.*.v1`. There is no cross-device sync. Different HTTP/HTTPS origins, ports and browsers have separate storage. Export before changing origin or clearing data.
+- Journal, draft selections and practice packs live in browser localStorage under `netfault.*.v1`. Each lab has a separate pack key; the original OSPF key and old attempts are retained. Cache each lab online before using it offline. There is no cross-device sync. Different HTTP/HTTPS origins, ports and browsers have separate storage. Export before changing origin or clearing data.
 - Up to 100 recent attempts, 100 commands per attempt. Storage failures are surfaced; corrupt data is preserved. Raw recovery export is available.
 - Local server assessment sessions are JSON files under ignored `.netfault/sessions/`. On Netlify they use durable site-scoped Blobs with strong reads and conditional writes across invocations. UUIDs act as bearer capabilities. Do not share attempt IDs. Server sessions are not automatically pruned in this milestone. Blobs usage counts against your Netlify plan; no paid service was provisioned.
 - The assessment payload has no scenario configuration, hidden fault, hints, grading rules or answer key. The server owns observations, deadline and final grade. API responses are `no-store`; the service worker never caches them.

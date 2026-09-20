@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { attemptSchema, scenarioSchema, type Attempt, type Scenario } from "./schema";
+import { attemptSchema, scenarioSchema, type Attempt, type Scenario, type ScenarioId } from "./schema";
 export const JOURNAL_KEY = "netfault.journal.v1";
 export const PACK_KEY = "netfault.practice.v1";
+export const packKey = (id: ScenarioId) => (id === "ospf-01" ? PACK_KEY : "netfault.practice.gateway-01.v1");
 export const ACTIVE_KEY = "netfault.active.v1";
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 export function loadJournal(storage: StorageLike): Attempt[] {
@@ -15,12 +16,15 @@ export function saveAttempt(storage: StorageLike, attempt: Attempt) {
   storage.setItem(JOURNAL_KEY, JSON.stringify(next));
   return next;
 }
-export function loadPack(storage: StorageLike): Scenario | undefined {
-  const raw = storage.getItem(PACK_KEY);
-  return raw ? scenarioSchema.parse(JSON.parse(raw)) : undefined;
+export function loadPack(storage: StorageLike, id: ScenarioId = "ospf-01"): Scenario | undefined {
+  const raw = storage.getItem(packKey(id));
+  if (!raw) return undefined;
+  const pack = scenarioSchema.parse(JSON.parse(raw));
+  if (pack.id !== id) throw Error("Practice pack belongs to a different lab");
+  return pack;
 }
 export function savePack(storage: StorageLike, pack: Scenario) {
-  storage.setItem(PACK_KEY, JSON.stringify(scenarioSchema.parse(pack)));
+  storage.setItem(packKey(pack.id), JSON.stringify(scenarioSchema.parse(pack)));
 }
 export function elapsed(a: Attempt, now = Date.now()) {
   return Math.max(0, Math.floor(((a.finishedAt ?? now) - a.startedAt) / 1000));

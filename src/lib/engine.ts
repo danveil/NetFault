@@ -16,18 +16,36 @@ export function device(s: Scenario, id: string): Device {
   return d;
 }
 function peers(s: Scenario, id: string) {
-  return s.links.flatMap((l) => {
-    const local = l.a.device === id ? l.a : l.b.device === id ? l.b : undefined;
-    if (!local) return [];
-    const remote = local === l.a ? l.b : l.a;
-    return [
-      {
-        local: device(s, id).interfaces.find((i) => i.name === local.interface)!,
-        remote: device(s, remote.device).interfaces.find((i) => i.name === remote.interface)!,
-        device: device(s, remote.device),
-      },
-    ];
-  });
+  const result: { local: Interface; remote: Interface; device: Device }[] = [];
+  for (const local of device(s, id).interfaces) {
+    const visited = new Set<string>();
+    const walk = (owner: string, port: string) => {
+      const key = `${owner}:${port}`;
+      if (visited.has(key)) return;
+      visited.add(key);
+      for (const link of s.links) {
+        const remote =
+          link.a.device === owner && link.a.interface === port
+            ? link.b
+            : link.b.device === owner && link.b.interface === port
+              ? link.a
+              : undefined;
+        if (!remote) continue;
+        const d = device(s, remote.device);
+        if (d.kind !== "switch") {
+          const intf = d.interfaces.find((i) => i.name === remote.interface)!;
+          if (d.id !== id) result.push({ local, remote: intf, device: d });
+        } else {
+          const ingress = d.ports!.find((p) => p.name === remote.interface)!;
+          if (!ingress.up || !d.vlans!.some((v) => v.id === ingress.vlan && v.active)) continue;
+          for (const p of d.ports!.filter((p) => p.up && p.vlan === ingress.vlan && p.name !== ingress.name))
+            walk(d.id, p.name);
+        }
+      }
+    };
+    walk(id, local.name);
+  }
+  return result;
 }
 export function neighbors(s: Scenario, id: string): Neighbor[] {
   return peers(s, id).flatMap((p) => {
@@ -63,7 +81,7 @@ export function neighbors(s: Scenario, id: string): Neighbor[] {
 }
 export function routes(s: Scenario, id: string): Route[] {
   const d = device(s, id);
-  if (d.kind === "pc") return [];
+  if (d.kind !== "router") return [];
   const result: Route[] = d.interfaces
     .filter((i) => i.up)
     .flatMap((i) => [
@@ -173,6 +191,45 @@ export function execute(s: Scenario, id: string, raw: string, target = ""): stri
     cmd = raw.trim().toLowerCase().replace(/\s+/g, " ");
   if (!d.commands.some((c) => c === cmd))
     return `% Unsupported command on ${id}: ${raw}. Use the supported command buttons. This is a bounded simulator, not an IOS shell.`;
+  if (cmd === "show vlan brief")
+    return [
+      "VLAN Name                             Status    Ports",
+      ...d.vlans!.map(
+        (v) =>
+          `${String(v.id).padEnd(4)} ${v.name.padEnd(32)} ${v.active ? "active" : "suspended"}    ${d
+            .ports!.filter((p) => p.vlan === v.id)
+            .map((p) => p.name)
+            .join(", ")}`,
+      ),
+      "(Modeled access VLANs and ports only.)",
+    ].join("\n");
+  if (cmd === "show interfaces status")
+    return [
+      "Port      Status       Vlan  Duplex Speed Type",
+      ...d.ports!.map((p) => {
+        const link = s.links.find((l) => [l.a, l.b].some((e) => e.device === id && e.interface === p.name));
+        const other = link && (link.a.device === id ? link.b : link.a);
+        const peer = other && device(s, other.device);
+        const remote =
+          peer &&
+          (peer.interfaces.find((i) => i.name === other!.interface) ??
+            peer.ports?.find((i) => i.name === other!.interface));
+        const status = !p.up ? "disabled" : remote?.up ? "connected" : "notconnect";
+        return `${p.name.padEnd(9)} ${status.padEnd(12)} ${String(p.vlan).padEnd(5)} ${p.duplex}   ${p.speed}  10/100/1000BaseTX`;
+      }),
+    ].join("\n");
+  if (cmd === "route print")
+    return [
+      "IPv4 Route Table — modeled routes (loopback/multicast omitted)",
+      "Network Destination  Netmask          Gateway          Interface",
+      ...d.interfaces
+        .filter((i) => i.up)
+        .flatMap((i) => [
+          `0.0.0.0              0.0.0.0          ${d.gateway!.padEnd(16)} ${i.ip}`,
+          `${network(i.ip, i.prefix).split("/")[0].padEnd(21)} ${dotted(mask(i.prefix)).padEnd(16)} On-link          ${i.ip}`,
+          `${i.ip.padEnd(21)} 255.255.255.255  On-link          ${i.ip}`,
+        ]),
+    ].join("\n");
   if (["ping", "traceroute", "tracert"].includes(cmd)) {
     if (!ipv4.safeParse(target.trim()).success)
       return "% Enter a dotted IPv4 destination. DNS names and command flags are not implemented.";
@@ -276,6 +333,8 @@ export function execute(s: Scenario, id: string, raw: string, target = ""): stri
 }
 export function repaired(s: Scenario): Scenario {
   const next = structuredClone(s);
-  device(next, s.repair.device).interfaces.find((i) => i.name === s.repair.interface)!.ospf!.area = s.repair.area;
+  const repair = s.repair;
+  if ("gateway" in repair) device(next, repair.device).gateway = repair.gateway;
+  else device(next, repair.device).interfaces.find((i) => i.name === repair.interface)!.ospf!.area = repair.area;
   return next;
 }
