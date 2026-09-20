@@ -1,3 +1,73 @@
+# Milestone 2D verification report
+
+Executed locally on Windows, 2026-09-21, Node 24.15.0, project pnpm 11.19.0 (confirmed by `pnpm --version`), Next.js 16.3.1. Scope: exactly LAB 005. The initial working tree was clean. No dependency, lockfile, deployment configuration, API route, assessment reducer/provider, persistence-format or service-worker source changes were needed. No commits, pushes, account connections, paid services or deployments were performed.
+
+## Baseline and final checks
+
+A fresh baseline before LAB 005 changes passed lint, strict type checking, all 157 existing unit/integration tests, a production build and all 40 production browser tests. Final code checks are below; these are executed results, not inferred from earlier milestones.
+
+| Check | Actual result |
+| --- | --- |
+| `pnpm lint` | Passed |
+| `pnpm typecheck` | Passed |
+| `pnpm test` | 200 passed in 9 files: 157 retained + 43 new LAB 005 tests |
+| Fresh development `pnpm test:browser` | 36 passed; 12 production-only tests intentionally skipped |
+| `pnpm build` | Passed; dynamic `/api/lab` retained; generated worker for build `qPXAreSL-E0dLbk15lP4V` |
+| Fresh production browser suite | 48 passed, 0 failed, 0 skipped: 24 desktop + 24 mobile |
+| Prettier check on changed application/test TypeScript | Passed |
+| `git diff --check` | Passed |
+| Physical iPhone / native Safari / external IOS lab | Not performed |
+| Live Netlify/CDN/Blobs deployment | Not performed; no hosting changes |
+
+Browser projects use installed Microsoft Edge/Chromium at 1440 × 1000 desktop and 414 × 896 mobile CSS pixels. Fresh servers are enforced with `CI=true`. The production run uses `PW_PRODUCTION=1` after `pnpm build`, so offline checks do not reuse a development server. Existing deployment-update tests remain included. The development run's twelve skips are intentional service-worker/update coverage assigned to production.
+
+All final checks passed. The production suite reopens all five cached labs offline, completes LAB 005 without API access, runs its repaired preview and retains the saved grade after reload on both viewports. LAB 001–004 practice, assessment, repair, persistence and offline regressions pass, together with the existing deployment-update regression. The new scenario added eight production browser cases (four workflows across two viewports).
+
+The production preview was restarted locally on port 3100 after the harness stopped, and `/` returned HTTP 200. Lab cards appear after client hydration; the browser tests verify their rendered presence and complete interactions.
+
+## Behavior covered
+
+- Schema v5 validates exact addressing, unique router IDs, all area 0, compatible timers/MTU, explicit no authentication and correct physical state. Unsupported authentication and invalid/PC/broadcast/old-version passive repairs are rejected. Legacy packs with omitted authentication remain unchanged.
+- R1–R2 remains reciprocal FULL/-. Only R2 Gi0/1's passive setting prevents R2–R3 adjacency. Counterexamples move the passive flag to the other endpoint or another scenario; separate area, timer, MTU, enabled, physical and network-type failures still prevent adjacency. The engine has no lab-ID adjacency shortcut.
+- R1 learns the passive transit prefix 10.0.23.0/30 via R2 at cost 2; R2 learns the west LAN; R3 initially has only C/L. No OSPF route crosses a nonexistent adjacency. Removing OSPF or taking the interface down withdraws its advertisement as appropriate. Repair adds the expected remote LAN routes at costs 2/3 while leaving C/L unchanged.
+- Every advertised command is exercised. Interface/config/protocol/neighbor/route views agree, Hello suppression is explicit and passive interface FSM state is not invented. Host local probes work; remote probes fail. The optional R2 source demonstrates connected-ping success versus a missing reply path. Trace shows only responses that can return to its source.
+- Repair is an idempotent clone changing only one passive boolean; both useful LAN settings remain. All modeled IP endpoints become mutually reachable; both host pings and the four-hop PC-A trace to PC-B are verified.
+- Deterministic grading tests exact cause/router/interface, alternate evidence sets, failed-ping/missing-neighbor insufficiency, forged/error/foreign evidence, incorrect targets/actions/reasons and partial-credit totals. Four hints and seven lesson sections include an explicit-reveal independent exercise solution with different names, interfaces, addresses and process IDs. Notes remain ungraded.
+- Assessment tests cover separate module invocations, server-persisted source observations, server-owned evidence, expiry, immutable final grades, stored-scenario authority, bounded inputs and no-store headers. Existing Blobs ETag/conflict tests pass. This is local/provider-contract evidence, not live cloud execution.
+- The new desktop/mobile practice flow inspects all five devices, compares local/remote/source-sensitive probes, selects evidence, consumes hints, submits a 100-point diagnosis, reads feedback, explicitly reveals the independent answer, verifies repair, refreshes and reopens the journal. A separate timed assessment follows an alternative evidence path and resumes its server history across refresh.
+- Initial assessment payloads and loaded static scripts are checked for private repair/lesson leakage. Practice materials remain deliberately downloadable and inspectable. All five practice packs and old version-1 journal records coexist without overwriting earlier saved bytes.
+- Desktop/mobile inspection screenshots were visually reviewed. Automated width checks constrain the document to the viewport, and command buttons are at least 44 CSS pixels tall. Terminal overflow stays within its panel; all five device buttons remain available. Physical touch, Safari and VoiceOver still require the manual checklist.
+
+## Issues and limitations
+
+One verification launch was prevented by an automatic approval-review usage-limit error before execution. Following the user's instruction to continue, the approved retry ran successfully. A later final verification sequence briefly produced no new output between commands; process inspection confirmed it was at package-manager/type-check startup, and it resumed without killing processes or changing dependencies. No application test failure was found in the completed checks. The pre-existing development React Flow container-size warnings appeared during navigation; the new complete practice flows collect and reject fatal page errors.
+
+Official Cisco passive-interface and OSPF references were consulted; see [the LAB 005 guide](passive-interface-lab.md). No CML, GNS3, Packet Tracer, physical-router or packet-capture run was performed. The model remains a stable snapshot without live LSDB flooding, protocol timers, transient neighbor states, authenticated OSPF, DR/BDR election simulation or general IOS parsing. Source process IDs in this authored lab are 1; independent lesson process IDs illustrate their local significance.
+
+Offline availability requires the production shell and desired practice pack to have loaded online first. Assessment requires connectivity and its server deadline does not pause offline. Browser eviction remains possible; local scores and inspectable practice packs are not tamper-proof exam records. See [physical iPhone/HTTPS acceptance](iphone-testing.md). No new environment variables or manual hosting settings are required. A future Netlify release remains subject to separate authorization and hosted acceptance; older releases cannot parse `passive-01`, so export journals before rollback.
+
+## Files created or modified
+
+Created:
+
+- `src/server/passive-scenario.ts`
+- `tests/passive.test.ts`
+- `tests/browser/passive.spec.ts`
+- `docs/passive-interface-lab.md`
+
+Modified:
+
+- `src/lib/schema.ts`, `engine.ts`, `catalog.ts`, `grading.ts`
+- `src/server/scenarios.ts`
+- `src/components/netfault.tsx`
+- `tests/gateway.test.ts`, `tests/vlan.test.ts`, `tests/return.test.ts` (five-lab catalog/version/journal expectations)
+- `README.md`, `AGENTS.md`
+- `docs/architecture.md`, `scenario-authoring.md`, `network-correctness.md`, `roadmap.md`, `iphone-testing.md`, `NETLIFY_DEPLOYMENT.md`, `execution-plan.md`, `verification.md`
+
+The four earlier authored scenarios, `sessions.ts`, `session-store.ts`, `storage.ts`, API handler, dependency files, Netlify configuration, styles/topology component and service-worker source are unchanged. Next regenerates its ignored build output/worker and restores its generated type import during production build. Historical verification reports follow with their original scope and counts.
+
+---
+
 # Milestone 2C verification report
 
 Executed locally on Windows, 2026-09-21, Node 24.15.0, pnpm 11.19.0, Next.js 16.3.1. Scope: LAB 004 only. Existing dependencies, lockfile, deployment configuration, Blobs/ETag provider, local persistence format and service-worker strategy are preserved. No commits, pushes, remote project changes or deployments were performed.

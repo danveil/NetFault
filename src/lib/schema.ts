@@ -36,6 +36,8 @@ export const interfaceSchema = z.object({
       area: z.number().int().min(0),
       networkType: z.enum(["point-to-point", "broadcast"]),
       passive: z.boolean(),
+      // Legacy packs omit this field; all supported OSPF configurations use no authentication.
+      authentication: z.literal("none").optional(),
       cost: z.number().int().positive(),
       hello: z.number().positive(),
       dead: z.number().positive(),
@@ -92,6 +94,8 @@ export const diagnosisSchema = z.object({
       "same-address",
       "reply-route",
       "reverse-automatically",
+      "hello-adjacency",
+      "passive-stops-advertising",
     ])
     .optional(),
   cause: z.enum([
@@ -103,6 +107,7 @@ export const diagnosisSchema = z.object({
     "timer-mismatch",
     "access-vlan",
     "missing-route",
+    "passive-interface",
   ]),
   devices: z.array(z.string()).max(5),
   fix: z.enum([
@@ -114,19 +119,21 @@ export const diagnosisSchema = z.object({
     "no-shutdown",
     "access-vlan",
     "static-route",
+    "no-passive",
+    "timers",
   ]),
   evidence: z.array(z.string()).max(100),
   notes: z.string().max(2000).default(""),
 });
 export type Diagnosis = z.infer<typeof diagnosisSchema>;
-export const scenarioIdSchema = z.enum(["ospf-01", "gateway-01", "vlan-01", "return-01"]);
+export const scenarioIdSchema = z.enum(["ospf-01", "gateway-01", "vlan-01", "return-01", "passive-01"]);
 export type ScenarioId = z.infer<typeof scenarioIdSchema>;
 const lessonSchema = z.array(
   z.object({ title: z.string(), text: z.string(), revealOnRequest: z.boolean().optional() }),
 );
 export const scenarioSchema = z
   .object({
-    schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+    schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
     id: scenarioIdSchema,
     revision: z.literal(1),
     title: z.string(),
@@ -137,6 +144,12 @@ export const scenarioSchema = z
     fault: z.object({ cause: diagnosisSchema.shape.cause, devices: z.array(z.string()), interface: z.string() }),
     acceptedFixes: z.array(diagnosisSchema.shape.fix),
     repair: z.union([
+      z.object({
+        device: z.string(),
+        interface: z.string(),
+        passive: z.literal(false),
+        reason: z.literal("hello-adjacency"),
+      }),
       z.object({ device: z.string(), route: staticRouteSchema, reason: z.literal("reply-route") }),
       z.object({ device: z.string(), interface: z.string(), area: z.number().int().min(0) }),
       z.object({ device: z.string(), gateway: ipv4, reason: diagnosisSchema.shape.reason.unwrap() }),
@@ -282,7 +295,11 @@ export const scenarioSchema = z
     if (s.fault.devices.some((id) => !ids.includes(id))) fail("Fault references absent device");
     const repair = s.repair;
     const repairedDevice = s.devices.find((d) => d.id === repair.device);
-    if ("route" in repair) {
+    if ("passive" in repair) {
+      const target = repairedDevice?.interfaces.find((i) => i.name === repair.interface);
+      if (s.schemaVersion < 5 || repairedDevice?.kind !== "router" || target?.ospf?.networkType !== "point-to-point")
+        fail("Passive repair requires schema v5 and an existing point-to-point OSPF router interface");
+    } else if ("route" in repair) {
       validateRoute(repairedDevice, repair.route);
     } else if ("area" in repair) {
       if (!repairedDevice?.interfaces.find((i) => i.name === repair.interface)?.ospf)

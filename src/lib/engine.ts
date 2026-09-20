@@ -441,6 +441,7 @@ export function execute(
         (n) => `${n.routerId.padEnd(15)} 0   ${n.state}  00:00:36  ${n.address.padEnd(15)} ${n.interface}`,
       ),
       ...(neighbors(s, id).length ? [] : ["(No OSPF neighbors)"]),
+      "Simulator snapshot: established adjacencies only; transient neighbor states are not modeled.",
     ].join("\n");
   if (cmd === "show ip ospf interface")
     return d.interfaces
@@ -451,11 +452,20 @@ export function execute(
           `${i.name} is ${i.up ? "up, line protocol is up" : "down, line protocol is down"}`,
           ` Internet Address ${i.ip}/${i.prefix}, Area ${o.area}`,
           ` Process ID 1, Router ID ${d.routerId}, Network Type ${o.networkType.toUpperCase()}, Cost: ${o.cost}`,
-          ` State ${o.networkType === "point-to-point" ? "POINT_TO_POINT" : "DR"}, MTU ${o.mtu}`,
+          // Passive interface FSM states vary by platform; do not invent a DR or neighbor state.
+          ...(o.passive
+            ? [` MTU ${o.mtu}`]
+            : [
+                ` State ${i.up ? (o.networkType === "point-to-point" ? "POINT_TO_POINT" : "DR") : "DOWN"}, MTU ${o.mtu}`,
+              ]),
           ` Timer intervals configured, Hello ${o.hello}, Dead ${o.dead}`,
+          " Authentication: none (only supported mode)",
           o.passive
             ? " No Hellos (Passive interface)"
-            : ` Neighbor Count is ${neighbors(s, id).filter((n) => n.interface === i.name).length}, Adjacent neighbor count is ${neighbors(s, id).filter((n) => n.interface === i.name).length}`,
+            : i.up
+              ? " Hellos enabled (timing not simulated)"
+              : " No Hellos (interface down)",
+          ` Neighbor Count is ${neighbors(s, id).filter((n) => n.interface === i.name).length}, Adjacent neighbor count is ${neighbors(s, id).filter((n) => n.interface === i.name).length}`,
         ].join("\n");
       })
       .join("\n\n");
@@ -491,7 +501,9 @@ export function execute(
 export function repaired(s: Scenario): Scenario {
   const next = structuredClone(s);
   const repair = s.repair;
-  if ("route" in repair) {
+  if ("passive" in repair) {
+    device(next, repair.device).interfaces.find((i) => i.name === repair.interface)!.ospf!.passive = repair.passive;
+  } else if ("route" in repair) {
     const d = device(next, repair.device);
     d.staticRoutes = [
       ...(d.staticRoutes ?? []).filter((r) => r.network !== repair.route.network || r.prefix !== repair.route.prefix),

@@ -4,6 +4,7 @@ import { scenario } from "./scenario";
 import { gatewayScenario } from "./gateway-scenario";
 import { vlanScenario } from "./vlan-scenario";
 import { returnScenario } from "./return-scenario";
+import { passiveScenario } from "./passive-scenario";
 export function getScenario(id: ScenarioId) {
   return id === "ospf-01"
     ? scenario
@@ -11,5 +12,7 @@ export function getScenario(id: ScenarioId) {
       ? gatewayScenario
       : id === "vlan-01"
         ? vlanScenario
-        : returnScenario;
+        : id === "return-01"
+          ? returnScenario
+          : passiveScenario;
 }

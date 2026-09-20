@@ -10,6 +10,48 @@ export function grade(s: Scenario, answer: Diagnosis, history: Observation[], ti
     ),
   }));
   const exactDevices = [...new Set(answer.devices)].sort().join(",") === [...s.fault.devices].sort().join(",");
+  if ("passive" in s.repair) {
+    const correctInterface = answer.interface?.trim().toLowerCase() === s.repair.interface.toLowerCase();
+    const correctFix = exactDevices && correctInterface && s.acceptedFixes.includes(answer.fix);
+    const correctReason = answer.reason === s.repair.reason;
+    const parts = [
+      {
+        name: "Root cause",
+        earned: answer.cause === s.fault.cause ? 30 : 0,
+        possible: 30,
+        message:
+          answer.cause === s.fault.cause
+            ? "Passive transit configuration explains the missing adjacency."
+            : "A missing neighbor has several possible causes. Compare interface and OSPF configuration.",
+      },
+      {
+        name: "Affected router and interface",
+        earned: (exactDevices ? 10 : 0) + (correctInterface ? 10 : 0),
+        possible: 20,
+        message: `Router: ${exactDevices ? "correct" : "incorrect"} (10). Interface: ${correctInterface ? "correct" : "incorrect or missing"} (10). Identify the configured fault, not both impacted routers.`,
+      },
+      {
+        name: "Supporting evidence",
+        earned: checks.reduce((n, c) => n + (c.met ? c.points : 0), 0),
+        possible: 30,
+        message: checks.map((c) => `${c.label}: ${c.met ? "captured" : "missing"}.`).join(" "),
+      },
+      {
+        name: "Remediation and mechanism",
+        earned: (correctFix ? 10 : 0) + (correctReason ? 10 : 0),
+        possible: 20,
+        message: `Targeted passive setting removal: ${correctFix ? "correct" : "incorrect"} (10). Hello/adjacency explanation: ${correctReason ? "correct" : "incorrect"} (10). Keep correct LAN passive settings, areas and timers. Notes are not graded.`,
+      },
+    ];
+    return {
+      score: parts.reduce((n, p) => n + p.earned, 0),
+      parts,
+      explanation: s.explanation,
+      solution: s.solution,
+      lesson: s.lesson,
+      timedOut,
+    };
+  }
   if ("route" in s.repair) {
     const r = s.repair.route;
     const networkCorrect = answer.destinationNetwork?.trim() === `${r.network}/${r.prefix}`;

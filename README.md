@@ -2,7 +2,7 @@
 
 A mobile-first, evidence-based network troubleshooting workspace for a Universiti Malaya student studying WIA2008 Advanced Network Technology. Independent learning aid; not an official UM or Cisco product.
 
-**Milestone 2C:** four labs: OSPF area mismatch (“The silent route”), incorrect default gateway (“Beyond the local network”), access VLAN membership mismatch (“The Wrong Network”), and static routing (“The Missing Return Path”). Only LAB 004 is added in this milestone. No external AI service, generated gameplay text or real network probing. Local use needs no cloud account; Netlify hosting uses its serverless runtime and Blobs storage.
+**Milestone 2D:** five labs: OSPF area mismatch (“The silent route”), incorrect default gateway (“Beyond the local network”), access VLAN membership mismatch (“The Wrong Network”), static routing (“The Missing Return Path”), and passive OSPF troubleshooting (“The Silent OSPF Interface”). Only LAB 005 is added in this milestone. No external AI service, generated gameplay text or real network probing. Local use needs no cloud account; Netlify hosting uses its serverless runtime and Blobs storage.
 
 For a public HTTPS app that works with your laptop turned off, follow [Netlify deployment instructions](docs/NETLIFY_DEPLOYMENT.md). This milestone does not deploy or modify a live site. The existing simulator, journal and deterministic grading are extended for the new lab; the Netlify assessment storage architecture is unchanged.
 
@@ -42,15 +42,17 @@ For full PWA use, put the production server behind an HTTPS reverse proxy with a
 
 ## Play the lab
 
-1. Select lab 001, 002, 003 or 004, choose Practice or Assessment, then Start investigation.
+1. Select lab 001, 002, 003, 004 or 005, choose Practice or Assessment, then Start investigation.
 2. Read the incident and expand the design brief. Tap topology nodes or use the accessible device buttons.
 3. Run the listed commands. Enter a numeric destination for ping/trace. Select useful output as evidence; revisit all outputs in the notebook.
-4. Submit cause, affected device(s), evidence and repair. OSPF asks for both adjacency endpoints; lab 002 asks for the faulted device, a gateway IPv4 address and a structured explanation of forwarding. Lab 003 asks for the device, interface, observed/intended VLANs and access-port correction. Notes are stored, **not interpreted or graded**.
+4. Submit cause, affected device(s), evidence and repair. Lab 001 asks for both adjacency endpoints; lab 002 asks for the faulted device, a gateway IPv4 address and a structured explanation of forwarding. Lab 003 asks for the device, interface, observed/intended VLANs and access-port correction. Lab 004 asks for the missing prefix, next hop and reply-routing explanation; lab 005 asks for the router, interface, correction and Hello/adjacency explanation. Notes are stored, **not interpreted or graded**.
 5. Review the rubric, explanation, worked commands and repaired-state preview. Reopen any attempt from Your journal, or export JSON.
 
-Practice is untimed with progressive hints (four in LAB 004; three in earlier labs) and a recorded solution reveal. It downloads the lab pack, which enables offline play after the production shell is cached. Assessment lasts 20 minutes, requires the server, and locks hints/guide/journal until it ends. Submit before the deadline: an expired attempt without an on-time final submission receives zero and final feedback. Draft choices are saved locally but do not count as a submitted assessment. Closing the app does not pause time.
+Practice is untimed with progressive hints (four in LAB 004/005; three in earlier labs) and a recorded solution reveal. It downloads the lab pack, which enables offline play after the production shell is cached. Assessment lasts 20 minutes, requires the server, and locks hints/guide/journal until it ends. Submit before the deadline: an expired attempt without an on-time final submission receives zero and final feedback. Draft choices are saved locally but do not count as a submitted assessment. Closing the app does not pause time.
 
 ## Commands implemented
+
+Lab 005 supports all six router show commands listed below, router ping (including an optional local source) and traceroute; PC-A has ipconfig, /all, ping and tracert, while PC-B has ipconfig and ping. Observe physical state, Hello behavior, neighbor relationships and routes before submitting. The seven-part lesson and repair preview demonstrate why an advertised connected subnet does not prove adjacency. See [LAB 005's model, commands and rubric](docs/passive-interface-lab.md) for the authoring guide (spoilers).
 
 LAB 004 uses PC-A `ipconfig`, `/all`, `ping`, `tracert`; SW1 `show vlan brief`, `show interfaces status`, `show running-config`; routers `show ip interface brief`, `show ip route`, `show running-config`, `ping`, `traceroute`; PC-B `ipconfig`, `ping`. Router ping offers an optional local address/interface source, saved with its observation. No OSPF runs in this lab. The preview adds one static route to the modeled state and demonstrates separate request/reply journeys. Its seven-part lesson includes an independent exercise with an explicit solution reveal. The [LAB 004 guide](docs/return-path-lab.md) contains addressing, intended fault, rubric, references and limitations (spoilers).
 
@@ -64,7 +66,7 @@ The original OSPF command set remains below. Lab 002 exposes PC-A `ipconfig`, `/
 | PCs      | `ipconfig`, `ipconfig /all`, `ping`, `tracert`                                                                                                                  |
 | Switches | No switches in the OSPF lab; lab 002 adds the two access-switch commands described above                                                                        |
 
-Commands are bounded, condensed IOS-style/PC-style outputs, not byte-for-byte IOS or Windows emulation. No command abbreviations, destination names, arbitrary command flags, IOS configuration shell or live packet probes. LAB 004's dedicated ping-source field accepts modeled local interface names or addresses. Unsupported commands produce an honest message. The repair is selected structurally; a separate preview derives the repaired network for verification.
+Commands are bounded, condensed IOS-style/PC-style outputs, not byte-for-byte IOS or Windows emulation. No command abbreviations, destination names, arbitrary command flags, IOS configuration shell or live packet probes. LAB 004/005's dedicated ping-source field accepts modeled local interface names or addresses. Unsupported commands produce an honest message. The repair is selected structurally; a separate preview derives the repaired network for verification.
 
 ## Data, assessment and offline limits
 

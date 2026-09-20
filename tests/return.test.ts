@@ -46,7 +46,7 @@ afterEach(() => vi.useRealTimers());
 
 describe("static route schema and one-fault configuration", () => {
   it("loads four versions with unique usable addresses and validated attachments", () => {
-    expect(labs.map((l) => scenarioSchema.parse(getScenario(l.id)).schemaVersion)).toEqual([1, 2, 3, 4]);
+    expect(labs.map((l) => scenarioSchema.parse(getScenario(l.id)).schemaVersion)).toEqual([1, 2, 3, 4, 5]);
     expect(s.devices.flatMap((d) => d.interfaces.map((i) => `${i.ip}/${i.prefix}`))).toEqual([
       "192.168.10.10/24",
       "192.168.10.1/24",
@@ -357,7 +357,7 @@ describe("assessment and compatible persistence", () => {
     expect(packKey("ospf-01")).toBe("netfault.practice.v1");
     for (const lab of labs) expect(loadPack(storage, lab.id)).toEqual(getScenario(lab.id));
     const journal = loadJournal(storage);
-    expect(journal).toHaveLength(4);
+    expect(journal).toHaveLength(5);
     expect(journal.find((x) => x.scenario === s.id)?.diagnosis).toEqual(correct);
   });
 });

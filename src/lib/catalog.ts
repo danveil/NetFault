@@ -131,7 +131,43 @@ export const returnReasons = [
   ],
   ["same-address", "The route makes both hosts members of the same local subnet."],
 ] as const;
-export const labs = [lab, gatewayLab, vlanLab, returnLab] as const;
+export const passiveLab = {
+  id: "passive-01",
+  number: "005",
+  topic: "OSPF neighbor investigation",
+  target: "192.168.30.10",
+  title: "The Silent OSPF Interface",
+  subtitle: "Operational interfaces. An incomplete routing picture.",
+  incident:
+    "PC-A cannot communicate with PC-B. The routers' interfaces are operational, and the network team reports that OSPF has been configured. Investigate the network and determine why end-to-end connectivity is unavailable.",
+  design:
+    "PC-A–R1–R2–R3–PC-B. Intended design: one OSPF area 0, explicit point-to-point Ethernet transit links, compatible timers and no authentication. User-facing LAN interfaces are intentionally passive but their networks participate in OSPF. R1–R2 and R2–R3 should form adjacencies. R1 Gi0/1 connects R2 Gi0/0; R2 Gi0/1 connects R3 Gi0/0. No static/default routes, ACLs or NAT are intended. Inspect configuration rather than inferring protocol health from physical links.",
+  devices: lab.devices,
+  subnets: lab.subnets,
+} as const;
+export const passiveCauses = [
+  ...causes,
+  ["passive-interface", "An intended OSPF transit interface is passive"],
+] as const;
+export const passiveFixes = [
+  ["gateway", "Change the PC default gateway"],
+  ["no-passive", "Remove passive-interface from the selected router interface"],
+  ["static-route", "Add a static route"],
+  ["r2-area1", "Change the transit OSPF area"],
+  ["timers", "Change the OSPF Hello/Dead intervals"],
+  ["no-shutdown", "Enable the transit interface"],
+  ["restart", "Restart the OSPF processes"],
+] as const;
+export const passiveReasons = [
+  ["passive-stops-advertising", "Passive always removes the connected network from all OSPF advertisements."],
+  [
+    "hello-adjacency",
+    "Hellos can form the intended adjacency, allowing link-state information exchange and remote route learning.",
+  ],
+  ["same-address", "The change puts both PCs in the same local subnet."],
+  ["reverse-automatically", "A successful request automatically creates all return routes."],
+] as const;
+export const labs = [lab, gatewayLab, vlanLab, returnLab, passiveLab] as const;
 export type PublicLab = (typeof labs)[number];
 export function catalog(id: ScenarioId): PublicLab {
   return labs.find((l) => l.id === id)!;
@@ -140,6 +176,8 @@ export function commandsFor(id: ScenarioId, deviceId: string): string[] {
   const d = catalog(id).devices.find((d) => d.id === deviceId);
   if (!d) return [];
   if (id === "ospf-01") return d.kind === "router" ? routerCommands : pcCommands;
+  if (id === "passive-01")
+    return d.kind === "router" ? routerCommands : d.id === "PC-A" ? pcCommands : ["ipconfig", "ping"];
   if (id === "return-01") {
     if (d.kind === "router") return [...gatewayRouterCommands, "traceroute"];
     if (d.kind === "switch") return [...switchCommands, "show running-config"];

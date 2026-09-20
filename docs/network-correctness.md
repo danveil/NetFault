@@ -1,5 +1,7 @@
 # Network correctness: OSPF lab 001
 
+Milestone 2D adds [passive OSPF interface correctness](passive-interface-lab.md). LAB 005 uses all area 0 and only R2 Gi0/1's passive flag is faulty; this is separate from LAB 001's area mismatch. The same adjacency/routing algorithms drive both. OSPF interface output now explicitly shows Hello behavior and omits a vendor-specific FSM state on passive interfaces. Five labs are supported; the original state below is unchanged.
+
 Milestone 2C adds [static routing and return-path correctness](return-path-lab.md), including source-sensitive router pings and independently routed trace replies. All four labs use the shared engine; the OSPF configuration below remains unchanged.
 
 Milestone 2A adds one separate lab, documented in [gateway lab correctness](gateway-lab.md). The OSPF configuration and expected behavior below remain unchanged.

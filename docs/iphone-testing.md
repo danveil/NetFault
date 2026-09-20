@@ -2,6 +2,19 @@
 
 Target: iPhone 11, 414 × 896 CSS pixels, portrait. Automated Chromium viewport emulation does not demonstrate native Safari or physical touch behavior. Physical device testing has not been performed.
 
+## LAB 005 manual acceptance (not yet performed on physical iPhone)
+
+- [ ] On the authorized HTTPS release, accept Reload to update and select The Silent OSPF Interface. Confirm the five lab cards fit and LAB 001–004 remain available.
+- [ ] Inspect both PCs and all three routers through diagram nodes and device buttons; pan/zoom and verify VoiceOver labels/focus.
+- [ ] Compare local/remote PC pings, all router neighbor tables, interface brief, OSPF interface, protocols and running configuration. Scroll terminal output without moving the whole page sideways.
+- [ ] On R2 ping 10.0.23.2 with blank source (success), then Gi0/0 (failure). Confirm destination/source fields remain usable above the iOS keyboard.
+- [ ] Select explicit passive-setting, physical-up, neighbor and routing evidence. Use four progressive hints in practice; check the diagnosis's router/interface/fix/reason controls.
+- [ ] Submit and review the seven-part feedback, independently answer the Cedar/Birch exercise before revealing its solution, then run the repaired preview. Confirm R2–R3 FULL/-, remote LAN routes, both host pings and preserved LAN passive settings.
+- [ ] Reload and reopen the journal; check score, diagnosis, evidence, notes, source history and hints.
+- [ ] Start all five practice labs online and reload once after the worker is ready. Close/reopen in airplane mode, revisit each cached lab, then complete LAB 005 and save its preview/feedback. Restore connectivity afterward.
+- [ ] Complete timed assessment online; refresh while investigating, confirm time continues and hints remain unavailable. Disconnecting must not offer offline assessment or pause its deadline.
+- [ ] Repeat in Safari and the installed Home Screen app; verify old saved progress survives an authorized deployment update. This checklist has not been physically executed by Codex.
+
 ## LAB 004 manual acceptance (not yet performed on physical iPhone)
 
 - [ ] Select The Missing Return Path; inspect PC-A, SW1, R1, R2 and PC-B using diagram and device buttons.

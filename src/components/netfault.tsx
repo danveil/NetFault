@@ -37,6 +37,9 @@ import {
   returnCauses,
   returnFixes,
   returnReasons,
+  passiveCauses,
+  passiveFixes,
+  passiveReasons,
 } from "@/lib/catalog";
 import { execute, repaired, commandSequence, packetJourney } from "@/lib/engine";
 import { grade, nextHint } from "@/lib/grading";
@@ -96,9 +99,20 @@ export default function NetFault() {
   const isGateway = lab.id === "gateway-01";
   const isVlan = lab.id === "vlan-01";
   const isReturn = lab.id === "return-01";
-  const hintCount = isReturn ? 4 : 3;
-  const causeChoices = isReturn ? returnCauses : isVlan ? vlanCauses : causes;
-  const repairChoices = isReturn ? returnFixes : isVlan ? vlanFixes : isGateway ? gatewayFixes : fixes;
+  const isPassive = lab.id === "passive-01";
+  const singleDeviceFault = lab.id !== "ospf-01";
+  const supportsPingSource = isReturn || isPassive;
+  const hintCount = isReturn || isPassive ? 4 : 3;
+  const causeChoices = isPassive ? passiveCauses : isReturn ? returnCauses : isVlan ? vlanCauses : causes;
+  const repairChoices = isPassive
+    ? passiveFixes
+    : isReturn
+      ? returnFixes
+      : isVlan
+        ? vlanFixes
+        : isGateway
+          ? gatewayFixes
+          : fixes;
   const inFlight = useRef(false),
     timeoutRequested = useRef(false);
   const latestAttempt = useRef<Attempt | undefined>(undefined);
@@ -264,7 +278,8 @@ export default function NetFault() {
   }
   function run(command: string) {
     if (!attempt || attempt.finishedAt) return;
-    const probeSource = isReturn && selectedDevice.kind === "router" && command === "ping" ? source.trim() : "";
+    const probeSource =
+      supportsPingSource && selectedDevice.kind === "router" && command === "ping" ? source.trim() : "";
     void task(async () => {
       if (attempt.mode === "assessment") {
         const data = await api({
@@ -345,6 +360,7 @@ export default function NetFault() {
             gatewayPractice: localStorage.getItem("netfault.practice.gateway-01.v1"),
             vlanPractice: localStorage.getItem("netfault.practice.vlan-01.v1"),
             returnPractice: localStorage.getItem("netfault.practice.return-01.v1"),
+            passivePractice: localStorage.getItem("netfault.practice.passive-01.v1"),
           }
         : { version: 1, exportedAt: new Date().toISOString(), attempts: journal };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -434,7 +450,7 @@ export default function NetFault() {
           <span className="connection">
             <span className={online ? "status-dot" : "status-dot offline"} />
             {online ? "Workspace online" : "Offline"}
-            <span className="desktop-only"> · Milestone 2C</span>
+            <span className="desktop-only"> · Milestone 2D</span>
           </span>
         </header>
         <main id="main" tabIndex={-1}>
@@ -697,13 +713,15 @@ export default function NetFault() {
                     <p>{lab.design}</p>
                     <p>
                       Use commands to inspect each device. Save observations as evidence,{" "}
-                      {isReturn
-                        ? "identify the device, destination prefix and next hop, then explain how the repair restores communication."
-                        : isVlan
-                          ? "identify the device, interface and observed configuration, then propose the intended configuration."
-                          : isGateway
-                            ? "identify the device and incorrect setting, then propose an address and explain the repair."
-                            : "identify both affected adjacency endpoints, then propose a repair."}{" "}
+                      {isPassive
+                        ? "identify the router, interface and configuration fault, then explain the effect of your correction."
+                        : isReturn
+                          ? "identify the device, destination prefix and next hop, then explain how the repair restores communication."
+                          : isVlan
+                            ? "identify the device, interface and observed configuration, then propose the intended configuration."
+                            : isGateway
+                              ? "identify the device and incorrect setting, then propose an address and explain the repair."
+                              : "identify both affected adjacency endpoints, then propose a repair."}{" "}
                       Outputs are deterministic, condensed IOS-style or PC-style views; no live network traffic is sent.
                     </p>
                   </details>
@@ -854,7 +872,7 @@ export default function NetFault() {
                           />
                         </>
                       )}
-                      {isReturn && selectedDevice.kind === "router" && (
+                      {supportsPingSource && selectedDevice.kind === "router" && (
                         <>
                           <label htmlFor="ping-source">Ping source (optional)</label>
                           <input
@@ -1051,15 +1069,21 @@ export default function NetFault() {
                           {causeChoices.find(([id]) => id === answer.cause)?.[1] ?? "Not submitted"}
                         </p>
                         <p>
-                          <strong>
-                            {isGateway || isVlan || isReturn ? "Affected device:" : "Adjacency endpoints:"}
-                          </strong>{" "}
+                          <strong>{singleDeviceFault ? "Affected device:" : "Adjacency endpoints:"}</strong>{" "}
                           {answer.devices.join(", ") || "None selected"}
                         </p>
                         <p>
                           <strong>Repair:</strong>{" "}
                           {repairChoices.find(([id]) => id === answer.fix)?.[1] ?? "Not submitted"}
                         </p>
+                        {isPassive && (
+                          <p>
+                            <strong>Interface:</strong> {answer.interface || "Not submitted"}
+                            <br />
+                            <strong>Explanation:</strong>{" "}
+                            {passiveReasons.find(([id]) => id === answer.reason)?.[1] ?? "Not submitted"}
+                          </p>
+                        )}
                         {isReturn && (
                           <p>
                             <strong>Destination:</strong> {answer.destinationNetwork || "Not submitted"}
@@ -1105,6 +1129,35 @@ export default function NetFault() {
                           void task(async () => {
                             const original = await getPack();
                             const p = repaired(original);
+                            if (isPassive) {
+                              setPreview(
+                                [
+                                  "BEFORE REPAIR",
+                                  commandSequence(original, [
+                                    ["R2", "show ip ospf interface"],
+                                    ["R2", "show ip ospf neighbor"],
+                                    ["R1", "show ip route"],
+                                    ["R3", "show ip route"],
+                                    ["PC-A", "ping", lab.target],
+                                  ]),
+                                  "AFTER REPAIR — only the targeted interface setting changes",
+                                  commandSequence(p, [
+                                    ["R2", "show running-config"],
+                                    ["R2", "show ip ospf interface"],
+                                    ["R2", "show ip ospf neighbor"],
+                                    ["R3", "show ip ospf neighbor"],
+                                    ["R1", "show ip route"],
+                                    ["R3", "show ip route"],
+                                    ["R1", "show ip protocols"],
+                                    ["R3", "show ip protocols"],
+                                    ["PC-A", "ping", lab.target],
+                                    ["PC-B", "ping", "192.168.10.10"],
+                                    ["PC-A", "tracert", lab.target],
+                                  ]),
+                                ].join("\n\n"),
+                              );
+                              return;
+                            }
                             if (isReturn) {
                               setPreview(
                                 [
@@ -1224,18 +1277,16 @@ export default function NetFault() {
                       </select>
                       <fieldset>
                         <legend>
-                          {isGateway || isVlan || isReturn
-                            ? "02 / Device with the fault"
-                            : "02 / Affected adjacency endpoints"}
+                          {singleDeviceFault ? "02 / Device with the fault" : "02 / Affected adjacency endpoints"}
                         </legend>
                         <p className="muted">
-                          {isGateway || isVlan || isReturn
+                          {singleDeviceFault
                             ? "Choose the device containing the incorrect configuration."
                             : "Choose the two routers whose intended adjacency fails."}
                         </p>
                         <div className="device-checks">
                           {lab.devices
-                            .filter((d) => isGateway || isVlan || isReturn || d.kind === "router")
+                            .filter((d) => singleDeviceFault || d.kind === "router")
                             .map((d) => (
                               <label key={d.id}>
                                 <input
@@ -1254,6 +1305,40 @@ export default function NetFault() {
                             ))}
                         </div>
                       </fieldset>
+                      {isPassive && (
+                        <>
+                          <label htmlFor="ospf-interface-answer">Affected interface</label>
+                          <select
+                            id="ospf-interface-answer"
+                            required
+                            value={answer.interface ?? ""}
+                            onChange={(e) => editAnswer({ interface: e.target.value })}
+                          >
+                            <option value="" disabled>
+                              Select the interface you diagnosed
+                            </option>
+                            {["Gi0/0", "Gi0/1", "Ethernet0"].map((name) => (
+                              <option key={name}>{name}</option>
+                            ))}
+                          </select>
+                          <label htmlFor="ospf-reason-answer">Why does the correction work?</label>
+                          <select
+                            id="ospf-reason-answer"
+                            required
+                            value={answer.reason === "unspecified" ? "" : (answer.reason ?? "")}
+                            onChange={(e) => editAnswer({ reason: e.target.value as Diagnosis["reason"] })}
+                          >
+                            <option value="" disabled>
+                              Select a protocol explanation
+                            </option>
+                            {passiveReasons.map(([id, text]) => (
+                              <option key={id} value={id}>
+                                {text}
+                              </option>
+                            ))}
+                          </select>
+                        </>
+                      )}
                       {isReturn && (
                         <>
                           <label htmlFor="route-destination">Missing destination network (CIDR)</label>
@@ -1400,13 +1485,15 @@ export default function NetFault() {
                         <div>
                           <strong>04 / {answer.evidence.length} evidence items selected</strong>
                           <p>
-                            {isReturn
-                              ? "Combine both routing tables with the source host's IP configuration. Failed ping alone cannot prove which route is missing."
-                              : isVlan
-                                ? "Combine host configuration with membership observations for both connected switch ports. A failed ping alone does not identify the cause."
-                                : isGateway
-                                  ? "Include at least one observation of PC-A's configured next hop. Compare it with the router interface and local/remote probes."
-                                  : "Include both interface configurations and observations of the neighbor and routing impact."}
+                            {isPassive
+                              ? "Combine the observed configuration with physical interface state, neighbor relationships and routing impact. A missing neighbor or failed ping alone cannot identify the cause."
+                              : isReturn
+                                ? "Combine both routing tables with the source host's IP configuration. Failed ping alone cannot prove which route is missing."
+                                : isVlan
+                                  ? "Combine host configuration with membership observations for both connected switch ports. A failed ping alone does not identify the cause."
+                                  : isGateway
+                                    ? "Include at least one observation of PC-A's configured next hop. Compare it with the router interface and local/remote probes."
+                                    : "Include both interface configurations and observations of the neighbor and routing impact."}
                           </p>
                           <button className="text-button" type="button" onClick={() => setTab("evidence")}>
                             Review evidence <ArrowRight size={15} />
@@ -1422,23 +1509,27 @@ export default function NetFault() {
                         rows={4}
                         value={answer.notes}
                         placeholder={
-                          isReturn
-                            ? "What first suggested a return-path problem? Which entry was missing? Why did local ping not prove end-to-end connectivity?"
-                            : isVlan
-                              ? "What first suggested a Layer 2 problem? Why suspect IP settings? What would you check first next time?"
-                              : "What did you rule out, and why?"
+                          isPassive
+                            ? "Which observation distinguished this configuration fault from other neighbor failures? What did a successful connected ping prove?"
+                            : isReturn
+                              ? "What first suggested a return-path problem? Which entry was missing? Why did local ping not prove end-to-end connectivity?"
+                              : isVlan
+                                ? "What first suggested a Layer 2 problem? Why suspect IP settings? What would you check first next time?"
+                                : "What did you rule out, and why?"
                         }
                         onChange={(e) => editAnswer({ notes: e.target.value })}
                       />
                       <p className="muted">
                         Grading uses the selected cause,{" "}
-                        {isReturn
-                          ? "device, destination prefix, next hop, command evidence and reply-forwarding explanation"
-                          : isVlan
-                            ? "device, interface, observed VLAN, command evidence and intended access-port configuration"
-                            : isGateway
-                              ? "device, command evidence, gateway address and forwarding explanation"
-                              : "endpoint pair, command evidence, and repair"}
+                        {isPassive
+                          ? "router, interface, observed command evidence, targeted repair and protocol explanation"
+                          : isReturn
+                            ? "device, destination prefix, next hop, command evidence and reply-forwarding explanation"
+                            : isVlan
+                              ? "device, interface, observed VLAN, command evidence and intended access-port configuration"
+                              : isGateway
+                                ? "device, command evidence, gateway address and forwarding explanation"
+                                : "endpoint pair, command evidence, and repair"}
                         . Free text is saved verbatim; it is not interpreted.
                       </p>
                       <button className="primary" disabled={disabled} type="submit">
