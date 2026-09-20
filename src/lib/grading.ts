@@ -1,6 +1,8 @@
 import type { Diagnosis, Feedback, Observation, Scenario } from "./schema";
 export function grade(s: Scenario, answer: Diagnosis, history: Observation[], timedOut = false): Feedback {
-  const selected = history.filter((o) => answer.evidence.includes(o.id) && (!o.scenario || o.scenario === s.id));
+  const selected = history.filter(
+    (o) => answer.evidence.includes(o.id) && (!o.scenario || o.scenario === s.id) && !o.output.startsWith("%"),
+  );
   const checks = s.evidenceRules.map((rule) => ({
     ...rule,
     met: rule.requirements.every((r) =>
@@ -8,6 +10,49 @@ export function grade(s: Scenario, answer: Diagnosis, history: Observation[], ti
     ),
   }));
   const exactDevices = [...new Set(answer.devices)].sort().join(",") === [...s.fault.devices].sort().join(",");
+  if ("route" in s.repair) {
+    const r = s.repair.route;
+    const networkCorrect = answer.destinationNetwork?.trim() === `${r.network}/${r.prefix}`;
+    const fixCorrect =
+      exactDevices && networkCorrect && answer.nextHop?.trim() === r.nextHop && s.acceptedFixes.includes(answer.fix);
+    const reasonCorrect = answer.reason === s.repair.reason;
+    const parts = [
+      {
+        name: "Root cause and destination",
+        earned: (answer.cause === s.fault.cause ? 20 : 0) + (networkCorrect ? 10 : 0),
+        possible: 30,
+        message: `Missing-route cause: ${answer.cause === s.fault.cause ? "correct" : "incorrect"} (20). Destination prefix: ${networkCorrect ? "correct" : "incorrect or missing"} (10).`,
+      },
+      {
+        name: "Affected device",
+        earned: exactDevices ? 20 : 0,
+        possible: 20,
+        message: exactDevices
+          ? "The router missing the route is identified."
+          : "Identify the router containing the fault, not every host experiencing its effect.",
+      },
+      {
+        name: "Supporting evidence",
+        earned: checks.reduce((n, c) => n + (c.met ? c.points : 0), 0),
+        possible: 30,
+        message: checks.map((c) => `${c.label}: ${c.met ? "captured" : "missing"}.`).join(" "),
+      },
+      {
+        name: "Remediation",
+        earned: (fixCorrect ? 10 : 0) + (reasonCorrect ? 10 : 0),
+        possible: 20,
+        message: `Targeted static route: ${fixCorrect ? "correct" : "incorrect or missing"} (10). Reply forwarding explanation: ${reasonCorrect ? "correct" : "incorrect or missing"} (10). The router, destination prefix and next hop must all match; notes are not graded.`,
+      },
+    ];
+    return {
+      score: parts.reduce((n, p) => n + p.earned, 0),
+      parts,
+      explanation: s.explanation,
+      solution: s.solution,
+      lesson: s.lesson,
+      timedOut,
+    };
+  }
   if ("vlan" in s.repair) {
     const repair = s.repair;
     const port = s.devices.find((d) => d.id === repair.device)!.ports!.find((p) => p.name === repair.interface)!;

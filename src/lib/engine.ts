@@ -19,7 +19,7 @@ export type Neighbor = {
   state: "FULL/-";
   cost: number;
 };
-export type Route = { prefix: string; kind: "C" | "L" | "O"; via?: string; interface: string; cost: number };
+export type Route = { prefix: string; kind: "C" | "L" | "O" | "S"; via?: string; interface: string; cost: number };
 export function device(s: Scenario, id: string): Device {
   const d = s.devices.find((d) => d.id === id);
   if (!d) throw Error("Unknown device");
@@ -98,6 +98,13 @@ export function routes(s: Scenario, id: string): Route[] {
       { prefix: network(i.ip, i.prefix), kind: "C" as const, interface: i.name, cost: 0 },
       { prefix: `${i.ip}/32`, kind: "L" as const, interface: i.name, cost: 0 },
     ]);
+  // Connected (AD 0), then static (AD 1), then OSPF (AD 110) for the same prefix.
+  for (const r of d.staticRoutes ?? []) {
+    const out = d.interfaces.find((i) => i.up && sameSubnet(i.ip, r.nextHop, i.prefix));
+    const prefix = `${r.network}/${r.prefix}`;
+    if (out && !result.some((existing) => existing.prefix === prefix))
+      result.push({ prefix, kind: "S", via: r.nextHop, interface: out.name, cost: 0 });
+  }
   // Dijkstra per area; no invented inter-area summaries, ECMP or redistribution.
   for (const area of new Set(d.interfaces.flatMap((i) => (i.ospf ? [i.ospf.area] : [])))) {
     const queue: { id: string; cost: number; first?: Neighbor }[] = [{ id, cost: 0 }];
@@ -164,10 +171,17 @@ export function forward(s: Scenario, start: string, target: string, observe?: (r
   }
   return { ok: false, hops, reason: "Hop limit exceeded" };
 }
-export function connectivity(s: Scenario, id: string, target: string) {
+export function connectivity(s: Scenario, id: string, target: string, requestedSource = "") {
   const d = device(s, id),
     route = d.kind === "router" ? lookup(s, id, target) : undefined;
-  const source = (d.interfaces.find((i) => i.name === route?.interface) ?? d.interfaces[0]).ip;
+  const explicit = requestedSource
+    ? d.interfaces.find(
+        (i) => i.up && (i.ip === requestedSource || i.name.toLowerCase() === requestedSource.toLowerCase()),
+      )
+    : undefined;
+  if (requestedSource && (d.kind !== "router" || !explicit))
+    throw Error("Source must be an active interface or IPv4 address on this router.");
+  const source = (explicit ?? d.interfaces.find((i) => i.name === route?.interface) ?? d.interfaces[0]).ip;
   const outward = forward(s, id, target),
     destination = s.devices.find((d) => d.interfaces.some((i) => i.ip === target));
   const returning = destination ? forward(s, destination.id, source) : undefined;
@@ -206,9 +220,14 @@ export function runningConfig(s: Scenario, id: string) {
         : []),
       "!",
     ]),
-    `router ospf 1`,
-    ` router-id ${d.routerId}`,
-    ...d.interfaces.filter((i) => i.ospf?.passive).map((i) => ` passive-interface ${i.name}`),
+    ...(d.staticRoutes ?? []).map((r) => `ip route ${r.network} ${dotted(mask(r.prefix))} ${r.nextHop}`),
+    ...(d.interfaces.some((i) => i.ospf)
+      ? [
+          `router ospf 1`,
+          ` router-id ${d.routerId}`,
+          ...d.interfaces.filter((i) => i.ospf?.passive).map((i) => ` passive-interface ${i.name}`),
+        ]
+      : []),
   ].join("\n");
 }
 // Replay bounded probe history against the immutable attempt configuration. No wall-clock aging.
@@ -233,15 +252,23 @@ export function arpState(s: Scenario, id: string, history: Observation[]) {
     const source = s.devices.find((d) => d.id === o.device);
     if (
       !source?.commands.includes(o.command as (typeof source.commands)[number]) ||
+      (o.source && o.command !== "ping") ||
       !["ping", "tracert", "traceroute"].includes(o.command) ||
       !ipv4.safeParse(o.target.trim()).success
     )
       continue;
     const target = o.target.trim();
+    // Invalid source requests never emitted a probe and cannot create ARP state.
+    let probeSource: string;
+    try {
+      probeSource = connectivity(s, o.device, target, o.source?.trim()).source;
+    } catch {
+      continue;
+    }
     const result = forward(s, o.device, target, record);
     if (result.ok) {
       const destination = s.devices.find((d) => d.interfaces.some((i) => i.ip === target));
-      if (destination) forward(s, destination.id, connectivity(s, o.device, target).source, record);
+      if (destination) forward(s, destination.id, probeSource, record);
     }
   }
   return { entries: [...entries.values()], last };
@@ -263,11 +290,19 @@ function portStatus(s: Scenario, id: string, name: string) {
         ? "inactive"
         : "connected";
 }
-export function execute(s: Scenario, id: string, raw: string, target = "", history: Observation[] = []): string {
+export function execute(
+  s: Scenario,
+  id: string,
+  raw: string,
+  target = "",
+  history: Observation[] = [],
+  source = "",
+): string {
   const d = device(s, id),
     cmd = raw.trim().toLowerCase().replace(/\s+/g, " ");
   if (!d.commands.some((c) => c === cmd))
     return `% Unsupported command on ${id}: ${raw}. Use the supported command buttons. This is a bounded simulator, not an IOS shell.`;
+  if (source && cmd !== "ping") return "% Explicit source is supported only for router ping.";
   if (cmd === "arp -a") {
     const state = arpState(s, id, history);
     return [
@@ -337,8 +372,13 @@ export function execute(s: Scenario, id: string, raw: string, target = "", histo
   if (["ping", "traceroute", "tracert"].includes(cmd)) {
     if (!ipv4.safeParse(target.trim()).success)
       return "% Enter a dotted IPv4 destination. DNS names and command flags are not implemented.";
-    const t = target.trim(),
-      c = connectivity(s, id, t);
+    const t = target.trim();
+    let c: ReturnType<typeof connectivity>;
+    try {
+      c = connectivity(s, id, t, source.trim());
+    } catch {
+      return "% Source must be an active interface or IPv4 address on this router.";
+    }
     if (cmd === "ping")
       return [
         `PING ${t} (source ${c.source})`,
@@ -350,10 +390,19 @@ export function execute(s: Scenario, id: string, raw: string, target = "", histo
       const owner = s.devices.find((d) => d.interfaces.some((i) => i.ip === ip))!;
       return `${index + 1}  ${forward(s, owner.id, c.source).ok ? ip : "* * *"}`;
     });
+    const lastHop = c.outward.hops.at(-1);
+    const stoppedAt = lastHop ? s.devices.find((d) => d.interfaces.some((i) => i.ip === lastHop))!.id : id;
+    const errorCanReturn = forward(s, stoppedAt, c.source).ok;
     return [
       `Tracing route to ${t} (source ${c.source})`,
       ...hops,
-      ...(!c.outward.ok ? [`${hops.length + 1}  !H  Destination unreachable (${c.outward.reason})`] : []),
+      ...(!c.outward.ok
+        ? [
+            errorCanReturn
+              ? `${hops.length + 1}  !H  Destination unreachable (${c.outward.reason})`
+              : `${hops.length + 1}  * * *`,
+          ]
+        : []),
       c.ok ? "Trace complete." : "Trace stopped; destination did not return a reply.",
       "Simulator trace: hop reachability only; latency and per-probe TTL timing are not modeled.",
     ].join("\n");
@@ -410,6 +459,8 @@ export function execute(s: Scenario, id: string, raw: string, target = "", histo
         ].join("\n");
       })
       .join("\n\n");
+  if (cmd === "show ip protocols" && !d.interfaces.some((i) => i.ospf))
+    return "No dynamic routing protocols configured.";
   if (cmd === "show ip protocols")
     return [
       `Routing Protocol is "ospf 1"`,
@@ -425,12 +476,14 @@ export function execute(s: Scenario, id: string, raw: string, target = "", histo
     ].join("\n");
   if (cmd === "show ip route")
     return [
-      "Codes: C - connected, L - local, O - OSPF",
-      "Gateway of last resort is not set",
+      "Codes: C - connected, L - local, S - static, O - OSPF, * - candidate default",
+      routes(s, id).some((r) => r.prefix === "0.0.0.0/0")
+        ? `Gateway of last resort is ${routes(s, id).find((r) => r.prefix === "0.0.0.0/0")!.via} to network 0.0.0.0`
+        : "Gateway of last resort is not set",
       "",
       ...routes(s, id).map(
         (r) =>
-          `${r.kind} ${r.prefix.padEnd(20)} ${r.kind === "O" ? `[110/${r.cost}] via ${r.via}, ${r.interface}` : `is directly connected, ${r.interface}`}`,
+          `${r.kind}${r.prefix === "0.0.0.0/0" ? "*" : ""} ${r.prefix.padEnd(20)} ${r.kind === "O" || r.kind === "S" ? `[${r.kind === "S" ? 1 : 110}/${r.cost}] via ${r.via}, ${r.interface}` : `is directly connected, ${r.interface}`}`,
       ),
     ].join("\n");
   return "% Unsupported command.";
@@ -438,19 +491,36 @@ export function execute(s: Scenario, id: string, raw: string, target = "", histo
 export function repaired(s: Scenario): Scenario {
   const next = structuredClone(s);
   const repair = s.repair;
-  if ("gateway" in repair) device(next, repair.device).gateway = repair.gateway;
+  if ("route" in repair) {
+    const d = device(next, repair.device);
+    d.staticRoutes = [
+      ...(d.staticRoutes ?? []).filter((r) => r.network !== repair.route.network || r.prefix !== repair.route.prefix),
+      structuredClone(repair.route),
+    ];
+  } else if ("gateway" in repair) device(next, repair.device).gateway = repair.gateway;
   else if ("vlan" in repair)
     device(next, repair.device).ports!.find((p) => p.name === repair.interface)!.vlan = repair.vlan;
   else device(next, repair.device).interfaces.find((i) => i.name === repair.interface)!.ospf!.area = repair.area;
   return next;
 }
-export function commandSequence(s: Scenario, commands: [string, string, string?][]) {
+export function commandSequence(s: Scenario, commands: [string, string, string?, string?][]) {
   const history: Observation[] = [];
   return commands
-    .map(([id, command, target = ""]) => {
-      const output = execute(s, id, command, target, history);
-      history.push({ id: String(history.length), scenario: s.id, device: id, command, target, output, at: 0 });
-      return `${id}> ${command}${target ? ` ${target}` : ""}\n${output}`;
+    .map(([id, command, target = "", source = ""]) => {
+      const output = execute(s, id, command, target, history, source);
+      history.push({ id: String(history.length), scenario: s.id, device: id, command, target, source, output, at: 0 });
+      return `${id}> ${command}${target ? ` ${target}` : ""}${source ? ` source ${source}` : ""}\n${output}`;
     })
     .join("\n\n");
+}
+// Post-attempt teaching view, derived from the same packet forwarding used by commands.
+export function packetJourney(s: Scenario, id: string, target: string) {
+  const c = connectivity(s, id, target);
+  return [
+    `Request ${c.source} -> ${target}: ${c.outward.hops.join(" -> ")}; ${c.outward.reason}`,
+    c.outward.ok && c.returning
+      ? `Reply ${target} -> ${c.source}: ${c.returning.hops.join(" -> ")}; ${c.returning.reason}`
+      : "No reply generated: request was not delivered.",
+    `Bidirectional communication: ${c.ok ? "successful" : "failed"}`,
+  ].join("\n");
 }

@@ -45,7 +45,7 @@ afterEach(() => vi.useRealTimers());
 describe("VLAN scenario and sole repair", () => {
   it("validates all three versions and retains valid unique addressing", () => {
     expect([ospf, gateway, s].map((x) => scenarioSchema.parse(x).schemaVersion)).toEqual([1, 2, 3]);
-    expect(labs.map((l) => l.id)).toEqual(["ospf-01", "gateway-01", "vlan-01"]);
+    expect(labs.map((l) => l.id)).toEqual(["ospf-01", "gateway-01", "vlan-01", "return-01"]);
     expect(new Set(s.devices.map((d) => d.id)).size).toBe(5);
     expect(s.devices.flatMap((d) => d.interfaces.map((i) => `${i.ip}/${i.prefix}`))).toEqual([
       "192.168.10.10/24",

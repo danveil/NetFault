@@ -2,6 +2,18 @@
 
 Target: iPhone 11, 414 × 896 CSS pixels, portrait. Automated Chromium viewport emulation does not demonstrate native Safari or physical touch behavior. Physical device testing has not been performed.
 
+## LAB 004 manual acceptance (not yet performed on physical iPhone)
+
+- [ ] Select The Missing Return Path; inspect PC-A, SW1, R1, R2 and PC-B using diagram and device buttons.
+- [ ] Compare PC-A local gateway ping with remote ping, and read both routing tables with horizontal terminal scrolling.
+- [ ] On R1, leave Ping source blank for success to PC-B, then enter Gi0/0 or 192.168.10.1 for failure. Confirm the iOS keyboard/input does not obscure commands and source appears in history.
+- [ ] Capture PC-A addressing plus both routing tables, use all four hints if desired, and complete the destination prefix/next hop/reason form without clipping.
+- [ ] Submit, read the seven-part lesson, explicitly reveal the independent solution, then verify the repaired network and both packet directions.
+- [ ] Reload, reopen the journal and confirm diagnosis, notes, source probes, evidence and hint count persist.
+- [ ] Cache each of the four packs over trusted production HTTPS, reload online after installation, enable airplane mode and reopen every saved practice lab. Complete LAB 004 and its preview offline.
+- [ ] Reconnect and complete a timed assessment; hints remain absent and refreshing retains server-owned observations. Do not expect assessment to work offline.
+- [ ] After a separately authorized future deployment, verify the installed app update and laptop-off hosting independence. No live release was made during 2C.
+
 ## Connection and PWA preparation
 
 For Netlify, follow [the deployment checklist](NETLIFY_DEPLOYMENT.md): use the public HTTPS URL and turn the Windows laptop off to prove hosting independence. The LAN steps below remain an optional local-development path. Test installed-app updates and offline practice on the physical device after deployment; these have not been physically verified.

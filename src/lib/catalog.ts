@@ -96,7 +96,42 @@ export const vlanFixes = [
   fixes[2],
   fixes[4],
 ] as const;
-export const labs = [lab, gatewayLab, vlanLab] as const;
+export const returnLab = {
+  id: "return-01",
+  number: "004",
+  topic: "Routing investigation",
+  target: "192.168.20.10",
+  title: "The Missing Return Path",
+  subtitle: "A conversation takes more than delivery in one direction.",
+  incident:
+    "PC-A cannot communicate with PC-B. Initial checks suggest that the local network is functioning and the routers are operational. Investigate the network and identify why end-to-end communication fails.",
+  design:
+    "PC-A–SW1–R1–R2–PC-B. Network A is 192.168.10.0/24, the transit is 10.0.12.0/30, and Network B is 192.168.20.0/24. Hosts use static IPv4 settings. SW1 is an unnumbered access switch; Gi0/1 connects PC-A and Gi0/2 connects R1. Routers use connected and static routes, without OSPF, NAT or ACLs. Inspect the actual configuration and compare observations before proposing a repair.",
+  devices: gatewayLab.devices,
+  subnets: gatewayLab.subnets,
+} as const;
+export const returnCauses = [
+  ["wrong-gateway", "Incorrect PC gateway"],
+  ["missing-route", "Missing destination route"],
+  ["interface-down", "An interface is down"],
+  ["access-vlan", "Incorrect access VLAN membership"],
+] as const;
+export const returnFixes = [
+  ["gateway", "Change the PC default gateway"],
+  ["access-vlan", "Change the access VLAN"],
+  ["static-route", "Add a static route on the selected device"],
+  ["no-shutdown", "Enable an interface"],
+] as const;
+export const returnReasons = [
+  ["reverse-automatically", "A successful request makes routers automatically reverse its path."],
+  ["dns-resolution", "The route translates the destination name into an IP address."],
+  [
+    "reply-route",
+    "Replies have their own destination lookup; the route forwards them toward the original source network.",
+  ],
+  ["same-address", "The route makes both hosts members of the same local subnet."],
+] as const;
+export const labs = [lab, gatewayLab, vlanLab, returnLab] as const;
 export type PublicLab = (typeof labs)[number];
 export function catalog(id: ScenarioId): PublicLab {
   return labs.find((l) => l.id === id)!;
@@ -105,6 +140,11 @@ export function commandsFor(id: ScenarioId, deviceId: string): string[] {
   const d = catalog(id).devices.find((d) => d.id === deviceId);
   if (!d) return [];
   if (id === "ospf-01") return d.kind === "router" ? routerCommands : pcCommands;
+  if (id === "return-01") {
+    if (d.kind === "router") return [...gatewayRouterCommands, "traceroute"];
+    if (d.kind === "switch") return [...switchCommands, "show running-config"];
+    return d.id === "PC-A" ? pcCommands : ["ipconfig", "ping"];
+  }
   if (id === "vlan-01" && d.kind === "switch") return vlanSwitchCommands;
   if (id === "vlan-01" && d.id === "PC-A") return [...pcCommands, "arp -a"];
   if (d.kind === "switch") return switchCommands;

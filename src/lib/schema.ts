@@ -43,12 +43,18 @@ export const interfaceSchema = z.object({
     })
     .optional(),
 });
+export const staticRouteSchema = z.object({
+  network: ipv4,
+  prefix: z.number().int().min(0).max(32),
+  nextHop: ipv4,
+});
 export const deviceSchema = z.object({
   id: z.string(),
   kind: z.enum(["router", "pc", "switch"]),
   role: z.string(),
   routerId: ipv4.optional(),
   gateway: ipv4.optional(),
+  staticRoutes: z.array(staticRouteSchema).optional(),
   interfaces: z.array(interfaceSchema),
   ports: z
     .array(
@@ -71,11 +77,23 @@ export const linkSchema = z.object({
   subnet: z.string(),
 });
 export const diagnosisSchema = z.object({
+  destinationNetwork: z.string().max(64).optional(),
+  nextHop: z.string().max(64).optional(),
   interface: z.string().max(64).optional(),
   observedVlan: z.number().int().min(1).max(4094).optional(),
   intendedVlan: z.number().int().min(1).max(4094).optional(),
   gateway: z.string().max(64).optional(),
-  reason: z.enum(["unspecified", "on-link-router", "dns-resolution", "switch-routing", "same-address"]).optional(),
+  reason: z
+    .enum([
+      "unspecified",
+      "on-link-router",
+      "dns-resolution",
+      "switch-routing",
+      "same-address",
+      "reply-route",
+      "reverse-automatically",
+    ])
+    .optional(),
   cause: z.enum([
     "unspecified",
     "area-mismatch",
@@ -84,21 +102,31 @@ export const diagnosisSchema = z.object({
     "missing-advertisement",
     "timer-mismatch",
     "access-vlan",
+    "missing-route",
   ]),
   devices: z.array(z.string()).max(5),
-  fix: z.enum(["unspecified", "r3-area0", "r2-area1", "restart", "gateway", "no-shutdown", "access-vlan"]),
+  fix: z.enum([
+    "unspecified",
+    "r3-area0",
+    "r2-area1",
+    "restart",
+    "gateway",
+    "no-shutdown",
+    "access-vlan",
+    "static-route",
+  ]),
   evidence: z.array(z.string()).max(100),
   notes: z.string().max(2000).default(""),
 });
 export type Diagnosis = z.infer<typeof diagnosisSchema>;
-export const scenarioIdSchema = z.enum(["ospf-01", "gateway-01", "vlan-01"]);
+export const scenarioIdSchema = z.enum(["ospf-01", "gateway-01", "vlan-01", "return-01"]);
 export type ScenarioId = z.infer<typeof scenarioIdSchema>;
 const lessonSchema = z.array(
   z.object({ title: z.string(), text: z.string(), revealOnRequest: z.boolean().optional() }),
 );
 export const scenarioSchema = z
   .object({
-    schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+    schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
     id: scenarioIdSchema,
     revision: z.literal(1),
     title: z.string(),
@@ -109,6 +137,7 @@ export const scenarioSchema = z
     fault: z.object({ cause: diagnosisSchema.shape.cause, devices: z.array(z.string()), interface: z.string() }),
     acceptedFixes: z.array(diagnosisSchema.shape.fix),
     repair: z.union([
+      z.object({ device: z.string(), route: staticRouteSchema, reason: z.literal("reply-route") }),
       z.object({ device: z.string(), interface: z.string(), area: z.number().int().min(0) }),
       z.object({ device: z.string(), gateway: ipv4, reason: diagnosisSchema.shape.reason.unwrap() }),
       z.object({ device: z.string(), interface: z.string(), vlan: z.number().int().min(1).max(4094) }),
@@ -134,10 +163,37 @@ export const scenarioSchema = z
     const rids = s.devices.filter((d) => d.kind === "router").map((d) => d.routerId);
     if (rids.some((r) => !r) || new Set(rids).size !== rids.length) fail("Unique explicit router IDs required");
     const endpoints = new Set<string>();
+    const validateRoute = (d: z.infer<typeof deviceSchema> | undefined, r: z.infer<typeof staticRouteSchema>) => {
+      if (s.schemaVersion < 4 || d?.kind !== "router") fail("Static routes require a router and schema v4");
+      if (network(r.network, r.prefix) !== `${r.network}/${r.prefix}`)
+        fail("Static destination must be a canonical network");
+      const local = d?.interfaces.find((i) => sameSubnet(i.ip, r.nextHop, i.prefix));
+      const peer = s.devices.find(
+        (p) => p.id !== d?.id && p.kind === "router" && p.interfaces.some((i) => i.ip === r.nextHop),
+      );
+      if (
+        !local ||
+        !peer ||
+        !s.links.some(
+          (l) =>
+            [l.a, l.b].some((e) => e.device === d?.id && e.interface === local.name) &&
+            [l.a, l.b].some(
+              (e) => e.device === peer.id && peer.interfaces.some((i) => i.name === e.interface && i.ip === r.nextHop),
+            ),
+        )
+      )
+        fail("Static next hop must be a directly linked on-subnet router; recursive routes are not modeled");
+    };
     if (s.schemaVersion !== 3 && "vlan" in s.repair) fail("Access VLAN repair requires schema v3");
     if (s.schemaVersion === 1 && (s.devices.some((d) => d.kind === "switch") || "gateway" in s.repair))
       fail("Layer 2 ports and gateway repair require schema v2");
     for (const d of s.devices) {
+      if (d.staticRoutes) {
+        if (s.schemaVersion < 4 || d.kind !== "router") fail("Static routes require a router and schema v4");
+        for (const r of d.staticRoutes) validateRoute(d, r);
+        if (new Set(d.staticRoutes.map((r) => `${r.network}/${r.prefix}`)).size !== d.staticRoutes.length)
+          fail("Duplicate static destinations are not modeled");
+      }
       const allowed =
         d.kind === "switch"
           ? [
@@ -226,7 +282,9 @@ export const scenarioSchema = z
     if (s.fault.devices.some((id) => !ids.includes(id))) fail("Fault references absent device");
     const repair = s.repair;
     const repairedDevice = s.devices.find((d) => d.id === repair.device);
-    if ("area" in repair) {
+    if ("route" in repair) {
+      validateRoute(repairedDevice, repair.route);
+    } else if ("area" in repair) {
       if (!repairedDevice?.interfaces.find((i) => i.name === repair.interface)?.ospf)
         fail("Repair references absent OSPF interface");
     } else if ("vlan" in repair) {
@@ -287,7 +345,7 @@ export function ipNumber(ip: string) {
   return ip.split(".").reduce((n, p) => (n * 256 + Number(p)) >>> 0, 0);
 }
 export function mask(prefix: number) {
-  return (0xffffffff << (32 - prefix)) >>> 0;
+  return prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0;
 }
 export function dotted(n: number) {
   return [24, 16, 8, 0].map((b) => (n >>> b) & 255).join(".");
@@ -300,6 +358,7 @@ export function sameSubnet(a: string, b: string, p: number) {
 }
 
 export const observationSchema = z.object({
+  source: z.string().max(64).optional(),
   scenario: scenarioIdSchema.optional(),
   id: z.string(),
   device: z.string(),

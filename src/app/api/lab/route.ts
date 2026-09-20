@@ -14,6 +14,7 @@ const requestSchema = z.discriminatedUnion("action", [
     device: z.enum(["PC-A", "R1", "R2", "R3", "SW1", "PC-B"]),
     command: z.string().max(100),
     target: z.string().max(64),
+    source: z.string().max(64).optional(),
   }),
   z.object({ action: z.literal("submit"), id: z.string().uuid(), diagnosis: diagnosisSchema }),
 ]);
@@ -71,6 +72,7 @@ export async function POST(request: Request) {
           device: p.device,
           command: p.command.trim().toLowerCase().replace(/\s+/g, " "),
           target: p.target.trim(),
+          ...(p.source ? { source: p.source.trim() } : {}),
         }),
       });
     if (p.action === "submit") return json({ attempt: await assessmentAction(p.id, "submit", p.diagnosis) });

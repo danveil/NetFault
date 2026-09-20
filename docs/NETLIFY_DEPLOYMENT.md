@@ -1,5 +1,7 @@
 # Deploy NetFault to Netlify
 
+Milestone 2C adds LAB 004 without changing Netlify configuration, dependencies, environment variables, Blobs storage or worker strategy. Work was local only; no remote project, account, commit, push or deployment was changed. After a separately authorized release, load the updated app and start LAB 004 online to cache its own practice pack. New code preserves all earlier packs/journals; older releases cannot read `return-01` attempts, so export journals before rollback across this boundary. See [LAB 004](return-path-lab.md) and [current verification](verification.md). Live Netlify and physical iPhone checks remain separate release acceptance tasks.
+
 Milestone 2B adds LAB 003 without changing build settings, dependencies, Blobs storage or worker strategy. The user reports an existing deployment; the new version has not been deployed or tested live by this milestone. Use the existing update flow to receive the third lab after a separately authorized release. New code preserves v1/v2 packs and journals; older code cannot parse `vlan-01` attempts. Export before rolling back across this content boundary. See [VLAN model](vlan-lab.md) and [current verification](verification.md).
 
 Milestone 2A retains these build/runtime/storage settings and adds one gateway lab. Old OSPF data stays readable by the new release; older releases cannot parse new gateway attempts. Export journals before considering a rollback across that content boundary. No live site is changed by the 2A implementation.

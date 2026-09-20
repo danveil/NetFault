@@ -1,4 +1,70 @@
-# Milestone 2B verification report
+# Milestone 2C verification report
+
+Executed locally on Windows, 2026-09-21, Node 24.15.0, pnpm 11.19.0, Next.js 16.3.1. Scope: LAB 004 only. Existing dependencies, lockfile, deployment configuration, Blobs/ETag provider, local persistence format and service-worker strategy are preserved. No commits, pushes, remote project changes or deployments were performed.
+
+## Baseline and final checks
+
+The baseline established during this task passed lint, strict type checking, 123 unit/integration tests, a production build and all 32 existing production browser tests before the new lab was integrated. These are executed baseline results, not merely the previous milestone's reported counts.
+
+| Check                                              | Actual result                                                                             |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `pnpm lint`                                        | Passed                                                                                    |
+| `pnpm typecheck`                                   | Passed                                                                                    |
+| `pnpm test`                                        | 157 passed across 8 files: 123 retained + 34 LAB 004 checks                               |
+| Fresh development `pnpm test:browser`              | 30 passed; 10 production-only tests intentionally skipped                                 |
+| `pnpm build`                                       | Passed; generated build-versioned offline worker; `/api/lab` remains a dynamic Node route |
+| Production browser suite                           | 40 passed, 0 skipped, 0 failed on the final build (20 desktop + 20 mobile)                |
+| `git diff --check`                                 | Passed                                                                                    |
+| Physical iPhone, native Safari or external IOS lab | Not performed                                                                             |
+| Live Netlify/CDN/Blobs deployment                  | Not performed; no hosting changes                                                         |
+
+Browser projects use installed Edge/Chromium at desktop 1440 × 1000 and mobile 414 × 896 CSS pixels. Development and production runs start fresh appropriate servers; no development server is reused for offline tests. Both the first and final production runs passed all 40 tests. The final build includes the edge-case guards preventing unsupported source options from populating ARP replay and empty static-route lists from bypassing device/version validation. No failed checks remain. The production preview was restarted locally on port 3100 after the test harness stopped.
+
+## Verified behavior
+
+- Schema v4 validates canonical static prefixes, directly linked next-hop routers, unique addresses, operational interfaces, correct PC gateways, switch VLANs and valid repair targets. Invalid self, network/broadcast, remote and host next hops are rejected. Earlier packs and journal records remain readable.
+- R1 installs its static Network B route; R2 initially has only C/L transit and Network B entries, without a default or OSPF alternative. Longest-prefix counterexamples cover connected/static competition, /32 specificity and /0 fallback. Interface-down state withdraws an installed dependent static route without deleting its configuration.
+- PC-A reaches its local gateway. Its request to PC-B traverses R1 and R2 and is delivered; the reply reaches R2 and fails its destination lookup. R1's default transit-sourced ping succeeds, while the LAN-sourced probe fails. Invalid/nonlocal/unsupported source requests are honestly rejected.
+- Trace displays R1 then stars where return responses cannot reach PC-A. A separate outward-failure test prevents disclosure of an intermediate unreachable message with no return path. No switch IP hop is fabricated.
+- Repair changes only R2's route list, is idempotent, leaves the original untouched, and restores connectivity among all modeled IP endpoints. Route/config/ping/trace outputs and packet-journey explanations derive from the same state.
+- Deterministic grading checks cause, missing prefix, exact device, both routing tables with host addressing, next hop, action and structured explanation. Alternate observation order is accepted. Failed ping alone, forged IDs, other-scenario records and command-error outputs earn no evidence credit. Wrong gateway/VLAN/R1 changes do not receive repair credit. Four ordered hints and a seven-part lesson are supplied; the independent solution requires explicit reveal.
+- Assessment sessions preserve source observations across independent module reload, enforce server deadlines, keep final results immutable, bound new input fields and retain the stored scenario despite a client override. Existing Blobs conditional-write/concurrency tests pass. This remains local/contract evidence, not a cloud-storage claim.
+- Desktop/mobile full practice workflows inspect all five devices, compare source-sensitive probes, select evidence, score 100, read the lesson, explicitly reveal the independent solution, run the repaired preview and reopen a saved journal. Timed assessment persists the source observation across refresh and grades server-owned evidence.
+- Production tests reopen all four cached packs offline, complete LAB 004, run its repaired preview and retain the saved grade. Earlier OSPF, gateway and VLAN complete workflows, assessments, repair previews and offline tests pass. API no-store headers and absence of private route/lesson content from initial assessment payloads/static scripts are checked. Existing worker-update regression passes.
+- Mobile tests assert document width within 414 CSS pixels and command-button heights of at least 44 pixels. Desktop/mobile inspection screenshots were visually reviewed; all devices have accessible selection buttons, routes scroll in the terminal, and the new source input fits. Automated emulation does not prove physical touch, VoiceOver or Safari behavior.
+
+## Issues encountered and limits
+
+The first new test type-check found a storage mock missing `removeItem`; it was corrected. A sandboxed `pnpm exec prettier` invocation failed executable resolution; the already-installed formatter was run directly using Node. No dependencies were installed or changed. Process inspection initially required outside-sandbox permission; the prior NetFault preview's exact command was verified before stopping it for the baseline. Builds/tests ran with approved local execution permissions where needed.
+
+Development continues to emit the pre-existing transient React Flow container-size warnings during navigation. Complete production flows pass without fatal page errors in the new practice test. The engine remains bounded: no recursive static next hops, configurable distances, ECMP, general IOS shell, real packet timings or complete ICMP error generation. Assessment requires connectivity. Physical iPhone/HTTPS installation and native Safari acceptance remain on the [manual checklist](iphone-testing.md).
+
+Primary Cisco/RFC references were consulted for routing selection, ping sources and ICMP semantics; see [LAB 004 guide](return-path-lab.md). No CML, GNS3, Packet Tracer or physical-router execution is claimed. There are no new environment variables or paid services. The locally verified source is ready for a future Netlify release through the existing configuration, subject to separate authorization and hosted acceptance checks. Older releases cannot parse new scenario IDs, so export journals before rollback across a lab-version boundary.
+
+## Files created or modified
+
+Created:
+
+- `src/server/return-scenario.ts`
+- `tests/return.test.ts`
+- `tests/browser/return.spec.ts`
+- `docs/return-path-lab.md`
+
+Modified:
+
+- `src/lib/schema.ts`, `engine.ts`, `catalog.ts`, `grading.ts`
+- `src/server/scenarios.ts`, `sessions.ts`
+- `src/app/api/lab/route.ts` (optional bounded probe source only; cache/origin protections retained)
+- `src/components/netfault.tsx`, `src/styles/base.css`
+- `tests/gateway.test.ts`, `tests/vlan.test.ts` (catalog expectations gain the authorized fourth entry)
+- `README.md`, `AGENTS.md`
+- `docs/architecture.md`, `scenario-authoring.md`, `network-correctness.md`, `roadmap.md`, `iphone-testing.md`, `NETLIFY_DEPLOYMENT.md`, `verification.md`
+
+Existing scenario files, `session-store.ts`, `storage.ts`, Netlify configuration, dependencies/lockfile and worker source are unchanged. Historical reports below preserve their original counts.
+
+---
+
+# Milestone 2B verification report (historical)
 
 Executed on Windows, 2026-09-20, using the existing Node 24 / pnpm 11.19.0 / Next.js 16.3.1 toolchain. Exactly one new scenario, LAB 003, was added. No dependencies, deployment settings, Blobs provider or service-worker strategy were changed. No commits, pushes, account operations or deployment were performed. The user reports an existing Netlify deployment; that is not verification of this new version.
 

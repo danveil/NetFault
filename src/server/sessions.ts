@@ -26,7 +26,7 @@ export async function startAssessment(store: SessionStore = sessionStore(), scen
 export async function assessmentAction(
   id: string,
   action: "resume" | "command" | "submit",
-  input?: { device: string; command: string; target: string } | Diagnosis,
+  input?: { device: string; command: string; target: string; source?: string } | Diagnosis,
   store: SessionStore = sessionStore(),
 ) {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id))
@@ -46,13 +46,13 @@ export async function assessmentAction(
     if (action === "command") {
       if (a.history.length >= 100)
         throw new LabError("This attempt has reached its 100-command limit. Review your evidence and submit.");
-      const c = input as { device: string; command: string; target: string };
+      const c = input as { device: string; command: string; target: string; source?: string };
       if (!scenario.devices.some((d) => d.id === c.device)) throw new LabError("Device is not part of this lab.");
       a.history.push({
         id: observationId,
         scenario: a.scenario,
         ...c,
-        output: execute(scenario, c.device, c.command, c.target, a.history),
+        output: execute(scenario, c.device, c.command, c.target, a.history, c.source),
         at: now,
       });
     }
