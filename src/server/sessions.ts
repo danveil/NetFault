@@ -48,7 +48,13 @@ export async function assessmentAction(
         throw new LabError("This attempt has reached its 100-command limit. Review your evidence and submit.");
       const c = input as { device: string; command: string; target: string };
       if (!scenario.devices.some((d) => d.id === c.device)) throw new LabError("Device is not part of this lab.");
-      a.history.push({ id: observationId, ...c, output: execute(scenario, c.device, c.command, c.target), at: now });
+      a.history.push({
+        id: observationId,
+        scenario: a.scenario,
+        ...c,
+        output: execute(scenario, c.device, c.command, c.target, a.history),
+        at: now,
+      });
     }
     if (action === "submit") {
       a.diagnosis = input as Diagnosis;

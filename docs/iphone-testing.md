@@ -41,6 +41,16 @@ For Netlify, follow [the deployment checklist](NETLIFY_DEPLOYMENT.md): use the p
 
 ## Offline and assessment
 
+For LAB 003, additionally check:
+
+- [ ] Open **The Wrong Network**. Read the design brief and both FastEthernet port labels; inspect all five devices.
+- [ ] Run `arp -a` before and after a failed gateway ping. Confirm no resolved gateway MAC appears before repair.
+- [ ] Read both switchport views, VLAN/status tables and running configuration. Long command buttons and terminal scrolling must stay within the viewport.
+- [ ] Submit device, interface, observed/intended VLANs and repair with evidence. Check every select control with touch and VoiceOver.
+- [ ] Read parts 1–6, think through the independent exercise, then explicitly open part 7. The solution must not display automatically.
+- [ ] Verify corrected membership, fresh ARP learning, local/remote pings and unchanged router routes in the repaired preview.
+- [ ] Cache all three practice labs online, reload, disconnect and reopen each journal entry. Complete LAB 003 offline and verify old OSPF/gateway progress remains intact.
+
 - [ ] With a production shell and practice pack cached, disable Wi-Fi/cellular, reopen/reload, investigate, grade and reopen the journal.
 - [ ] Restore connectivity. Start Assessment; no hints/reveal, guide or journal access while active.
 - [ ] Run commands and submit before the deadline. Reload the attempt and verify no second submission changes the result.

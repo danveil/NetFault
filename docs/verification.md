@@ -1,4 +1,69 @@
-# Milestone 2A verification report
+# Milestone 2B verification report
+
+Executed on Windows, 2026-09-20, using the existing Node 24 / pnpm 11.19.0 / Next.js 16.3.1 toolchain. Exactly one new scenario, LAB 003, was added. No dependencies, deployment settings, Blobs provider or service-worker strategy were changed. No commits, pushes, account operations or deployment were performed. The user reports an existing Netlify deployment; that is not verification of this new version.
+
+## Actual baseline and final results
+
+The repository was clean before implementation. The existing lint/type checks and all 93 unit/integration tests passed; a fresh local production-server baseline passed all 24 existing browser tests. Those results were established before source changes.
+
+| Check                                                                | Final result for 2B                                                                   |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `pnpm lint`                                                          | Pass                                                                                  |
+| `pnpm typecheck`                                                     | Pass, strict TypeScript                                                               |
+| `pnpm test`                                                          | **123 passed**, 7 files; 30 new VLAN tests                                            |
+| Development `pnpm test:browser`, `CI=true`                           | **24 passed**, 8 production-only checks skipped                                       |
+| `pnpm build`                                                         | Pass; static root/manifest, dynamic Node `/api/lab`, generated build-versioned worker |
+| Production `pnpm test:browser`, `CI=true`, `PW_PRODUCTION=1`         | **32 passed**, no skips, no test failures                                             |
+| Desktop / mobile coverage                                            | Chromium/Edge, 1440 × 1000 and 414 × 896 CSS pixels                                   |
+| `git diff --check`                                                   | Pass                                                                                  |
+| Physical iPhone, native Safari, real IOS/Windows network or emulator | Not performed                                                                         |
+| Live Netlify/CDN/Blobs deployment                                    | Not performed for 2B; storage architecture unchanged                                  |
+
+Both browser runs started fresh appropriate local servers. Production offline checks did not reuse a development server. Desktop and mobile switch-inspection screenshots were reviewed: all five devices are available, long command buttons fit, outputs scroll within the terminal, and the document fits its configured viewport. Browser tests also submit the longer diagnosis form and verify the independent answer is hidden until requested.
+
+## New evidence
+
+- Schema v3 validates all devices, links, addressing, active VLANs, switchport-command references and a valid port/VLAN repair. Tests reject absent VLANs/ports, invalid repairs, inappropriate schema versions and an accidental wrong gateway.
+- PC-A has correct IP/mask/gateway, both switch ports are operational, and both VLANs exist. Local gateway/remote probes fail at the actual Layer 2 next hop. PC-A's own address, PC-B's local gateway and healthy router-to-remote probes still work. Router routes and adjacency are correct before and after repair.
+- Counterexamples prove the engine uses broadcast-domain membership: hosts in the same active VLAN can communicate despite the original gateway's isolation; placing both connected ports in another active VLAN restores reachability but does not satisfy the intended repair. No lab-wide ping failure flag exists.
+- Initial ARP cache is empty. Failed resolution cannot create a gateway MAC. Successful exchanges learn actual interface MACs and replay identically after reload; invalid/unsupported/read-only commands and other-scenario history cannot populate entries. Fresh repair preview starts empty and learns only after its own probe.
+- VLAN brief, status, both switchport views and running-config agree. Physical/admin/operational state is distinguished from access membership. The accepted repair changes only FastEthernet0/1's VLAN; all host/router configuration remains byte-for-byte equal as scenario data. All modeled host/router paths then succeed.
+- New rubric tests cover alternate sufficient evidence combinations, wrong cause/device/interface/observed VLAN/intended VLAN/fix, forged IDs, unrelated scenario evidence and the inadequacy of one failed ping. Old LAB 001/002 grading tests pass unchanged; only the older catalog-count assertion was updated for the authorized third entry.
+- Server assessment tests verify scenario ownership, no initial answers, ARP replay across module reload, server expiry, cross-lab device rejection, bounded VLAN input and immutable submission. The existing Blobs/ETag concurrency suite also passes; this is local/mock evidence, not a live hosted-storage claim.
+- Complete LAB 003 browser playthroughs cover all devices, commands, evidence, 100-point grading, seven-part teaching, explicit independent-solution reveal, genuine repaired preview, refresh and journal reopening. Timed assessment uses a different investigation order and resumes its recorded ARP context after refresh.
+- Production offline coverage caches all three packs, reopens each lab after offline reload, then completes LAB 003 and its repair preview offline. Existing OSPF/gateway full playthroughs, assessments, offline previews, answer-boundary checks, no-store headers and service-worker update regression tests continue passing.
+
+## Execution issues and limits
+
+The initial sandboxed Vitest run could not load its configuration because esbuild was denied parent-directory access. Running the same suite outside the sandbox passed; no dependency changes or test weakening were made. The initial browser-baseline launch found port 3100 occupied by the previously running NetFault production preview. Its exact command was verified, that process was stopped, and the test harness started a fresh server. A sandboxed formatter invocation could not resolve its executable; the normal outside-sandbox invocation succeeded.
+
+Development still emits transient React Flow container-size warnings during navigation, as in prior milestones. The final production workflows pass, and no fatal page errors were recorded in the new practice workflow. ARP cache aging/retries, ambient/passive traffic, switch MAC learning, STP, trunks and exact vendor output timing/formatting remain outside the model. Assessment is online-only. Physical-device checks remain in [the iPhone checklist](iphone-testing.md).
+
+Microsoft/RFC/Cisco documentation was reviewed for ARP and access-port semantics; links and the precise model boundaries are in [LAB 003 documentation](vlan-lab.md). No external networking lab execution is claimed. Locally verified source is ready for a separately authorized Netlify release through the existing configuration; no new environment variables or infrastructure are required. Live deployment and physical iPhone acceptance still need verification after release.
+
+## Files changed
+
+Created:
+
+- `src/server/vlan-scenario.ts`
+- `tests/vlan.test.ts`
+- `tests/browser/vlan.spec.ts`
+- `docs/vlan-lab.md`
+
+Modified:
+
+- `src/lib/schema.ts`, `engine.ts`, `catalog.ts`, `grading.ts`, `storage.ts`
+- `src/server/scenarios.ts`, `sessions.ts`
+- `src/components/netfault.tsx`, `src/styles/base.css`
+- `tests/gateway.test.ts` (third catalog entry)
+- `README.md`, `AGENTS.md`
+- `docs/architecture.md`, `scenario-authoring.md`, `network-correctness.md`, `roadmap.md`, `iphone-testing.md`, `NETLIFY_DEPLOYMENT.md`, `verification.md`
+
+The existing OSPF/gateway scenario files, API route validation/no-store protections, `session-store.ts`, dependency lockfile, Netlify configuration and service worker source remain unchanged. Historical reports below retain their original counts.
+
+---
+
+# Milestone 2A verification report (historical)
 
 Executed on Windows, 2026-09-20, using the existing Node 24 / pnpm 11.19.0 / Next.js 16.3.1 toolchain and lockfile. Scope: one additional gateway lab. Dependencies, Netlify deployment configuration and the assessment storage provider were not changed. Nothing was committed, pushed or deployed.
 

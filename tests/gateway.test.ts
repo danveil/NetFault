@@ -29,10 +29,10 @@ const correct: Diagnosis = {
 afterEach(() => vi.useRealTimers());
 
 describe("one gateway fault and the Layer 2 path", () => {
-  it("validates both schema generations with exactly two catalog entries", () => {
+  it("retains both schema generations alongside the authorized VLAN lab", () => {
     expect(scenarioSchema.parse(s).schemaVersion).toBe(2);
     expect(scenarioSchema.parse(ospf).schemaVersion).toBe(1);
-    expect(labs.map((l) => l.id)).toEqual(["ospf-01", "gateway-01"]);
+    expect(labs.map((l) => l.id)).toEqual(["ospf-01", "gateway-01", "vlan-01"]);
     expect(s.devices.map((d) => d.id)).toEqual(["PC-A", "SW1", "R1", "R2", "PC-B"]);
     expect(s.devices.flatMap((d) => d.interfaces.map((i) => `${i.ip}/${i.prefix}`))).toEqual([
       "192.168.10.10/24",

@@ -1,8 +1,8 @@
 # Scenario authoring contract
 
-Authorized content is exactly `ospf-01` (revision 1, schemaVersion 1) and `gateway-01` (revision 1, schemaVersion 2). No other Milestone 2 scenarios are authorized. The schema intentionally rejects unknown versions/IDs. See [gateway authoring and correctness](gateway-lab.md) for the additive access-port model, specific gateway-validation exception and grading fields.
+Authorized content is exactly `ospf-01` (revision 1, schemaVersion 1), `gateway-01` (revision 1, schemaVersion 2) and `vlan-01` (revision 1, schemaVersion 3). LAB 004 and other scenarios are not authorized. The schema intentionally rejects unknown versions/IDs. See [gateway authoring](gateway-lab.md) and [VLAN authoring](vlan-lab.md) for the access-port model, specific gateway-validation exception, ARP history replay and grading fields. VLAN repairs must reference an existing switch port and active VLAN; existing v1/v2 payloads remain readable.
 
-The server-only registry is `src/server/scenarios.ts`, selecting the existing `scenario.ts` and new `gateway-scenario.ts`. Public metadata/command lists live in `catalog.ts`; private faults, repairs, evidence rules and lessons remain server-only.
+The server-only registry is `src/server/scenarios.ts`, selecting `scenario.ts`, `gateway-scenario.ts` and `vlan-scenario.ts`. Public metadata/command lists live in `catalog.ts`; private faults, repairs, evidence rules and lessons remain server-only. Access ports support 100/1000 Mb/s full duplex. Advertised switchport commands must resolve to authored ports. A lesson part may set `revealOnRequest` to keep an independent exercise answer collapsed until requested.
 
 Required fields:
 

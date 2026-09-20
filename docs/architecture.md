@@ -1,16 +1,18 @@
 # Architecture and boundaries
 
-Next.js 16 App Router, React 19, strict TypeScript, Zod, React Flow, Lucide icons, CSS, Vitest and Playwright. No AI inference service is required. Netlify configuration uses automatic OpenNext and Blobs for hosted sessions; ordinary local use remains filesystem-backed. No public deployment has been performed.
+Next.js 16 App Router, React 19, strict TypeScript, Zod, React Flow, Lucide icons, CSS, Vitest and Playwright. No AI inference service is required. Netlify configuration uses automatic OpenNext and Blobs for hosted sessions; ordinary local use remains filesystem-backed. The user reports the application is deployed; this milestone does not deploy or verify a new live version.
 
 ## One source of network truth
 
+Milestone 2B adds `vlan-01` (schema v3) and an access-port VLAN repair. The existing same-VLAN traversal already supplies the required broadcast-domain isolation; no second engine or routing algorithm was added. Switchport and running-config output derives from port/VLAN definitions. `forward` can emit next-hop resolution observations; `arpState` replays recorded probes to derive successful entries and separate failed attempts, with no process-memory session cache. Completed previews run a fresh command sequence against the cloned repaired configuration. See [LAB 003's ARP scope](vlan-lab.md).
+
 Milestone 2A adds `gateway-01` through a server-only scenario registry, without changing the file/Blobs storage boundary. Schema v1 still reads original OSPF packs; v2 adds separate unnumbered access ports/VLANs and a host-gateway repair. The public catalog selects topology and per-device commands. A stored attempt's scenario chooses its server engine/rubric; later client input cannot switch it.
 
-`scenarioSchema` validates addressing and references before a scenario can load. Authored interface configuration is the source; neighbor tables and routing tables are derived, not independently hardcoded. Every command invokes the same functions used by connectivity and the repaired-state preview. The two configured states are the authored fault and a cloned scenario with the accepted area repair. Simulated time does not change network convergence; outputs show a stable snapshot.
+`scenarioSchema` validates addressing and references before a scenario can load. Authored interface configuration is the source; neighbor tables and routing tables are derived, not independently hardcoded. Every command invokes the same functions used by connectivity and the repaired-state preview. Each lab has an authored fault and a cloned scenario with its accepted area, gateway or access-VLAN repair. Simulated time does not change network convergence; outputs show a stable snapshot.
 
 Adjacency requires live interfaces, active OSPF, equal areas, matching timers/MTU and explicit point-to-point type. Dijkstra per area derives intra-area OSPF routes. Connected/local routes take precedence; metrics accumulate outgoing costs. Forwarding uses longest-prefix match. Ping requires forward delivery and a return route to the selected source address. Router source selection uses the outgoing interface; PC source uses its configured interface. Trace shows forward hops only when a corresponding response can return; it does not implement per-probe TTL packets or latency.
 
-This algorithm is intentionally bounded to these two labs. Layer 2 neighbor resolution traverses active access ports within one VLAN without adding an IP hop. The gateway lab's routers still use the existing healthy point-to-point OSPF model. It is not an implementation of LSDB flooding, broadcast adjacency elections, ABR summaries, virtual links, authentication, ECMP, redistribution, ACLs, ARP timing, MAC learning, trunks, STP or packet loss. Scenario validation and authoring requirements must prevent unsupported models from being presented as implemented.
+This algorithm is intentionally bounded to these three labs. Layer 2 neighbor resolution traverses active access ports within one VLAN without adding an IP hop. The gateway and VLAN labs' routers use the existing healthy point-to-point OSPF model. It is not an implementation of LSDB flooding, broadcast adjacency elections, ABR summaries, virtual links, authentication, ECMP, redistribution, ACLs, ARP timing, MAC learning, trunks, STP or packet loss. Scenario validation and authoring requirements must prevent unsupported models from being presented as implemented.
 
 ## Client/server split
 
@@ -22,6 +24,8 @@ Assessment `start` returns a UUID, start/deadline and empty history. `command` c
 
 ## Grading
 
+LAB 003 adds cause/observed VLAN (20+10), device/interface (10+10), evidence (30) and correctly targeted access-port repair (20). Evidence requires host addressing plus observations of both switch memberships; one complete switch view can show both ports. Failed ping alone is insufficient. The seventh lesson section is an explicit-reveal independent solution. Old rubrics remain unchanged.
+
 For gateway lab 002, root cause/device/evidence still contribute 30/20/30. Repair contributes 10 for an accepted fix with the exact gateway and 10 for a structured on-link-router explanation. One selected PC-A configuration or route observation can establish the evidence requirement; fabricated IDs/other-device evidence cannot. The seven-part worked lesson is returned only at finalization. See [gateway lab](gateway-lab.md).
 
 Root cause 30; exact affected adjacency endpoint set 20; evidence 30; accepted repair 20. Evidence rules live in the scenario, require specific command/device combinations and award each rule once. A configuration output from each endpoint contributes 10 each; neighbor-plus-route impact contributes another 10. Extra selected observations are allowed but do not earn extra credit. Free-text notes are not interpreted. Hints do not subtract score but are recorded. Revealing the solution marks the attempt as assisted.
@@ -30,7 +34,7 @@ Root cause 30; exact affected adjacency endpoint set 20; evidence 30; accepted r
 
 Browser localStorage stores versioned attempts (including command text/output/time, evidence IDs, draft/final diagnosis, notes, hints, feedback and reveal flag). Updates replace by ID and retain the most recent 100. Parse/quota failures are visible and do not overwrite corrupt existing data; in-memory work can still be exported. No deletions happen automatically beyond the explicitly documented 100-attempt retention.
 
-Pack keys are scenario-specific: the unchanged `netfault.practice.v1` for OSPF and `netfault.practice.gateway-01.v1` for the gateway lab. Both packs can coexist offline. Journal entries display their own lab title and restore that lab on reopen. No migration or new database is required.
+Pack keys are scenario-specific: the unchanged `netfault.practice.v1` for OSPF, `netfault.practice.gateway-01.v1` for the gateway lab and `netfault.practice.vlan-01.v1` for the VLAN lab. All three packs coexist offline. New observations carry scenario IDs; old observations retain their containing attempt's context. Journal entries display their own lab title and restore that lab on reopen. No migration or new database is required.
 
 The production build stamps the service worker with its Next build ID. Installation caches the shell dependencies and icons/manifest before committing the HTML. Root navigation is network-first with that immutable snapshot as offline fallback; other routes never poison it. Next static assets are cache-first. API and RSC requests are excluded. An update waits for explicit reload or all old tabs to close, retaining one previous generation for open tabs. Practice can run entirely offline with a cached pack. Assessment cannot: an outage does not pause its server deadline. A previous practice pack remains inspectable, so offline answer secrecy is impossible. Local progress is not independently verified proof of a grade.
 

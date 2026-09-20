@@ -1,5 +1,7 @@
 # Deploy NetFault to Netlify
 
+Milestone 2B adds LAB 003 without changing build settings, dependencies, Blobs storage or worker strategy. The user reports an existing deployment; the new version has not been deployed or tested live by this milestone. Use the existing update flow to receive the third lab after a separately authorized release. New code preserves v1/v2 packs and journals; older code cannot parse `vlan-01` attempts. Export before rolling back across this content boundary. See [VLAN model](vlan-lab.md) and [current verification](verification.md).
+
 Milestone 2A retains these build/runtime/storage settings and adds one gateway lab. Old OSPF data stays readable by the new release; older releases cannot parse new gateway attempts. Export journals before considering a rollback across that content boundary. No live site is changed by the 2A implementation.
 
 Milestone 1.5 prepares the existing application for hosting. A Netlify-hosted HTTPS site runs independently of your Windows laptop. No account has been connected and no deployment was made during this work. See [the audit](deployment-audit.md) and [verification](verification.md) for actual evidence and remaining checks.

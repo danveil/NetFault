@@ -24,8 +24,18 @@ import {
 } from "lucide-react";
 import Topology from "./topology";
 import PwaUpdate from "./pwa-update";
-import { labs, catalog, causes, fixes, commandsFor, gatewayFixes, gatewayReasons } from "@/lib/catalog";
-import { execute, repaired } from "@/lib/engine";
+import {
+  labs,
+  catalog,
+  causes,
+  fixes,
+  commandsFor,
+  gatewayFixes,
+  gatewayReasons,
+  vlanCauses,
+  vlanFixes,
+} from "@/lib/catalog";
+import { execute, repaired, commandSequence } from "@/lib/engine";
 import { grade, nextHint } from "@/lib/grading";
 import {
   attemptSchema,
@@ -80,7 +90,9 @@ export default function NetFault() {
   const [chosenLab, setChosenLab] = useState<ScenarioId>("ospf-01");
   const lab = catalog(attempt?.scenario ?? chosenLab);
   const isGateway = lab.id === "gateway-01";
-  const repairChoices = isGateway ? gatewayFixes : fixes;
+  const isVlan = lab.id === "vlan-01";
+  const causeChoices = isVlan ? vlanCauses : causes;
+  const repairChoices = isVlan ? vlanFixes : isGateway ? gatewayFixes : fixes;
   const inFlight = useRef(false),
     timeoutRequested = useRef(false);
   const latestAttempt = useRef<Attempt | undefined>(undefined);
@@ -247,7 +259,13 @@ export default function NetFault() {
     if (!attempt || attempt.finishedAt) return;
     void task(async () => {
       if (attempt.mode === "assessment") {
-        const data = await api({ action: "command", id: attempt.id, device: selectedDevice.id, command, target });
+        const data = await api({
+          action: "command",
+          id: attempt.id,
+          device: selectedDevice.id,
+          command,
+          target: ["ping", "tracert", "traceroute"].includes(command) ? target : "",
+        });
         const a = attemptSchema.parse(data.attempt);
         store({ ...a, diagnosis: a.diagnosis ?? latestAttempt.current?.diagnosis });
       } else {
@@ -260,10 +278,11 @@ export default function NetFault() {
             ...attempt.history,
             {
               id: localId(),
+              scenario: attempt.scenario,
               device: selectedDevice.id,
               command,
               target: ["ping", "tracert", "traceroute"].includes(command) ? target : "",
-              output: execute(p, selectedDevice.id, command, target),
+              output: execute(p, selectedDevice.id, command, target, attempt.history),
               at: Date.now(),
             },
           ],
@@ -314,6 +333,7 @@ export default function NetFault() {
             journal: localStorage.getItem("netfault.journal.v1"),
             practice: localStorage.getItem("netfault.practice.v1"),
             gatewayPractice: localStorage.getItem("netfault.practice.gateway-01.v1"),
+            vlanPractice: localStorage.getItem("netfault.practice.vlan-01.v1"),
           }
         : { version: 1, exportedAt: new Date().toISOString(), attempts: journal };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -380,7 +400,7 @@ export default function NetFault() {
             >
               <Icon size={19} />
               <span>{label}</span>
-              {id === "labs" && <span className="nav-count">02</span>}
+              {id === "labs" && <span className="nav-count">{String(labs.length).padStart(2, "0")}</span>}
             </button>
           ))}
         </nav>
@@ -403,7 +423,7 @@ export default function NetFault() {
           <span className="connection">
             <span className={online ? "status-dot" : "status-dot offline"} />
             {online ? "Workspace online" : "Offline"}
-            <span className="desktop-only"> · Milestone 2A</span>
+            <span className="desktop-only"> · Milestone 2B</span>
           </span>
         </header>
         <main id="main" tabIndex={-1}>
@@ -470,7 +490,7 @@ export default function NetFault() {
               </section>
               <div className="section-heading">
                 <h2>
-                  Your lab bench <span>02</span>
+                  Your lab bench <span>{String(labs.length).padStart(2, "0")}</span>
                 </h2>
                 <span className="muted">Two networks. Follow the evidence.</span>
               </div>
@@ -666,9 +686,11 @@ export default function NetFault() {
                     <p>{lab.design}</p>
                     <p>
                       Use commands to inspect each device. Save observations as evidence,{" "}
-                      {isGateway
-                        ? "identify the device and incorrect setting, then propose an address and explain the repair."
-                        : "identify both affected adjacency endpoints, then propose a repair."}{" "}
+                      {isVlan
+                        ? "identify the device, interface and observed configuration, then propose the intended configuration."
+                        : isGateway
+                          ? "identify the device and incorrect setting, then propose an address and explain the repair."
+                          : "identify both affected adjacency endpoints, then propose a repair."}{" "}
                       Outputs are deterministic, condensed IOS-style or PC-style views; no live network traffic is sent.
                     </p>
                   </details>
@@ -813,7 +835,7 @@ export default function NetFault() {
                         {commands.map((c) => (
                           <button
                             key={c}
-                            className="command-button"
+                            className={`command-button${c.endsWith(" switchport") ? " long-command" : ""}`}
                             disabled={disabled || !!attempt.finishedAt}
                             onClick={() => run(c)}
                           >
@@ -967,19 +989,27 @@ export default function NetFault() {
                       </div>
                       <h3>What happened</h3>
                       <p>{attempt.feedback.explanation}</p>
-                      {attempt.feedback.lesson?.map((part) => (
-                        <section key={part.title} className="solution">
-                          <h3>{part.title}</h3>
-                          <p>{part.text}</p>
-                        </section>
-                      ))}
+                      {attempt.feedback.lesson?.map((part) =>
+                        part.revealOnRequest ? (
+                          <details key={`${attempt.id}-${part.title}`} className="solution">
+                            <summary>{part.title} — reveal when ready</summary>
+                            <p>{part.text}</p>
+                          </details>
+                        ) : (
+                          <section key={part.title} className="solution">
+                            <h3>{part.title}</h3>
+                            <p>{part.text}</p>
+                          </section>
+                        ),
+                      )}
                       <details className="solution">
                         <summary>Your submitted diagnosis & reasoning</summary>
                         <p>
-                          <strong>Cause:</strong> {causes.find(([id]) => id === answer.cause)?.[1] ?? "Not submitted"}
+                          <strong>Cause:</strong>{" "}
+                          {causeChoices.find(([id]) => id === answer.cause)?.[1] ?? "Not submitted"}
                         </p>
                         <p>
-                          <strong>{isGateway ? "Affected device:" : "Adjacency endpoints:"}</strong>{" "}
+                          <strong>{isGateway || isVlan ? "Affected device:" : "Adjacency endpoints:"}</strong>{" "}
                           {answer.devices.join(", ") || "None selected"}
                         </p>
                         <p>
@@ -992,6 +1022,15 @@ export default function NetFault() {
                             <br />
                             <strong>Explanation:</strong>{" "}
                             {gatewayReasons.find(([id]) => id === answer.reason)?.[1] ?? "Not submitted"}
+                          </p>
+                        )}
+                        {isVlan && (
+                          <p>
+                            <strong>Interface:</strong> {answer.interface || "Not submitted"}
+                            <br />
+                            <strong>Observed VLAN:</strong> {answer.observedVlan ?? "Not submitted"}
+                            <br />
+                            <strong>Intended VLAN:</strong> {answer.intendedVlan ?? "Not submitted"}
                           </p>
                         )}
                         <p>
@@ -1010,7 +1049,33 @@ export default function NetFault() {
                         className="secondary"
                         onClick={() =>
                           void task(async () => {
-                            const p = repaired(await getPack());
+                            const original = await getPack();
+                            const p = repaired(original);
+                            if (isVlan) {
+                              setPreview(
+                                [
+                                  "REPAIRED-STATE PREVIEW — not part of your evidence",
+                                  "BEFORE REPAIR",
+                                  execute(original, "SW1", "show interfaces fastethernet0/1 switchport"),
+                                  "AFTER REPAIR — only the affected access VLAN changes; fresh ARP cache",
+                                  commandSequence(p, [
+                                    ["SW1", "show vlan brief"],
+                                    ["SW1", "show interfaces fastethernet0/1 switchport"],
+                                    ["SW1", "show interfaces fastethernet0/24 switchport"],
+                                    ["SW1", "show running-config"],
+                                    ["PC-A", "arp -a"],
+                                    ["PC-A", "ping", "192.168.10.1"],
+                                    ["PC-A", "arp -a"],
+                                    ["PC-A", "ping", lab.target],
+                                    ["PC-A", "tracert", lab.target],
+                                    ["PC-B", "ping", "192.168.10.10"],
+                                    ["R1", "show ip route"],
+                                    ["R2", "show ip route"],
+                                  ]),
+                                ].join("\n\n"),
+                              );
+                              return;
+                            }
                             setPreview(
                               [
                                 "REPAIRED-STATE PREVIEW — not part of your evidence",
@@ -1073,7 +1138,7 @@ export default function NetFault() {
                         <option value="" disabled>
                           Select the fault you observed
                         </option>
-                        {causes.map(([id, label]) => (
+                        {causeChoices.map(([id, label]) => (
                           <option value={id} key={id}>
                             {label}
                           </option>
@@ -1081,16 +1146,16 @@ export default function NetFault() {
                       </select>
                       <fieldset>
                         <legend>
-                          {isGateway ? "02 / Device with the fault" : "02 / Affected adjacency endpoints"}
+                          {isGateway || isVlan ? "02 / Device with the fault" : "02 / Affected adjacency endpoints"}
                         </legend>
                         <p className="muted">
-                          {isGateway
+                          {isGateway || isVlan
                             ? "Choose the device containing the incorrect configuration."
                             : "Choose the two routers whose intended adjacency fails."}
                         </p>
                         <div className="device-checks">
                           {lab.devices
-                            .filter((d) => isGateway || d.kind === "router")
+                            .filter((d) => isGateway || isVlan || d.kind === "router")
                             .map((d) => (
                               <label key={d.id}>
                                 <input
@@ -1109,6 +1174,56 @@ export default function NetFault() {
                             ))}
                         </div>
                       </fieldset>
+                      {isVlan && (
+                        <>
+                          <label htmlFor="port-answer">Affected interface</label>
+                          <select
+                            id="port-answer"
+                            required
+                            value={answer.interface ?? ""}
+                            onChange={(e) => editAnswer({ interface: e.target.value })}
+                          >
+                            <option value="" disabled>
+                              Select the interface you diagnosed
+                            </option>
+                            {["Ethernet0", "FastEthernet0/1", "FastEthernet0/24", "Gi0/0", "Gi0/1"].map((port) => (
+                              <option key={port}>{port}</option>
+                            ))}
+                          </select>
+                          <label htmlFor="observed-vlan">Observed access VLAN</label>
+                          <select
+                            id="observed-vlan"
+                            required
+                            value={answer.observedVlan ?? ""}
+                            onChange={(e) => editAnswer({ observedVlan: Number(e.target.value) })}
+                          >
+                            <option value="" disabled>
+                              Select the VLAN in your evidence
+                            </option>
+                            {[1, 10, 20, 30].map((vlan) => (
+                              <option key={vlan} value={vlan}>
+                                {vlan}
+                              </option>
+                            ))}
+                          </select>
+                          <label htmlFor="intended-vlan">Intended access VLAN</label>
+                          <select
+                            id="intended-vlan"
+                            required
+                            value={answer.intendedVlan ?? ""}
+                            onChange={(e) => editAnswer({ intendedVlan: Number(e.target.value) })}
+                          >
+                            <option value="" disabled>
+                              Select the VLAN required by the design
+                            </option>
+                            {[1, 10, 20, 30].map((vlan) => (
+                              <option key={vlan} value={vlan}>
+                                {vlan}
+                              </option>
+                            ))}
+                          </select>
+                        </>
+                      )}
                       <label htmlFor="fix">03 / Proposed remediation</label>
                       <select
                         id="fix"
@@ -1164,9 +1279,11 @@ export default function NetFault() {
                         <div>
                           <strong>04 / {answer.evidence.length} evidence items selected</strong>
                           <p>
-                            {isGateway
-                              ? "Include at least one observation of PC-A's configured next hop. Compare it with the router interface and local/remote probes."
-                              : "Include both interface configurations and observations of the neighbor and routing impact."}
+                            {isVlan
+                              ? "Combine host configuration with membership observations for both connected switch ports. A failed ping alone does not identify the cause."
+                              : isGateway
+                                ? "Include at least one observation of PC-A's configured next hop. Compare it with the router interface and local/remote probes."
+                                : "Include both interface configurations and observations of the neighbor and routing impact."}
                           </p>
                           <button className="text-button" type="button" onClick={() => setTab("evidence")}>
                             Review evidence <ArrowRight size={15} />
@@ -1181,14 +1298,20 @@ export default function NetFault() {
                         maxLength={2000}
                         rows={4}
                         value={answer.notes}
-                        placeholder="What did you rule out, and why?"
+                        placeholder={
+                          isVlan
+                            ? "What first suggested a Layer 2 problem? Why suspect IP settings? What would you check first next time?"
+                            : "What did you rule out, and why?"
+                        }
                         onChange={(e) => editAnswer({ notes: e.target.value })}
                       />
                       <p className="muted">
                         Grading uses the selected cause,{" "}
-                        {isGateway
-                          ? "device, command evidence, gateway address and forwarding explanation"
-                          : "endpoint pair, command evidence, and repair"}
+                        {isVlan
+                          ? "device, interface, observed VLAN, command evidence and intended access-port configuration"
+                          : isGateway
+                            ? "device, command evidence, gateway address and forwarding explanation"
+                            : "endpoint pair, command evidence, and repair"}
                         . Free text is saved verbatim; it is not interpreted.
                       </p>
                       <button className="primary" disabled={disabled} type="submit">
@@ -1227,13 +1350,13 @@ export default function NetFault() {
                 <div className="panel">
                   <small>LABS EXPLORED</small>
                   <strong>
-                    {new Set(journal.map((a) => a.scenario)).size} <span>/ 2</span>
+                    {new Set(journal.map((a) => a.scenario)).size} <span>/ {labs.length}</span>
                   </strong>
                 </div>
               </div>
               <p className="muted">
-                This records activity across these two labs. It does not measure overall networking mastery. Up to 100
-                recent attempts are retained on this browser.
+                This records activity across these {labs.length} labs. It does not measure overall networking mastery.
+                Up to 100 recent attempts are retained on this browser.
               </p>
               <div className="journal-actions">
                 <button className="secondary" onClick={() => download()}>

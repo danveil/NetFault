@@ -2,7 +2,7 @@ import { z } from "zod";
 import { attemptSchema, scenarioSchema, type Attempt, type Scenario, type ScenarioId } from "./schema";
 export const JOURNAL_KEY = "netfault.journal.v1";
 export const PACK_KEY = "netfault.practice.v1";
-export const packKey = (id: ScenarioId) => (id === "ospf-01" ? PACK_KEY : "netfault.practice.gateway-01.v1");
+export const packKey = (id: ScenarioId) => (id === "ospf-01" ? PACK_KEY : `netfault.practice.${id}.v1`);
 export const ACTIVE_KEY = "netfault.active.v1";
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 export function loadJournal(storage: StorageLike): Attempt[] {

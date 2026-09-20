@@ -7,6 +7,9 @@ export const ipv4 = z
     "Valid dotted IPv4 required",
   );
 export const commandNames = [
+  "arp -a",
+  "show interfaces fastethernet0/1 switchport",
+  "show interfaces fastethernet0/24 switchport",
   "show vlan brief",
   "show interfaces status",
   "route print",
@@ -53,7 +56,7 @@ export const deviceSchema = z.object({
         name: z.string(),
         vlan: z.number().int().min(1).max(4094),
         up: z.boolean(),
-        speed: z.literal(1000),
+        speed: z.union([z.literal(100), z.literal(1000)]),
         duplex: z.literal("full"),
       }),
     )
@@ -68,6 +71,9 @@ export const linkSchema = z.object({
   subnet: z.string(),
 });
 export const diagnosisSchema = z.object({
+  interface: z.string().max(64).optional(),
+  observedVlan: z.number().int().min(1).max(4094).optional(),
+  intendedVlan: z.number().int().min(1).max(4094).optional(),
   gateway: z.string().max(64).optional(),
   reason: z.enum(["unspecified", "on-link-router", "dns-resolution", "switch-routing", "same-address"]).optional(),
   cause: z.enum([
@@ -77,18 +83,22 @@ export const diagnosisSchema = z.object({
     "wrong-gateway",
     "missing-advertisement",
     "timer-mismatch",
+    "access-vlan",
   ]),
   devices: z.array(z.string()).max(5),
-  fix: z.enum(["unspecified", "r3-area0", "r2-area1", "restart", "gateway", "no-shutdown"]),
+  fix: z.enum(["unspecified", "r3-area0", "r2-area1", "restart", "gateway", "no-shutdown", "access-vlan"]),
   evidence: z.array(z.string()).max(100),
   notes: z.string().max(2000).default(""),
 });
 export type Diagnosis = z.infer<typeof diagnosisSchema>;
-export const scenarioIdSchema = z.enum(["ospf-01", "gateway-01"]);
+export const scenarioIdSchema = z.enum(["ospf-01", "gateway-01", "vlan-01"]);
 export type ScenarioId = z.infer<typeof scenarioIdSchema>;
+const lessonSchema = z.array(
+  z.object({ title: z.string(), text: z.string(), revealOnRequest: z.boolean().optional() }),
+);
 export const scenarioSchema = z
   .object({
-    schemaVersion: z.union([z.literal(1), z.literal(2)]),
+    schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3)]),
     id: scenarioIdSchema,
     revision: z.literal(1),
     title: z.string(),
@@ -101,6 +111,7 @@ export const scenarioSchema = z
     repair: z.union([
       z.object({ device: z.string(), interface: z.string(), area: z.number().int().min(0) }),
       z.object({ device: z.string(), gateway: ipv4, reason: diagnosisSchema.shape.reason.unwrap() }),
+      z.object({ device: z.string(), interface: z.string(), vlan: z.number().int().min(1).max(4094) }),
     ]),
     evidenceRules: z.array(
       z.object({
@@ -112,7 +123,7 @@ export const scenarioSchema = z
     hints: z.array(z.string()).min(3),
     explanation: z.string(),
     solution: z.string(),
-    lesson: z.array(z.object({ title: z.string(), text: z.string() })).optional(),
+    lesson: lessonSchema.optional(),
   })
   .superRefine((s, ctx) => {
     const fail = (message: string) => ctx.addIssue({ code: "custom", message });
@@ -123,17 +134,25 @@ export const scenarioSchema = z
     const rids = s.devices.filter((d) => d.kind === "router").map((d) => d.routerId);
     if (rids.some((r) => !r) || new Set(rids).size !== rids.length) fail("Unique explicit router IDs required");
     const endpoints = new Set<string>();
+    if (s.schemaVersion !== 3 && "vlan" in s.repair) fail("Access VLAN repair requires schema v3");
     if (s.schemaVersion === 1 && (s.devices.some((d) => d.kind === "switch") || "gateway" in s.repair))
       fail("Layer 2 ports and gateway repair require schema v2");
     for (const d of s.devices) {
       const allowed =
         d.kind === "switch"
-          ? ["show vlan brief", "show interfaces status"]
+          ? [
+              "show vlan brief",
+              "show interfaces status",
+              "show running-config",
+              ...commandNames.filter((c) => c.endsWith(" switchport")),
+            ]
           : d.kind === "pc"
-            ? ["ipconfig", "ipconfig /all", "route print", "ping", "tracert"]
+            ? ["ipconfig", "ipconfig /all", "route print", "ping", "tracert", "arp -a"]
             : commandNames.filter(
                 (c) =>
+                  !c.endsWith(" switchport") &&
                   ![
+                    "arp -a",
                     "ipconfig",
                     "ipconfig /all",
                     "route print",
@@ -150,6 +169,9 @@ export const scenarioSchema = z
         if (new Set(d.ports?.map((p) => p.name)).size !== d.ports?.length) fail("Duplicate switch ports");
         if (new Set(d.vlans?.map((v) => v.id)).size !== d.vlans?.length) fail("Duplicate VLANs");
         if (d.ports?.some((p) => !d.vlans?.some((v) => v.id === p.vlan))) fail("Port references absent VLAN");
+        for (const command of d.commands.filter((c) => c.endsWith(" switchport")))
+          if (!d.ports?.some((p) => p.name.toLowerCase() === command.split(" ")[2]))
+            fail("Switchport command references absent port");
       } else if (d.ports || d.vlans) fail("Only switches have access ports");
       if (new Set(d.interfaces.map((i) => i.name)).size !== d.interfaces.length) fail("Duplicate interface names");
       for (const i of d.interfaces) {
@@ -207,6 +229,13 @@ export const scenarioSchema = z
     if ("area" in repair) {
       if (!repairedDevice?.interfaces.find((i) => i.name === repair.interface)?.ospf)
         fail("Repair references absent OSPF interface");
+    } else if ("vlan" in repair) {
+      if (
+        repairedDevice?.kind !== "switch" ||
+        !repairedDevice.ports?.some((p) => p.name === repair.interface) ||
+        !repairedDevice.vlans?.some((v) => v.id === repair.vlan && v.active)
+      )
+        fail("Repair requires an existing access port and active VLAN");
     } else {
       if (
         repairedDevice?.kind !== "pc" ||
@@ -271,6 +300,7 @@ export function sameSubnet(a: string, b: string, p: number) {
 }
 
 export const observationSchema = z.object({
+  scenario: scenarioIdSchema.optional(),
   id: z.string(),
   device: z.string(),
   command: z.string(),
@@ -280,7 +310,7 @@ export const observationSchema = z.object({
 });
 export type Observation = z.infer<typeof observationSchema>;
 export const feedbackSchema = z.object({
-  lesson: z.array(z.object({ title: z.string(), text: z.string() })).optional(),
+  lesson: lessonSchema.optional(),
   score: z.number(),
   parts: z.array(z.object({ name: z.string(), earned: z.number(), possible: z.number(), message: z.string() })),
   explanation: z.string(),

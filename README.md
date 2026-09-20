@@ -2,7 +2,7 @@
 
 A mobile-first, evidence-based network troubleshooting workspace for a Universiti Malaya student studying WIA2008 Advanced Network Technology. Independent learning aid; not an official UM or Cisco product.
 
-**Milestone 2A:** two complete labs: OSPF area mismatch (“The silent route”) and incorrect default gateway (“Beyond the local network”). No other Milestone 2 scenarios are included. No external AI service, generated gameplay text or real network probing. Local use needs no cloud account; Netlify hosting uses its serverless runtime and Blobs storage.
+**Milestone 2B:** three labs: OSPF area mismatch (“The silent route”), incorrect default gateway (“Beyond the local network”), and access VLAN membership mismatch (“The Wrong Network”). No LAB 004 or other scenarios are included. No external AI service, generated gameplay text or real network probing. Local use needs no cloud account; Netlify hosting uses its serverless runtime and Blobs storage.
 
 For a public HTTPS app that works with your laptop turned off, follow [Netlify deployment instructions](docs/NETLIFY_DEPLOYMENT.md). This milestone does not deploy or modify a live site. The existing simulator, journal and deterministic grading are extended for the new lab; the Netlify assessment storage architecture is unchanged.
 
@@ -42,15 +42,17 @@ For full PWA use, put the production server behind an HTTPS reverse proxy with a
 
 ## Play the lab
 
-1. Select lab 001 or lab 002, choose Practice or Assessment, then Start investigation.
+1. Select lab 001, 002 or 003, choose Practice or Assessment, then Start investigation.
 2. Read the incident and expand the design brief. Tap topology nodes or use the accessible device buttons.
 3. Run the listed commands. Enter a numeric destination for ping/trace. Select useful output as evidence; revisit all outputs in the notebook.
-4. Submit cause, affected device(s), evidence and repair. OSPF asks for both adjacency endpoints; lab 002 asks for the faulted device, a gateway IPv4 address and a structured explanation of forwarding. Notes are stored, **not interpreted or graded**.
+4. Submit cause, affected device(s), evidence and repair. OSPF asks for both adjacency endpoints; lab 002 asks for the faulted device, a gateway IPv4 address and a structured explanation of forwarding. Lab 003 asks for the device, interface, observed/intended VLANs and access-port correction. Notes are stored, **not interpreted or graded**.
 5. Review the rubric, explanation, worked commands and repaired-state preview. Reopen any attempt from Your journal, or export JSON.
 
 Practice is untimed with three progressive hints and a recorded solution reveal. It downloads the lab pack, which enables offline play after the production shell is cached. Assessment lasts 20 minutes, requires the server, and locks hints/guide/journal until it ends. Submit before the deadline: an expired attempt without an on-time final submission receives zero and final feedback. Draft choices are saved locally but do not count as a submitted assessment. Closing the app does not pause time.
 
 ## Commands implemented
+
+Lab 003 adds PC-A `arp -a`, both FastEthernet access-port `show interfaces … switchport` inspections and switch `show running-config`, alongside the existing IP, VLAN, status and probe commands. ARP begins empty and derives learned/failed next-hop observations from recorded probes; it never invents a reachable gateway MAC. The repaired preview changes only the access VLAN and runs fresh probes. Its seven-part lesson keeps the independent exercise solution behind an explicit reveal. See [LAB 003's model, commands and rubric](docs/vlan-lab.md).
 
 The original OSPF command set remains below. Lab 002 exposes PC-A `ipconfig`, `/all`, `route print`, `ping`, `tracert`; SW1 `show vlan brief` and `show interfaces status`; routers `show ip interface brief`, `show ip route`, `show running-config`, `ping`; PC-B `ipconfig` and `ping`. Commands are selected per device and lab. See [the gateway lab guide](docs/gateway-lab.md) for addressing, the seven-part lesson, rubric and forwarding limits.
 

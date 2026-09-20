@@ -2,6 +2,8 @@
 
 Milestone 2A adds one separate lab, documented in [gateway lab correctness](gateway-lab.md). The OSPF configuration and expected behavior below remain unchanged.
 
+Milestone 2B adds [VLAN membership correctness and ARP assumptions](vlan-lab.md). All three labs share this deterministic forwarding engine; the original OSPF scenario is unchanged.
+
 ## Addressing
 
 | Device           | Interface | IPv4             | OSPF / gateway                                            |

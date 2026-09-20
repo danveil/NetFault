@@ -1,4 +1,14 @@
-import { dotted, ipv4, mask, network, sameSubnet, type Device, type Interface, type Scenario } from "./schema";
+import {
+  dotted,
+  ipv4,
+  mask,
+  network,
+  sameSubnet,
+  type Device,
+  type Interface,
+  type Observation,
+  type Scenario,
+} from "./schema";
 
 export type Neighbor = {
   device: string;
@@ -126,7 +136,8 @@ function lookup(s: Scenario, id: string, target: string) {
     .sort((a, b) => Number(b.prefix.split("/")[1]) - Number(a.prefix.split("/")[1]))[0];
 }
 type Path = { ok: boolean; hops: string[]; reason: string };
-export function forward(s: Scenario, start: string, target: string): Path {
+type Resolution = { device: string; local: Interface; ip: string; peer?: { device: Device; remote: Interface } };
+export function forward(s: Scenario, start: string, target: string, observe?: (r: Resolution) => void): Path {
   let current = device(s, start);
   const seen = new Set<string>();
   const hops: string[] = [];
@@ -146,6 +157,7 @@ export function forward(s: Scenario, start: string, target: string): Path {
     }
     if (!out?.up) return { ok: false, hops, reason: `${current.id}: interface down` };
     const peer = peers(s, current.id).find((p) => p.local.name === out.name && p.remote.up && p.remote.ip === nextHop);
+    if (nextHop) observe?.({ device: current.id, local: out, ip: nextHop, peer });
     if (!peer) return { ok: false, hops, reason: `${current.id}: next-hop resolution failed` };
     hops.push(peer.remote.ip);
     current = peer.device;
@@ -163,6 +175,19 @@ export function connectivity(s: Scenario, id: string, target: string) {
 }
 export function runningConfig(s: Scenario, id: string) {
   const d = device(s, id);
+  if (d.kind === "switch")
+    return [
+      `hostname ${d.id}`,
+      ...d.vlans!.flatMap((v) => [`vlan ${v.id}`, ` name ${v.name}`, ` state ${v.active ? "active" : "suspend"}`, "!"]),
+      ...d.ports!.flatMap((p) => [
+        `interface ${p.name}`,
+        " switchport mode access",
+        ` switchport access vlan ${p.vlan}`,
+        p.up ? " no shutdown" : " shutdown",
+        "!",
+      ]),
+      "! Modeled access ports only; no routed interfaces or SVI.",
+    ].join("\n");
   return [
     `hostname ${d.id}`,
     ...d.interfaces.flatMap((i) => [
@@ -186,11 +211,97 @@ export function runningConfig(s: Scenario, id: string) {
     ...d.interfaces.filter((i) => i.ospf?.passive).map((i) => ` passive-interface ${i.name}`),
   ].join("\n");
 }
-export function execute(s: Scenario, id: string, raw: string, target = ""): string {
+// Replay bounded probe history against the immutable attempt configuration. No wall-clock aging.
+export function arpState(s: Scenario, id: string, history: Observation[]) {
+  const entries = new Map<string, { ip: string; mac: string; interface: string }>();
+  let last: { ip: string; resolved: boolean } | undefined;
+  const record = (r: Resolution) => {
+    if (r.device === id) {
+      last = { ip: r.ip, resolved: !!r.peer };
+      if (r.peer) entries.set(`${r.local.name}:${r.ip}`, { ip: r.ip, mac: r.peer.remote.mac, interface: r.local.name });
+    }
+    // A successful ARP exchange also lets its addressed peer learn the sender.
+    if (r.peer?.device.id === id)
+      entries.set(`${r.peer.remote.name}:${r.local.ip}`, {
+        ip: r.local.ip,
+        mac: r.local.mac,
+        interface: r.peer.remote.name,
+      });
+  };
+  for (const o of history) {
+    if (o.scenario && o.scenario !== s.id) continue;
+    const source = s.devices.find((d) => d.id === o.device);
+    if (
+      !source?.commands.includes(o.command as (typeof source.commands)[number]) ||
+      !["ping", "tracert", "traceroute"].includes(o.command) ||
+      !ipv4.safeParse(o.target.trim()).success
+    )
+      continue;
+    const target = o.target.trim();
+    const result = forward(s, o.device, target, record);
+    if (result.ok) {
+      const destination = s.devices.find((d) => d.interfaces.some((i) => i.ip === target));
+      if (destination) forward(s, destination.id, connectivity(s, o.device, target).source, record);
+    }
+  }
+  return { entries: [...entries.values()], last };
+}
+function portStatus(s: Scenario, id: string, name: string) {
+  const d = device(s, id),
+    p = d.ports!.find((p) => p.name === name)!;
+  const link = s.links.find((l) => [l.a, l.b].some((e) => e.device === id && e.interface === name));
+  const other = link && (link.a.device === id ? link.b : link.a);
+  const peer = other && device(s, other.device);
+  const remote =
+    peer &&
+    (peer.interfaces.find((i) => i.name === other!.interface) ?? peer.ports?.find((i) => i.name === other!.interface));
+  return !p.up
+    ? "disabled"
+    : !remote?.up
+      ? "notconnect"
+      : !d.vlans!.some((v) => v.id === p.vlan && v.active)
+        ? "inactive"
+        : "connected";
+}
+export function execute(s: Scenario, id: string, raw: string, target = "", history: Observation[] = []): string {
   const d = device(s, id),
     cmd = raw.trim().toLowerCase().replace(/\s+/g, " ");
   if (!d.commands.some((c) => c === cmd))
     return `% Unsupported command on ${id}: ${raw}. Use the supported command buttons. This is a bounded simulator, not an IOS shell.`;
+  if (cmd === "arp -a") {
+    const state = arpState(s, id, history);
+    return [
+      ...(state.entries.length
+        ? d.interfaces.flatMap((i) => {
+            const rows = state.entries.filter((e) => e.interface === i.name);
+            return rows.length
+              ? [
+                  `Interface: ${i.ip}`,
+                  "  Internet Address      Physical Address      Type",
+                  ...rows.map((e) => `  ${e.ip.padEnd(22)} ${e.mac.replaceAll(":", "-")}     dynamic`),
+                ]
+              : [];
+          })
+        : ["No ARP Entries Found."]),
+      "",
+      state.last
+        ? `Simulator observation: last next-hop resolution for ${state.last.ip} ${state.last.resolved ? "succeeded" : "failed; no resolved MAC entry was created"}.`
+        : "Simulator observation: no locally initiated next-hop resolution yet.",
+      "Simplified Windows-style cache: learned entries only; failed attempts are not dynamic entries. Entries persist for this attempt; no aging/background traffic. New attempts and repair previews start empty.",
+    ].join("\n");
+  }
+  if (cmd.endsWith(" switchport")) {
+    const p = d.ports!.find((p) => p.name.toLowerCase() === cmd.split(" ")[2])!;
+    const v = d.vlans!.find((v) => v.id === p.vlan)!;
+    return [
+      `Name: ${p.name}`,
+      "Switchport: Enabled",
+      "Administrative Mode: static access",
+      `Operational Mode: ${portStatus(s, id, p.name) === "connected" ? "static access" : "down"}`,
+      `Access Mode VLAN: ${p.vlan} (${v.name})`,
+      "(Condensed access-port fields; trunk negotiation is not modeled.)",
+    ].join("\n");
+  }
   if (cmd === "show vlan brief")
     return [
       "VLAN Name                             Status    Ports",
@@ -207,15 +318,8 @@ export function execute(s: Scenario, id: string, raw: string, target = ""): stri
     return [
       "Port      Status       Vlan  Duplex Speed Type",
       ...d.ports!.map((p) => {
-        const link = s.links.find((l) => [l.a, l.b].some((e) => e.device === id && e.interface === p.name));
-        const other = link && (link.a.device === id ? link.b : link.a);
-        const peer = other && device(s, other.device);
-        const remote =
-          peer &&
-          (peer.interfaces.find((i) => i.name === other!.interface) ??
-            peer.ports?.find((i) => i.name === other!.interface));
-        const status = !p.up ? "disabled" : remote?.up ? "connected" : "notconnect";
-        return `${p.name.padEnd(9)} ${status.padEnd(12)} ${String(p.vlan).padEnd(5)} ${p.duplex}   ${p.speed}  10/100/1000BaseTX`;
+        const status = portStatus(s, id, p.name);
+        return `${p.name.padEnd(9)} ${status.padEnd(12)} ${String(p.vlan).padEnd(5)} ${p.duplex}   ${p.speed}  ${p.speed === 100 ? "10/100BaseTX" : "10/100/1000BaseTX"}`;
       }),
     ].join("\n");
   if (cmd === "route print")
@@ -335,6 +439,18 @@ export function repaired(s: Scenario): Scenario {
   const next = structuredClone(s);
   const repair = s.repair;
   if ("gateway" in repair) device(next, repair.device).gateway = repair.gateway;
+  else if ("vlan" in repair)
+    device(next, repair.device).ports!.find((p) => p.name === repair.interface)!.vlan = repair.vlan;
   else device(next, repair.device).interfaces.find((i) => i.name === repair.interface)!.ospf!.area = repair.area;
   return next;
+}
+export function commandSequence(s: Scenario, commands: [string, string, string?][]) {
+  const history: Observation[] = [];
+  return commands
+    .map(([id, command, target = ""]) => {
+      const output = execute(s, id, command, target, history);
+      history.push({ id: String(history.length), scenario: s.id, device: id, command, target, output, at: 0 });
+      return `${id}> ${command}${target ? ` ${target}` : ""}\n${output}`;
+    })
+    .join("\n\n");
 }
