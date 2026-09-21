@@ -2,11 +2,13 @@
 
 A mobile-first, evidence-based network troubleshooting workspace for a Universiti Malaya student studying WIA2008 Advanced Network Technology. Independent learning aid; not an official UM or Cisco product.
 
-**Milestone 3A:** seven playable labs. Existing LAB 001–005 remain intact; LAB 006 **The Mismatched Timers** and LAB 007 **The Wrong Next Hop** add OSPF timer compatibility and incorrect installed static next-hop investigations. Both support practice, server-backed assessment, evidence grading, four hints, seven-part teaching, requested independent solutions, actual repaired-network previews and saved journals. No external AI service, generated gameplay output or real network probing.
+**Milestone 3B:** Learn networking now includes MODULE 02 — IPv4 Addressing and Subnetting, with three complete lessons, six interactive exercises, requested solutions, separate revision-aware progress and offline practice. The four original Field Guides remain accessible. All seven troubleshooting labs, their scenario revisions and server-backed assessments are preserved.
 
-The three confirmed 2E defects are fixed: public repair-target narration, empty evidence requirements and the fixed neighbor Dead Time display. Read the [execution record](docs/milestone-3a.md), [verification report](docs/verification.md) and [Academy architecture audit](docs/learning-academy-audit.md). The Academy audit proposes future modules; its four current guides are unchanged. LAB 008, randomization and Academy expansion are not implemented.
+Open **Learn networking → Explore module → Open lesson 1**. Complete guided and independent exercises, review feedback, mark reading separately, refresh and use Continue lesson. The gateway lesson links to LAB 002's normal mode selection without starting an attempt or revealing its fault. Public Academy answers are inspectable learning content, not a secure exam.
 
-For a public HTTPS app that works with your laptop turned off, follow [Netlify deployment instructions](docs/NETLIFY_DEPLOYMENT.md). This milestone does not deploy or modify a live site. The existing simulator, journal and deterministic grading are extended for the two new labs; the Netlify assessment storage architecture is unchanged.
+Read the [Academy architecture and authoring guide](docs/learning-academy.md), [3B verification record](docs/milestone-3b-plan.md), and historical [Academy audit](docs/learning-academy-audit.md). Academy progress uses its own storage key; old troubleshooting journals/packs are unchanged. Offline reading and exercise grading require a completed production shell cache; look for **Available offline · Academy**. External references and timed assessments require internet. No LAB 008, randomization, cloud progress sync, new networking engine or later curriculum modules were added.
+
+For a public HTTPS app that works with your laptop turned off, follow [Netlify deployment instructions](docs/NETLIFY_DEPLOYMENT.md). This milestone changes no deployment configuration, environment variables, dependency versions or Netlify assessment storage. No deployment was performed.
 
 ## Run on Windows
 

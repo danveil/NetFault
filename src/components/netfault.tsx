@@ -57,7 +57,7 @@ import {
   type ScenarioId,
 } from "@/lib/schema";
 import { ACTIVE_KEY, elapsed, loadJournal, loadPack, saveAttempt, savePack } from "@/lib/storage";
-import { lessons } from "@/lib/lessons";
+import AcademyView from "./academy/academy";
 
 type Section = "labs" | "journal" | "learn";
 type Tab = "inspect" | "evidence" | "diagnose";
@@ -83,6 +83,7 @@ async function api(body: unknown) {
 }
 
 export default function NetFault() {
+  const [academyReferences, setAcademyReferences] = useState(false);
   const [section, setSection] = useState<Section>("labs"),
     [tab, setTab] = useState<Tab>("inspect");
   const [attempt, setAttempt] = useState<Attempt>(),
@@ -396,11 +397,12 @@ export default function NetFault() {
       setError("The browser blocked this export. Your current attempt remains in memory.");
     }
   }
-  function navigate(s: Section) {
+  function navigate(s: Section, references = false) {
     if (locked && s !== "labs") {
       setNotice("The journal and field guide are available after your assessment ends.");
       return;
     }
+    if (s === "learn") setAcademyReferences(references);
     setSection(s);
   }
   function back() {
@@ -438,11 +440,12 @@ export default function NetFault() {
             [
               { id: "labs", label: "Troubleshooting labs", Icon: FlaskConical },
               { id: "journal", label: "Your journal", Icon: NotebookPen },
-              { id: "learn", label: "Field guide", Icon: BookOpen },
+              { id: "learn", label: "Learn networking", Icon: BookOpen },
             ] as const
           ).map(({ id, label, Icon }) => (
             <button
               key={id}
+              aria-label={id === "learn" ? "Learn networking / Field guide" : undefined}
               className={section === id ? "nav-item selected" : "nav-item"}
               aria-current={section === id ? "page" : undefined}
               onClick={() => navigate(id)}
@@ -466,13 +469,17 @@ export default function NetFault() {
           <div className="breadcrumb">
             Workspace <ChevronRight size={14} />{" "}
             <span>
-              {section === "labs" ? "Troubleshooting labs" : section === "journal" ? "Your journal" : "Field guide"}
+              {section === "labs"
+                ? "Troubleshooting labs"
+                : section === "journal"
+                  ? "Your journal"
+                  : "Learn networking"}
             </span>
           </div>
           <span className="connection">
             <span className={online ? "status-dot" : "status-dot offline"} />
             {online ? "Workspace online" : "Offline"}
-            <span className="desktop-only"> · Milestone 3A</span>
+            <span className="desktop-only"> · Milestone 3B</span>
           </span>
         </header>
         <main id="main" tabIndex={-1}>
@@ -541,7 +548,7 @@ export default function NetFault() {
                 <h2>
                   Your lab bench <span>{String(labs.length).padStart(2, "0")}</span>
                 </h2>
-                <span className="muted">Two networks. Follow the evidence.</span>
+                <span className="muted">Troubleshoot networks. Follow the evidence.</span>
               </div>
               <div className="lab-selector" role="group" aria-label="Choose a troubleshooting lab">
                 {labs.map((item) => (
@@ -693,7 +700,7 @@ export default function NetFault() {
                   <BookOpen size={23} />
                   <h3>Understand the why</h3>
                   <p>Build from addressing to OSPF adjacency with examples and independent exercises.</p>
-                  <button className="text-button" onClick={() => navigate("learn")}>
+                  <button className="text-button" onClick={() => navigate("learn", true)}>
                     Open the field guide <ArrowRight size={16} />
                   </button>
                 </div>
@@ -1604,55 +1611,16 @@ export default function NetFault() {
               )}
             </>
           ) : (
-            <>
-              <div className="page-heading">
-                <div className="eyebrow">THE FIELD GUIDE</div>
-                <h1>Understand what you observe.</h1>
-                <p>Four connected ideas. A method for the next unfamiliar network.</p>
-              </div>
-              {lessons.map((l) => (
-                <details className="panel lesson" key={l.title}>
-                  <summary>
-                    {l.title}
-                    <BookOpen size={20} />
-                  </summary>
-                  <div className="lesson-body">
-                    <h3>The simple version</h3>
-                    <p>{l.simple}</p>
-                    <h3>An analogy, with limits</h3>
-                    <p>{l.analogy}</p>
-                    <h3>Under the hood</h3>
-                    <p>{l.technical}</p>
-                    <h3>Worked example</h3>
-                    <pre>{l.example}</pre>
-                    <h3>Connect it to a symptom</h3>
-                    <p>{l.symptom}</p>
-                    <h3>Guided practice</h3>
-                    <p>{l.guided}</p>
-                    <h3>Try it independently</h3>
-                    <p>{l.exercise}</p>
-                  </div>
-                </details>
-              ))}
-              <div className="quiet-card">
-                <h3>Built on documented protocol behavior</h3>
-                <p>
-                  Concepts and modeled behavior were reviewed against{" "}
-                  <a href="https://www.rfc-editor.org/rfc/rfc2328#section-8.2" target="_blank" rel="noreferrer">
-                    RFC 2328
-                  </a>{" "}
-                  and{" "}
-                  <a
-                    href="https://www.cisco.com/c/en/us/support/docs/ip/open-shortest-path-first-ospf/13699-29.html"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Cisco’s OSPF troubleshooting guidance
-                  </a>
-                  . This is a simplified simulator, not an IOS emulator or an official Universiti Malaya product.
-                </p>
-              </div>
-            </>
+            <AcademyView
+              initialReferences={academyReferences}
+              onLab={(id) => {
+                if (locked) return;
+                back();
+                setChosenLab(id);
+                setTarget(catalog(id).target);
+                setMode("practice");
+              }}
+            />
           )}
           <footer>
             <span>

@@ -1,12 +1,16 @@
 # Architecture and boundaries
 
+## Milestone 3B update
+
+The [Academy foundation and IPv4 pilot](learning-academy.md) now implements the bounded expansion previously proposed by the historical audit. It adds separate public content validation, structured practice grading, revision-aware local progress, reusable UI and neutral lesson-to-lab links. All seven scenario states, lab revisions, forwarding/OSPF engine, assessment routes and Netlify storage remain unchanged. The four original guide bodies are preserved through stable reference IDs. Academy answers are public practice content; lab assessment answers remain server-owned. The production shell eagerly bundles the Academy, using the existing worker without API caching or a new route.
+
 ## Milestone 3A update
 
 The 2E audit below/linked is historical. D1–D3 are now corrected; see [execution evidence](milestone-3a.md). Seven labs are supported with the original five configurations/revisions unchanged. Schema v6 adds a timer-profile repair and forward-route diagnosis semantics. The existing adjacency, route derivation, longest-prefix lookup and loop guard are reused; no second engine or server storage change was introduced.
 
 LAB 006 uses [timer mismatch](timer-lab.md); LAB 007 uses [incorrect installed static next hop](next-hop-lab.md). Public preview code now derives device-appropriate commands from an explicitly loaded pack, with neutral before/after labels. No private preview recipe or target is embedded in the catalog. Empty evidence lists are rejected in schema and grading. Neighbor Dead Time follows configured Dead as a labeled representative snapshot. A typed registry and shared authoring tests check identity, topology, commands, evidence, broken symptoms and effective repairs.
 
-New schema fields are additive and optional on diagnoses; v1–v5 packs and v1 attempts remain readable. Practice keys for timer-01 and next-hop-01 coexist with old keys. Seven-part private lessons remain post-feedback/requested practice content. Academy expansion is documentation only; see [its audit](learning-academy-audit.md). The historical milestone sections that follow describe when each original behavior was introduced.
+New schema fields are additive and optional on diagnoses; v1–v5 packs and v1 attempts remain readable. Practice keys for timer-01 and next-hop-01 coexist with old keys. Seven-part private lessons remain post-feedback/requested practice content. At the 3A checkpoint Academy expansion was documentation only; the 3B section above supersedes that limitation. See [its historical audit](learning-academy-audit.md). The historical milestone sections that follow describe when each original behavior was introduced.
 
 Milestone 2E's [independent engine audit](engine-audit.md) records the actual expansion limits, capability matrix and confirmed gaps in this implementation. In particular, private scenario imports are protected, but the audit found a LAB 004 preview narration clue then shipped in client code (fixed in 3A); do not interpret the client/server boundary below as proof that every private clue is absent. The audit adds no runtime behavior. Follow the [next-milestone plan](multi-lab-plan.md) only after implementation authorization.
 

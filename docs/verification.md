@@ -1,5 +1,7 @@
 # Milestone 3A verification
 
+For the subsequent Academy foundation and IPv4 pilot, see the separate [Milestone 3B execution and verification record](milestone-3b-plan.md). This page preserves the historical seven-lab baseline.
+
 Executed locally on Windows, 2026-09-21, starting from clean `9e4b96b`. The [phased execution record](milestone-3a.md) records baseline, readiness gate and each lab's gate. No commit, push, deployment, remote project change or paid service was performed. The old five scenario source files, Academy guide content, dependency lockfile, Netlify configuration, assessment API/reducer/store, browser storage format and service-worker implementation are unchanged.
 
 | Final check | Actual result |

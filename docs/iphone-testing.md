@@ -2,6 +2,18 @@
 
 Target: iPhone 11, 414 × 896 CSS pixels, portrait. Automated Chromium viewport emulation does not demonstrate native Safari or physical touch behavior. Physical device testing has not been performed.
 
+## Milestone 3B Academy manual acceptance (not physically performed)
+
+- [ ] On localhost for desktop, or an authorized trusted HTTPS release for iPhone, open Learn networking and the IPv4 module. Check all three lessons and four Field Guides in portrait/landscape, Safari and Home Screen mode.
+- [ ] Read the seven-part progression, type numeric/IP answers with the iOS keyboard, submit wrong then correct answers, request an independent solution and inspect its reveal record. Ensure long command examples scroll within their panel.
+- [ ] Use VoiceOver and keyboard navigation where available: headings receive focus after navigation, form labels are announced, focus rings are visible, controls are comfortable to tap and no page-width overflow occurs.
+- [ ] Mark a lesson read, refresh, Continue lesson and check draft values, submissions and requested reveals. Verify “read” and “completed exercise” are distinct; exports retain old revision records.
+- [ ] Follow the gateway lesson's LAB 002 link. Confirm mode selection appears without a new attempt; investigate manually, save evidence/notes, visit Academy and return with those values preserved.
+- [ ] Start a timed assessment, try Learn networking/Field Guide and confirm access is blocked. Refresh and verify deadline/history remain; an outage must not pause the timer.
+- [ ] Wait for **Available offline · Academy** after production installation/reload. Enable airplane mode, reload, read all three lessons, complete exercises, refresh and resume their progress. Revisit previously downloaded practice packs. External references and assessments require reconnection.
+- [ ] Reconnect, accept a later authorized deployment update, and verify Academy and lab records survive. If storage is unavailable/full/corrupt, confirm visible recovery messages and raw/session exports without silent deletion.
+- [ ] No physical iPhone or live Netlify acceptance is claimed by the automated Chromium tests. Local LAN HTTP cannot validate iPhone service-worker installation; use trusted HTTPS for that check.
+
 ## Milestone 3A manual acceptance (not physically performed)
 
 - [ ] After a separately authorized HTTPS deployment, accept Reload to update; all seven lab cards remain available and old journal entries still open.
