@@ -1,3 +1,38 @@
+# Milestone 3A verification
+
+Executed locally on Windows, 2026-09-21, starting from clean `9e4b96b`. The [phased execution record](milestone-3a.md) records baseline, readiness gate and each lab's gate. No commit, push, deployment, remote project change or paid service was performed. The old five scenario source files, Academy guide content, dependency lockfile, Netlify configuration, assessment API/reducer/store, browser storage format and service-worker implementation are unchanged.
+
+| Final check | Actual result |
+| --- | --- |
+| `pnpm lint` | Passed |
+| `pnpm typecheck` | Passed, strict TypeScript |
+| `pnpm test` | **266 passed, 13 files**, no failures/skips |
+| `pnpm build` | Passed; build `Y33CRbjf_mYfN4I6Mlcdl`; `/api/lab` remains dynamic; build-stamped worker generated |
+| `CI=true`, `PW_PRODUCTION=1`, `pnpm test:browser` | **62 passed**, 31 desktop + 31 at 414 × 896; no failures/skips, fresh production server |
+| LAB 006 targeted production browser gate | 6/6 passed after correcting new test navigation; same-build OSPF/privacy regressions also passed |
+| LAB 007 + LAB 004 targeted production browser gate | 14/14 passed |
+
+## Coverage and resolved failures
+
+- Readiness: empty requirement/device/command alternatives rejected by schema and defensive grader; evidence total remains 30. Matching 10/40 and 5/20 timer outputs stay bounded; mismatch/recovery and exact network state are tested.
+- Public/private boundary: preview uses a generic all-device diagnostic sequence with no lab-specific repair narration. A production test enumerates all static JS and every authored private explanation, solution, hint, evidence label and lesson body for all registered labs; public catalog/device and active assessment fields are constrained. This supplements existing phrase/API tests, not a formal proof of semantic confidentiality. Public options/design remain public; practice packs can deliberately be downloaded and inspected separately.
+- New labs: healthy fixtures precede one fault mutation; tests assert exact healthy restoration, command/state agreement, actual adjacency/route/connectivity behavior, all-address reachability after repair, source and independent reply paths, loop termination and more-specific route precedence. Schema and registry references, topology/catalog/commands, achievable evidence and an ineffective-but-schema-valid repair counterexample are covered.
+- Grading/lifecycle: structured exact timer profiles and observed/proposed next hops, alternative evidence, incorrect answers/forged IDs, scenario-bound evidence, immutable server results, persisted module reload and deadline priority. Notes are not interpreted. Existing LAB 001–005 behavior assertions are retained.
+- Saved data: old five source configurations/revisions and v1 journal format remain unchanged. Existing persistence tests now round-trip all seven cached packs and attempt records, retaining prior records and separate pack bytes. Existing corruption/quota safeguards remain tested. No storage migration or Blobs redesign.
+- Browser workflows: each new lab tests every device, command observations, selected evidence, four hints, structured submission, feedback, seven-part lesson, requested independent solution, actual repaired preview, journal reopen and timed assessment. Offline tests cache all seven packs, reload without network, reopen old and new entries, then finish each new practice lab and preview offline. Assessment remains online-only.
+- Final source review identified a loop trace mislabeled as ICMP host unreachable. The formatter now emits an explicitly labeled simulator loop/hop-limit stop, with no inferred ICMP error; regression assertions prohibit the old !H loop output. Forwarding and return-reachability logic are unchanged.
+- Initial LAB 006 fixture TypeScript error was fixed by parsing generated devices through the existing schema. Four old tests assumed the catalog had exactly five entries; original-five identity/version checks were retained explicitly and aggregate journal counts now follow the expanded catalog. No network assertions were removed.
+- Initial LAB 006 browser gate: 26 passed, 2 failed. The new offline helper tried device buttons while a reopened journal entry correctly selected Evidence. Selecting Investigate fixed test navigation; rerun of all six new lab workflows passed. No app behavior was weakened to satisfy the test.
+
+## Limits and manual acceptance
+
+Microsoft Edge/Chromium desktop 1440 × 1000 and iPhone-sized **414 × 896** viewport emulation. Desktop and 414px inspection screenshots for the new labs were visually reviewed; screenshots are in ignored `test-results/`. Tests assert no document overflow and 44px command targets. Physical iPhone, Safari/WebKit, VoiceOver, Home Screen install, local trusted HTTPS, laptop-off public hosting and real Netlify deployment were **not** tested. Follow [manual iPhone checks](iphone-testing.md).
+
+Networking teaching was checked against the linked Cisco references in [LAB 006](timer-lab.md) and [LAB 007](next-hop-lab.md); no IOS/CML/GNS3/physical router validation was performed. OSPF remains a steady-state intra-area model; Dead Time is representative. Static next hops must be directly linked routers; traceroute/loops are bounded path observations, not packet-accurate TTL/timing.
+
+No new deployment tooling check was needed for these framework-neutral additions; Netlify/OpenNext/Node/pnpm/Blobs/cache settings are unchanged. The source remains prepared for a future authorized Netlify build, but this is not live deployment acceptance. Practice/source/local storage is inspectable; assessment is personal self-assessment, not a confidential exam. The Academy deliverable is an audit/plan only.
+
+---
 # Milestone 2E independent audit verification
 
 Executed 2026-09-21 against clean baseline commit `ed95191`. This was an audit/planning task, with no production source or permanent test changes. Historical results below were independently rechecked rather than assumed current.

@@ -1,5 +1,7 @@
 # Next authorized milestone — implementation handoff
 
+> Historical 2E record. Milestone 3A now implements D1–D3 and LAB 006/007; see [execution record](milestone-3a.md). Original findings/probe assertions below intentionally describe the pre-fix state and must not be treated as current passing expectations.
+
 Planning only, prepared by Milestone 2E on 2026-09-21 against `ed95191`. Read [the audit](engine-audit.md) and its [reproductions](engine-audit-probes.md). This document does **not** authorize fixes, new labs, randomization, commits or deployment.
 
 ## Recommended scope and order

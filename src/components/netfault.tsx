@@ -40,8 +40,13 @@ import {
   passiveCauses,
   passiveFixes,
   passiveReasons,
+  timerReasons,
+  nextHopCauses,
+  nextHopFixes,
+  nextHopReasons,
 } from "@/lib/catalog";
-import { execute, repaired, commandSequence, packetJourney } from "@/lib/engine";
+import { execute } from "@/lib/engine";
+import { repairPreview } from "@/lib/preview";
 import { grade, nextHint } from "@/lib/grading";
 import {
   attemptSchema,
@@ -99,20 +104,35 @@ export default function NetFault() {
   const isGateway = lab.id === "gateway-01";
   const isVlan = lab.id === "vlan-01";
   const isReturn = lab.id === "return-01";
+  const isNextHop = lab.id === "next-hop-01";
+  const isRouting = isReturn || isNextHop;
+  const routingReasons = isNextHop ? nextHopReasons : returnReasons;
   const isPassive = lab.id === "passive-01";
+  const isTimer = lab.id === "timer-01";
+  const protocolReasons = isTimer ? timerReasons : passiveReasons;
   const singleDeviceFault = lab.id !== "ospf-01";
-  const supportsPingSource = isReturn || isPassive;
-  const hintCount = isReturn || isPassive ? 4 : 3;
-  const causeChoices = isPassive ? passiveCauses : isReturn ? returnCauses : isVlan ? vlanCauses : causes;
-  const repairChoices = isPassive
-    ? passiveFixes
-    : isReturn
-      ? returnFixes
-      : isVlan
-        ? vlanFixes
-        : isGateway
-          ? gatewayFixes
-          : fixes;
+  const supportsPingSource = isRouting || isPassive || isTimer;
+  const hintCount = isRouting || isPassive || isTimer ? 4 : 3;
+  const causeChoices = isNextHop
+    ? nextHopCauses
+    : isPassive || isTimer
+      ? passiveCauses
+      : isRouting
+        ? returnCauses
+        : isVlan
+          ? vlanCauses
+          : causes;
+  const repairChoices = isNextHop
+    ? nextHopFixes
+    : isPassive || isTimer
+      ? passiveFixes
+      : isRouting
+        ? returnFixes
+        : isVlan
+          ? vlanFixes
+          : isGateway
+            ? gatewayFixes
+            : fixes;
   const inFlight = useRef(false),
     timeoutRequested = useRef(false);
   const latestAttempt = useRef<Attempt | undefined>(undefined);
@@ -360,6 +380,8 @@ export default function NetFault() {
             gatewayPractice: localStorage.getItem("netfault.practice.gateway-01.v1"),
             vlanPractice: localStorage.getItem("netfault.practice.vlan-01.v1"),
             returnPractice: localStorage.getItem("netfault.practice.return-01.v1"),
+            nextHopPractice: localStorage.getItem("netfault.practice.next-hop-01.v1"),
+            timerPractice: localStorage.getItem("netfault.practice.timer-01.v1"),
             passivePractice: localStorage.getItem("netfault.practice.passive-01.v1"),
           }
         : { version: 1, exportedAt: new Date().toISOString(), attempts: journal };
@@ -450,7 +472,7 @@ export default function NetFault() {
           <span className="connection">
             <span className={online ? "status-dot" : "status-dot offline"} />
             {online ? "Workspace online" : "Offline"}
-            <span className="desktop-only"> · Milestone 2D</span>
+            <span className="desktop-only"> · Milestone 3A</span>
           </span>
         </header>
         <main id="main" tabIndex={-1}>
@@ -713,9 +735,9 @@ export default function NetFault() {
                     <p>{lab.design}</p>
                     <p>
                       Use commands to inspect each device. Save observations as evidence,{" "}
-                      {isPassive
+                      {isPassive || isTimer
                         ? "identify the router, interface and configuration fault, then explain the effect of your correction."
-                        : isReturn
+                        : isRouting
                           ? "identify the device, destination prefix and next hop, then explain how the repair restores communication."
                           : isVlan
                             ? "identify the device, interface and observed configuration, then propose the intended configuration."
@@ -1076,22 +1098,22 @@ export default function NetFault() {
                           <strong>Repair:</strong>{" "}
                           {repairChoices.find(([id]) => id === answer.fix)?.[1] ?? "Not submitted"}
                         </p>
-                        {isPassive && (
+                        {(isPassive || isTimer) && (
                           <p>
                             <strong>Interface:</strong> {answer.interface || "Not submitted"}
                             <br />
                             <strong>Explanation:</strong>{" "}
-                            {passiveReasons.find(([id]) => id === answer.reason)?.[1] ?? "Not submitted"}
+                            {protocolReasons.find(([id]) => id === answer.reason)?.[1] ?? "Not submitted"}
                           </p>
                         )}
-                        {isReturn && (
+                        {isRouting && (
                           <p>
                             <strong>Destination:</strong> {answer.destinationNetwork || "Not submitted"}
                             <br />
                             <strong>Next hop:</strong> {answer.nextHop || "Not submitted"}
                             <br />
                             <strong>Explanation:</strong>{" "}
-                            {returnReasons.find(([id]) => id === answer.reason)?.[1] ?? "Not submitted"}
+                            {routingReasons.find(([id]) => id === answer.reason)?.[1] ?? "Not submitted"}
                           </p>
                         )}
                         {isGateway && (
@@ -1119,6 +1141,12 @@ export default function NetFault() {
                           <strong>Notes (not graded):</strong> {answer.notes || "No notes recorded."}
                         </p>
                       </details>
+                      {isTimer && (
+                        <p>
+                          Submitted timer profile: Hello {answer.hello ?? "—"} / Dead {answer.dead ?? "—"} seconds.
+                        </p>
+                      )}
+                      {isNextHop && <p>Observed next hop: {answer.observedNextHop ?? "Not submitted"}</p>}
                       <details className="solution" open>
                         <summary>Worked repair & verification</summary>
                         <pre>{attempt.feedback.solution}</pre>
@@ -1128,108 +1156,7 @@ export default function NetFault() {
                         onClick={() =>
                           void task(async () => {
                             const original = await getPack();
-                            const p = repaired(original);
-                            if (isPassive) {
-                              setPreview(
-                                [
-                                  "BEFORE REPAIR",
-                                  commandSequence(original, [
-                                    ["R2", "show ip ospf interface"],
-                                    ["R2", "show ip ospf neighbor"],
-                                    ["R1", "show ip route"],
-                                    ["R3", "show ip route"],
-                                    ["PC-A", "ping", lab.target],
-                                  ]),
-                                  "AFTER REPAIR — only the targeted interface setting changes",
-                                  commandSequence(p, [
-                                    ["R2", "show running-config"],
-                                    ["R2", "show ip ospf interface"],
-                                    ["R2", "show ip ospf neighbor"],
-                                    ["R3", "show ip ospf neighbor"],
-                                    ["R1", "show ip route"],
-                                    ["R3", "show ip route"],
-                                    ["R1", "show ip protocols"],
-                                    ["R3", "show ip protocols"],
-                                    ["PC-A", "ping", lab.target],
-                                    ["PC-B", "ping", "192.168.10.10"],
-                                    ["PC-A", "tracert", lab.target],
-                                  ]),
-                                ].join("\n\n"),
-                              );
-                              return;
-                            }
-                            if (isReturn) {
-                              setPreview(
-                                [
-                                  "BEFORE REPAIR",
-                                  commandSequence(original, [
-                                    ["R2", "show ip route"],
-                                    ["PC-A", "ping", lab.target],
-                                  ]),
-                                  packetJourney(original, "PC-A", lab.target),
-                                  "AFTER REPAIR — only R2's static routing configuration changes",
-                                  commandSequence(p, [
-                                    ["R2", "show ip route"],
-                                    ["R2", "show running-config"],
-                                    ["R1", "show running-config"],
-                                    ["PC-A", "ping", lab.target],
-                                    ["PC-B", "ping", "192.168.10.10"],
-                                    ["R1", "ping", lab.target, "192.168.10.1"],
-                                    ["PC-A", "tracert", lab.target],
-                                  ]),
-                                  packetJourney(p, "PC-A", lab.target),
-                                ].join("\n\n"),
-                              );
-                              return;
-                            }
-                            if (isVlan) {
-                              setPreview(
-                                [
-                                  "REPAIRED-STATE PREVIEW — not part of your evidence",
-                                  "BEFORE REPAIR",
-                                  execute(original, "SW1", "show interfaces fastethernet0/1 switchport"),
-                                  "AFTER REPAIR — only the affected access VLAN changes; fresh ARP cache",
-                                  commandSequence(p, [
-                                    ["SW1", "show vlan brief"],
-                                    ["SW1", "show interfaces fastethernet0/1 switchport"],
-                                    ["SW1", "show interfaces fastethernet0/24 switchport"],
-                                    ["SW1", "show running-config"],
-                                    ["PC-A", "arp -a"],
-                                    ["PC-A", "ping", "192.168.10.1"],
-                                    ["PC-A", "arp -a"],
-                                    ["PC-A", "ping", lab.target],
-                                    ["PC-A", "tracert", lab.target],
-                                    ["PC-B", "ping", "192.168.10.10"],
-                                    ["R1", "show ip route"],
-                                    ["R2", "show ip route"],
-                                  ]),
-                                ].join("\n\n"),
-                              );
-                              return;
-                            }
-                            setPreview(
-                              [
-                                "REPAIRED-STATE PREVIEW — not part of your evidence",
-                                ...(isGateway
-                                  ? [
-                                      "PC-A> ipconfig",
-                                      execute(p, "PC-A", "ipconfig"),
-                                      "PC-A> route print",
-                                      execute(p, "PC-A", "route print"),
-                                      "PC-A> ping 192.168.10.1",
-                                      execute(p, "PC-A", "ping", "192.168.10.1"),
-                                      `PC-A> tracert ${lab.target}`,
-                                      execute(p, "PC-A", "tracert", lab.target),
-                                    ]
-                                  : ["R2# show ip ospf neighbor", execute(p, "R2", "show ip ospf neighbor")]),
-                                "R1# show ip route",
-                                execute(p, "R1", "show ip route"),
-                                `PC-A> ping ${lab.target}`,
-                                execute(p, "PC-A", "ping", lab.target),
-                                "PC-B> ping 192.168.10.10",
-                                execute(p, "PC-B", "ping", "192.168.10.10"),
-                              ].join("\n\n"),
-                            );
+                            setPreview(repairPreview(original));
                           })
                         }
                       >
@@ -1305,7 +1232,33 @@ export default function NetFault() {
                             ))}
                         </div>
                       </fieldset>
-                      {isPassive && (
+                      {isTimer && (
+                        <>
+                          <label htmlFor="timer-hello">Proposed Hello interval (seconds)</label>
+                          <input
+                            id="timer-hello"
+                            type="number"
+                            inputMode="numeric"
+                            min={1}
+                            max={65535}
+                            required
+                            value={answer.hello ?? ""}
+                            onChange={(e) => editAnswer({ hello: e.target.value ? Number(e.target.value) : undefined })}
+                          />
+                          <label htmlFor="timer-dead">Proposed Dead interval (seconds)</label>
+                          <input
+                            id="timer-dead"
+                            type="number"
+                            inputMode="numeric"
+                            min={1}
+                            max={65535}
+                            required
+                            value={answer.dead ?? ""}
+                            onChange={(e) => editAnswer({ dead: e.target.value ? Number(e.target.value) : undefined })}
+                          />
+                        </>
+                      )}
+                      {(isPassive || isTimer) && (
                         <>
                           <label htmlFor="ospf-interface-answer">Affected interface</label>
                           <select
@@ -1331,7 +1284,7 @@ export default function NetFault() {
                             <option value="" disabled>
                               Select a protocol explanation
                             </option>
-                            {passiveReasons.map(([id, text]) => (
+                            {protocolReasons.map(([id, text]) => (
                               <option key={id} value={id}>
                                 {text}
                               </option>
@@ -1339,9 +1292,11 @@ export default function NetFault() {
                           </select>
                         </>
                       )}
-                      {isReturn && (
+                      {isRouting && (
                         <>
-                          <label htmlFor="route-destination">Missing destination network (CIDR)</label>
+                          <label htmlFor="route-destination">
+                            {isNextHop ? "Affected destination network (CIDR)" : "Missing destination network (CIDR)"}
+                          </label>
                           <input
                             id="route-destination"
                             required
@@ -1351,6 +1306,20 @@ export default function NetFault() {
                             onChange={(e) => editAnswer({ destinationNetwork: e.target.value })}
                             placeholder="Network address / prefix length"
                           />
+                          {isNextHop && (
+                            <>
+                              <label htmlFor="observed-next-hop">Observed incorrect next-hop IPv4 address</label>
+                              <input
+                                id="observed-next-hop"
+                                required
+                                maxLength={64}
+                                inputMode="decimal"
+                                autoComplete="off"
+                                value={answer.observedNextHop ?? ""}
+                                onChange={(e) => editAnswer({ observedNextHop: e.target.value })}
+                              />
+                            </>
+                          )}
                           <label htmlFor="route-next-hop">Proposed next-hop IPv4 address</label>
                           <input
                             id="route-next-hop"
@@ -1372,7 +1341,7 @@ export default function NetFault() {
                             <option value="" disabled>
                               Select a forwarding explanation
                             </option>
-                            {returnReasons.map(([id, text]) => (
+                            {routingReasons.map(([id, text]) => (
                               <option key={id} value={id}>
                                 {text}
                               </option>
@@ -1485,10 +1454,12 @@ export default function NetFault() {
                         <div>
                           <strong>04 / {answer.evidence.length} evidence items selected</strong>
                           <p>
-                            {isPassive
+                            {isPassive || isTimer
                               ? "Combine the observed configuration with physical interface state, neighbor relationships and routing impact. A missing neighbor or failed ping alone cannot identify the cause."
-                              : isReturn
-                                ? "Combine both routing tables with the source host's IP configuration. Failed ping alone cannot prove which route is missing."
+                              : isRouting
+                                ? isNextHop
+                                  ? "Map the installed route to its adjacent router and compare onward forwarding and interface evidence. A failed ping alone cannot prove the cause."
+                                  : "Combine both routing tables with the source host's IP configuration. Failed ping alone cannot prove which route is missing."
                                 : isVlan
                                   ? "Combine host configuration with membership observations for both connected switch ports. A failed ping alone does not identify the cause."
                                   : isGateway
@@ -1509,10 +1480,12 @@ export default function NetFault() {
                         rows={4}
                         value={answer.notes}
                         placeholder={
-                          isPassive
+                          isPassive || isTimer
                             ? "Which observation distinguished this configuration fault from other neighbor failures? What did a successful connected ping prove?"
-                            : isReturn
-                              ? "What first suggested a return-path problem? Which entry was missing? Why did local ping not prove end-to-end connectivity?"
+                            : isRouting
+                              ? isNextHop
+                                ? "Which consecutive forwarding decisions explain the failure? Why can an installed route still be wrong?"
+                                : "What first suggested a return-path problem? Which entry was missing? Why did local ping not prove end-to-end connectivity?"
                               : isVlan
                                 ? "What first suggested a Layer 2 problem? Why suspect IP settings? What would you check first next time?"
                                 : "What did you rule out, and why?"
@@ -1521,10 +1494,10 @@ export default function NetFault() {
                       />
                       <p className="muted">
                         Grading uses the selected cause,{" "}
-                        {isPassive
+                        {isPassive || isTimer
                           ? "router, interface, observed command evidence, targeted repair and protocol explanation"
-                          : isReturn
-                            ? "device, destination prefix, next hop, command evidence and reply-forwarding explanation"
+                          : isRouting
+                            ? "device, destination prefix, observed configuration, next hop, command evidence and forwarding explanation"
                             : isVlan
                               ? "device, interface, observed VLAN, command evidence and intended access-port configuration"
                               : isGateway

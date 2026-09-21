@@ -1,6 +1,14 @@
 # Architecture and boundaries
 
-Milestone 2E's [independent engine audit](engine-audit.md) records the actual expansion limits, capability matrix and confirmed gaps in this implementation. In particular, private scenario imports are protected, but a LAB 004 preview narration clue is still shipped in client code; do not interpret the client/server boundary below as proof that every private clue is absent. The audit adds no runtime behavior. Follow the [next-milestone plan](multi-lab-plan.md) only after implementation authorization.
+## Milestone 3A update
+
+The 2E audit below/linked is historical. D1–D3 are now corrected; see [execution evidence](milestone-3a.md). Seven labs are supported with the original five configurations/revisions unchanged. Schema v6 adds a timer-profile repair and forward-route diagnosis semantics. The existing adjacency, route derivation, longest-prefix lookup and loop guard are reused; no second engine or server storage change was introduced.
+
+LAB 006 uses [timer mismatch](timer-lab.md); LAB 007 uses [incorrect installed static next hop](next-hop-lab.md). Public preview code now derives device-appropriate commands from an explicitly loaded pack, with neutral before/after labels. No private preview recipe or target is embedded in the catalog. Empty evidence lists are rejected in schema and grading. Neighbor Dead Time follows configured Dead as a labeled representative snapshot. A typed registry and shared authoring tests check identity, topology, commands, evidence, broken symptoms and effective repairs.
+
+New schema fields are additive and optional on diagnoses; v1–v5 packs and v1 attempts remain readable. Practice keys for timer-01 and next-hop-01 coexist with old keys. Seven-part private lessons remain post-feedback/requested practice content. Academy expansion is documentation only; see [its audit](learning-academy-audit.md). The historical milestone sections that follow describe when each original behavior was introduced.
+
+Milestone 2E's [independent engine audit](engine-audit.md) records the actual expansion limits, capability matrix and confirmed gaps in this implementation. In particular, private scenario imports are protected, but the audit found a LAB 004 preview narration clue then shipped in client code (fixed in 3A); do not interpret the client/server boundary below as proof that every private clue is absent. The audit adds no runtime behavior. Follow the [next-milestone plan](multi-lab-plan.md) only after implementation authorization.
 
 Next.js 16 App Router, React 19, strict TypeScript, Zod, React Flow, Lucide icons, CSS, Vitest and Playwright. No AI inference service is required. Netlify configuration uses automatic OpenNext and Blobs for hosted sessions; ordinary local use remains filesystem-backed. The user reports the application is deployed; this milestone does not deploy or verify a new live version.
 
@@ -20,7 +28,7 @@ Milestone 2A adds `gateway-01` through a server-only scenario registry, without 
 
 Adjacency requires live interfaces, active OSPF, equal areas, matching timers/MTU and explicit point-to-point type. Dijkstra per area derives intra-area OSPF routes. Connected/local routes take precedence; metrics accumulate outgoing costs. Forwarding uses longest-prefix match. Ping requires forward delivery and a return route to the selected source address. Router source selection uses the outgoing interface; PC source uses its configured interface. Trace shows forward hops only when a corresponding response can return; it does not implement per-probe TTL packets or latency.
 
-This algorithm is intentionally bounded to these five labs. Layer 2 neighbor resolution traverses active access ports within one VLAN without adding an IP hop. The gateway and VLAN labs' routers use the existing healthy point-to-point OSPF model; LAB 004 uses connected/static routing only. It is not an implementation of LSDB flooding, broadcast adjacency elections, ABR summaries, virtual links, authentication, ECMP, redistribution, ACLs, ARP timing, MAC learning, trunks, STP or packet loss. Scenario validation and authoring requirements must prevent unsupported models from being presented as implemented.
+This algorithm is intentionally bounded to the documented lab mechanisms. Layer 2 neighbor resolution traverses active access ports within one VLAN without adding an IP hop. The gateway and VLAN labs' routers use the existing healthy point-to-point OSPF model; LAB 004 uses connected/static routing only. It is not an implementation of LSDB flooding, broadcast adjacency elections, ABR summaries, virtual links, authentication, ECMP, redistribution, ACLs, ARP timing, MAC learning, trunks, STP or packet loss. Scenario validation and authoring requirements must prevent unsupported models from being presented as implemented.
 
 ## Client/server split
 
@@ -53,3 +61,5 @@ The production build stamps the service worker with its Next build ID. Installat
 ## UX and accessibility
 
 Neutral topology links never reveal the fault. React Flow supplies pan/zoom; device buttons provide an accessible alternative to nodes and remain full-sized on phones. Evidence consists of actual observed command outputs, not pre-written clues. Mobile navigation stays within the safe area, inputs are 16px on phones, controls have touch-sized targets, and terminal overflow is confined to the output pane. Feedback names rubric components and avoids mastery claims.
+
+LAB 007 trace rendering distinguishes a simulator-detected loop/hop-limit stop from an ICMP host-unreachable response. It never infers an ICMP error packet from loop detection; hop visibility still depends on a route back to the probe source.

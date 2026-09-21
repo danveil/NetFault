@@ -1,5 +1,7 @@
 # Milestone 2E — engine audit and multi-lab readiness
 
+> Historical 2E record. Milestone 3A now implements D1–D3 and LAB 006/007; see [execution record](milestone-3a.md). Original findings/probe assertions below intentionally describe the pre-fix state and must not be treated as current passing expectations.
+
 Audit date: 2026-09-21. Repository baseline: `ed95191`, initially clean. Scope is inspection, verification and local planning only. No application code, permanent tests, dependency, infrastructure or lab changes were made. LAB 006–008 are proposals, not implemented content.
 
 ## Decision

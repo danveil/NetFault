@@ -1,5 +1,7 @@
 # Milestone 2E reproducible audit probes
 
+> Historical 2E record. Milestone 3A now implements D1–D3 and LAB 006/007; see [execution record](milestone-3a.md). Original findings/probe assertions below intentionally describe the pre-fix state and must not be treated as current passing expectations.
+
 Audited commit: `ed95191`, 2026-09-21. These are **observations of existing behavior**, not fixes or new labs. Eight disposable Vitest probes were run successfully. A passing assertion below may demonstrate an authoring gap or incorrect output; it does not mean that behavior is desirable. The normal regression suite remains 200 tests.
 
 To reproduce in a future authorized audit, save the following block as `tests/audit-probes.test.ts` and run `node node_modules/vitest/vitest.mjs run tests/audit-probes.test.ts` from the repository root. Remove only that temporary file afterward. The file was removed after this audit; production source and permanent tests were unchanged.

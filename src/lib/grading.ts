@@ -5,14 +5,24 @@ export function grade(s: Scenario, answer: Diagnosis, history: Observation[], ti
   );
   const checks = s.evidenceRules.map((rule) => ({
     ...rule,
-    met: rule.requirements.every((r) =>
-      selected.some((o) => r.devices.includes(o.device) && r.commands.includes(o.command)),
-    ),
+    met:
+      rule.requirements.length > 0 &&
+      rule.requirements.every(
+        (r) =>
+          r.devices.length > 0 &&
+          r.commands.length > 0 &&
+          selected.some((o) => r.devices.includes(o.device) && r.commands.includes(o.command)),
+      ),
   }));
   const exactDevices = [...new Set(answer.devices)].sort().join(",") === [...s.fault.devices].sort().join(",");
-  if ("passive" in s.repair) {
+  if ("passive" in s.repair || "hello" in s.repair) {
+    const timer = "hello" in s.repair;
     const correctInterface = answer.interface?.trim().toLowerCase() === s.repair.interface.toLowerCase();
-    const correctFix = exactDevices && correctInterface && s.acceptedFixes.includes(answer.fix);
+    const correctFix =
+      exactDevices &&
+      correctInterface &&
+      s.acceptedFixes.includes(answer.fix) &&
+      (!("hello" in s.repair) || (answer.hello === s.repair.hello && answer.dead === s.repair.dead));
     const correctReason = answer.reason === s.repair.reason;
     const parts = [
       {
@@ -21,7 +31,9 @@ export function grade(s: Scenario, answer: Diagnosis, history: Observation[], ti
         possible: 30,
         message:
           answer.cause === s.fault.cause
-            ? "Passive transit configuration explains the missing adjacency."
+            ? timer
+              ? "Incompatible interface timers explain the missing adjacency."
+              : "Passive transit configuration explains the missing adjacency."
             : "A missing neighbor has several possible causes. Compare interface and OSPF configuration.",
       },
       {
@@ -40,7 +52,9 @@ export function grade(s: Scenario, answer: Diagnosis, history: Observation[], ti
         name: "Remediation and mechanism",
         earned: (correctFix ? 10 : 0) + (correctReason ? 10 : 0),
         possible: 20,
-        message: `Targeted passive setting removal: ${correctFix ? "correct" : "incorrect"} (10). Hello/adjacency explanation: ${correctReason ? "correct" : "incorrect"} (10). Keep correct LAN passive settings, areas and timers. Notes are not graded.`,
+        message: timer
+          ? `Targeted timer profile: ${correctFix ? "correct" : "incorrect"} (10). Compatibility explanation: ${correctReason ? "correct" : "incorrect"} (10). Both intervals, router and interface must match the design. Notes are not graded.`
+          : `Targeted passive setting removal: ${correctFix ? "correct" : "incorrect"} (10). Hello/adjacency explanation: ${correctReason ? "correct" : "incorrect"} (10). Keep correct LAN passive settings, areas and timers. Notes are not graded.`,
       },
     ];
     return {
@@ -54,6 +68,11 @@ export function grade(s: Scenario, answer: Diagnosis, history: Observation[], ti
   }
   if ("route" in s.repair) {
     const r = s.repair.route;
+    const wrongNextHop = s.repair.reason === "forward-route";
+    const configured = s.devices
+      .find((d) => d.id === s.repair.device)
+      ?.staticRoutes?.find((entry) => entry.network === r.network && entry.prefix === r.prefix);
+    const observedCorrect = !!configured && answer.observedNextHop?.trim() === configured.nextHop;
     const networkCorrect = answer.destinationNetwork?.trim() === `${r.network}/${r.prefix}`;
     const fixCorrect =
       exactDevices && networkCorrect && answer.nextHop?.trim() === r.nextHop && s.acceptedFixes.includes(answer.fix);
@@ -61,16 +80,23 @@ export function grade(s: Scenario, answer: Diagnosis, history: Observation[], ti
     const parts = [
       {
         name: "Root cause and destination",
-        earned: (answer.cause === s.fault.cause ? 20 : 0) + (networkCorrect ? 10 : 0),
+        earned:
+          (answer.cause === s.fault.cause ? (wrongNextHop ? 10 : 20) : 0) +
+          (networkCorrect ? 10 : 0) +
+          (wrongNextHop && observedCorrect ? 10 : 0),
         possible: 30,
-        message: `Missing-route cause: ${answer.cause === s.fault.cause ? "correct" : "incorrect"} (20). Destination prefix: ${networkCorrect ? "correct" : "incorrect or missing"} (10).`,
+        message: wrongNextHop
+          ? `Incorrect-next-hop cause: ${answer.cause === s.fault.cause ? "correct" : "incorrect"} (10). Destination prefix: ${networkCorrect ? "correct" : "incorrect"} (10). Observed next hop: ${observedCorrect ? "correct" : "incorrect"} (10).`
+          : `Missing-route cause: ${answer.cause === s.fault.cause ? "correct" : "incorrect"} (20). Destination prefix: ${networkCorrect ? "correct" : "incorrect or missing"} (10).`,
       },
       {
         name: "Affected device",
         earned: exactDevices ? 20 : 0,
         possible: 20,
         message: exactDevices
-          ? "The router missing the route is identified."
+          ? wrongNextHop
+            ? "The router containing the incorrect route is identified."
+            : "The router missing the route is identified."
           : "Identify the router containing the fault, not every host experiencing its effect.",
       },
       {
@@ -83,7 +109,7 @@ export function grade(s: Scenario, answer: Diagnosis, history: Observation[], ti
         name: "Remediation",
         earned: (fixCorrect ? 10 : 0) + (reasonCorrect ? 10 : 0),
         possible: 20,
-        message: `Targeted static route: ${fixCorrect ? "correct" : "incorrect or missing"} (10). Reply forwarding explanation: ${reasonCorrect ? "correct" : "incorrect or missing"} (10). The router, destination prefix and next hop must all match; notes are not graded.`,
+        message: `Targeted static route: ${fixCorrect ? "correct" : "incorrect or missing"} (10). ${wrongNextHop ? "Forwarding direction" : "Reply forwarding"} explanation: ${reasonCorrect ? "correct" : "incorrect or missing"} (10). The router, destination prefix and next hop must all match; notes are not graded.`,
       },
     ];
     return {

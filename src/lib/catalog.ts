@@ -167,7 +167,55 @@ export const passiveReasons = [
   ["same-address", "The change puts both PCs in the same local subnet."],
   ["reverse-automatically", "A successful request automatically creates all return routes."],
 ] as const;
-export const labs = [lab, gatewayLab, vlanLab, returnLab, passiveLab] as const;
+export const timerLab = {
+  ...passiveLab,
+  id: "timer-01",
+  number: "006",
+  title: "The Mismatched Timers",
+  subtitle: "A working link, but no agreement on check-ins.",
+  incident:
+    "PC-A cannot reach PC-B. Local gateways respond and the network team reports operational router interfaces. Investigate the OSPF relationships and routing information, then support a minimal correction with observations.",
+  design:
+    "PC-A–R1–R2–R3–PC-B. Intended design: OSPF area 0, explicit point-to-point Ethernet transits, Hello 10 seconds and Dead 40 seconds on all OSPF interfaces, MTU 1500 and no authentication. Only the user-facing LANs are passive. R1 Gi0/1 connects R2 Gi0/0; R2 Gi0/1 connects R3 Gi0/0. No static/default routes, ACLs or NAT are intended. Compare actual configuration with this design.",
+} as const;
+export const timerReasons = [
+  ["timer-compatibility", "Both Hello and Dead intervals agree, permitting the intended adjacency and route exchange."],
+  ["same-address", "The change makes both PCs members of the same subnet."],
+  ["reverse-automatically", "A successful request automatically installs return routes."],
+  ["passive-stops-advertising", "Changing timers removes passive LAN advertisements."],
+] as const;
+export const nextHopLab = {
+  ...lab,
+  id: "next-hop-01",
+  number: "007",
+  topic: "Static forwarding investigation",
+  title: "The Wrong Next Hop",
+  subtitle: "An entry exists. Does it lead toward the destination?",
+  incident:
+    "PC-A cannot reach PC-B. The routers are operational and static routes have been configured. Local services respond. Trace the forwarding decisions and compare the actual next hops with the topology before proposing a correction.",
+  design:
+    "PC-A–R1–R2–R3–PC-B. Networks are 192.168.10.0/24, 10.0.12.0/30, 10.0.23.0/30 and 192.168.30.0/24. Hosts use static addresses and on-link gateways. Routers use connected and specific static routes only, with no OSPF or default route. R1 Gi0/1 connects R2 Gi0/0; R2 Gi0/1 connects R3 Gi0/0. Inspect the interfaces to identify adjacent addresses. No ACLs, NAT or DNS dependency are intended.",
+} as const;
+export const nextHopCauses = [
+  ...returnCauses,
+  ["incorrect-static-next-hop", "Incorrect static-route next hop"],
+] as const;
+export const nextHopFixes = [
+  returnFixes[0],
+  ["static-route", "Replace the selected destination's static next hop"],
+  returnFixes[3],
+  ["restart", "Restart the routers"],
+] as const;
+export const nextHopReasons = [
+  [
+    "forward-route",
+    "The corrected next hop forwards toward the destination instead of back into a loop; replies still need their own routes.",
+  ],
+  ["reverse-automatically", "A successful request automatically creates every return route."],
+  ["dns-resolution", "The static next hop translates a name to an address."],
+  ["same-address", "The route puts both PCs in the same local subnet."],
+] as const;
+export const labs = [lab, gatewayLab, vlanLab, returnLab, passiveLab, timerLab, nextHopLab] as const;
 export type PublicLab = (typeof labs)[number];
 export function catalog(id: ScenarioId): PublicLab {
   return labs.find((l) => l.id === id)!;
@@ -176,9 +224,9 @@ export function commandsFor(id: ScenarioId, deviceId: string): string[] {
   const d = catalog(id).devices.find((d) => d.id === deviceId);
   if (!d) return [];
   if (id === "ospf-01") return d.kind === "router" ? routerCommands : pcCommands;
-  if (id === "passive-01")
+  if (id === "passive-01" || id === "timer-01")
     return d.kind === "router" ? routerCommands : d.id === "PC-A" ? pcCommands : ["ipconfig", "ping"];
-  if (id === "return-01") {
+  if (id === "return-01" || id === "next-hop-01") {
     if (d.kind === "router") return [...gatewayRouterCommands, "traceroute"];
     if (d.kind === "switch") return [...switchCommands, "show running-config"];
     return d.id === "PC-A" ? pcCommands : ["ipconfig", "ping"];

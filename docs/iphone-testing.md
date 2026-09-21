@@ -2,6 +2,16 @@
 
 Target: iPhone 11, 414 × 896 CSS pixels, portrait. Automated Chromium viewport emulation does not demonstrate native Safari or physical touch behavior. Physical device testing has not been performed.
 
+## Milestone 3A manual acceptance (not physically performed)
+
+- [ ] After a separately authorized HTTPS deployment, accept Reload to update; all seven lab cards remain available and old journal entries still open.
+- [ ] Play LAB 006 and LAB 007 in Safari and Home Screen standalone mode. Tap diagram nodes/device alternatives, pan/zoom, test VoiceOver/focus and portrait/landscape.
+- [ ] Use the numeric Hello/Dead fields in LAB 006 and prefix/observed/proposed next-hop fields in LAB 007. Confirm the keyboard does not hide controls or produce page-width overflow. Scroll long terminal output inside its panel.
+- [ ] Collect diagnostic evidence, use progressive practice hints, submit, read seven teaching parts and reveal the independent solution only after attempting it. Verify actual before/after outputs and both host directions.
+- [ ] Refresh and reopen each saved diagnosis and source-aware command history. Inspect both new and existing lab entries.
+- [ ] Start each required practice pack online and reload after worker installation. Enable airplane mode, reopen cached labs, complete both new labs and their repaired previews, then reconnect.
+- [ ] Complete assessments online; ensure hints/guide access stay unavailable during attempts and deadlines continue through refresh/outage. Offline assessment must not be advertised.
+- [ ] For eventual Netlify acceptance, turn the laptop off and verify public HTTPS use; no such deployment/device test was performed in this milestone.
 ## LAB 005 manual acceptance (not yet performed on physical iPhone)
 
 - [ ] On the authorized HTTPS release, accept Reload to update and select The Silent OSPF Interface. Confirm the five lab cards fit and LAB 001–004 remain available.

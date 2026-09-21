@@ -79,6 +79,9 @@ export const linkSchema = z.object({
   subnet: z.string(),
 });
 export const diagnosisSchema = z.object({
+  observedNextHop: z.string().max(64).optional(),
+  hello: z.number().int().min(1).max(65535).optional(),
+  dead: z.number().int().min(1).max(65535).optional(),
   destinationNetwork: z.string().max(64).optional(),
   nextHop: z.string().max(64).optional(),
   interface: z.string().max(64).optional(),
@@ -93,8 +96,10 @@ export const diagnosisSchema = z.object({
       "switch-routing",
       "same-address",
       "reply-route",
+      "forward-route",
       "reverse-automatically",
       "hello-adjacency",
+      "timer-compatibility",
       "passive-stops-advertising",
     ])
     .optional(),
@@ -107,6 +112,7 @@ export const diagnosisSchema = z.object({
     "timer-mismatch",
     "access-vlan",
     "missing-route",
+    "incorrect-static-next-hop",
     "passive-interface",
   ]),
   devices: z.array(z.string()).max(5),
@@ -126,14 +132,22 @@ export const diagnosisSchema = z.object({
   notes: z.string().max(2000).default(""),
 });
 export type Diagnosis = z.infer<typeof diagnosisSchema>;
-export const scenarioIdSchema = z.enum(["ospf-01", "gateway-01", "vlan-01", "return-01", "passive-01"]);
+export const scenarioIdSchema = z.enum([
+  "ospf-01",
+  "gateway-01",
+  "vlan-01",
+  "return-01",
+  "passive-01",
+  "timer-01",
+  "next-hop-01",
+]);
 export type ScenarioId = z.infer<typeof scenarioIdSchema>;
 const lessonSchema = z.array(
   z.object({ title: z.string(), text: z.string(), revealOnRequest: z.boolean().optional() }),
 );
 export const scenarioSchema = z
   .object({
-    schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
+    schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5), z.literal(6)]),
     id: scenarioIdSchema,
     revision: z.literal(1),
     title: z.string(),
@@ -147,10 +161,17 @@ export const scenarioSchema = z
       z.object({
         device: z.string(),
         interface: z.string(),
+        hello: z.number().int().min(1).max(65535),
+        dead: z.number().int().min(1).max(65535),
+        reason: z.literal("timer-compatibility"),
+      }),
+      z.object({
+        device: z.string(),
+        interface: z.string(),
         passive: z.literal(false),
         reason: z.literal("hello-adjacency"),
       }),
-      z.object({ device: z.string(), route: staticRouteSchema, reason: z.literal("reply-route") }),
+      z.object({ device: z.string(), route: staticRouteSchema, reason: z.enum(["reply-route", "forward-route"]) }),
       z.object({ device: z.string(), interface: z.string(), area: z.number().int().min(0) }),
       z.object({ device: z.string(), gateway: ipv4, reason: diagnosisSchema.shape.reason.unwrap() }),
       z.object({ device: z.string(), interface: z.string(), vlan: z.number().int().min(1).max(4094) }),
@@ -159,7 +180,9 @@ export const scenarioSchema = z
       z.object({
         label: z.string(),
         points: z.number().int().positive(),
-        requirements: z.array(z.object({ devices: z.array(z.string()), commands: z.array(z.string()) })),
+        requirements: z
+          .array(z.object({ devices: z.array(z.string()).min(1), commands: z.array(z.string()).min(1) }))
+          .min(1),
       }),
     ),
     hints: z.array(z.string()).min(3),
@@ -293,13 +316,30 @@ export const scenarioSchema = z
       )
         fail("Gateway does not exist");
     if (s.fault.devices.some((id) => !ids.includes(id))) fail("Fault references absent device");
+    if (s.fault.interface === "routing-table") {
+      if (!("route" in s.repair)) fail("Routing-table fault requires a static route repair");
+    } else {
+      const [id, name, extra] = s.fault.interface.split(":");
+      const d = s.devices.find((d) => d.id === id);
+      if (
+        extra ||
+        !s.fault.devices.includes(id) ||
+        !(d?.interfaces.some((i) => i.name === name) || d?.ports?.some((p) => p.name === name))
+      )
+        fail("Fault references absent interface");
+    }
     const repair = s.repair;
     const repairedDevice = s.devices.find((d) => d.id === repair.device);
-    if ("passive" in repair) {
+    if ("hello" in repair) {
+      const target = repairedDevice?.interfaces.find((i) => i.name === repair.interface);
+      if (s.schemaVersion < 6 || repairedDevice?.kind !== "router" || target?.ospf?.networkType !== "point-to-point")
+        fail("Timer repair requires schema v6 and an existing point-to-point OSPF router interface");
+    } else if ("passive" in repair) {
       const target = repairedDevice?.interfaces.find((i) => i.name === repair.interface);
       if (s.schemaVersion < 5 || repairedDevice?.kind !== "router" || target?.ospf?.networkType !== "point-to-point")
         fail("Passive repair requires schema v5 and an existing point-to-point OSPF router interface");
     } else if ("route" in repair) {
+      if (repair.reason === "forward-route" && s.schemaVersion < 6) fail("Forwarding repair requires schema v6");
       validateRoute(repairedDevice, repair.route);
     } else if ("area" in repair) {
       if (!repairedDevice?.interfaces.find((i) => i.name === repair.interface)?.ospf)

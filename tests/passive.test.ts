@@ -39,7 +39,7 @@ afterEach(() => vi.useRealTimers());
 
 describe("passive scenario and isolated repair", () => {
   it("loads five versions with the exact addressing and sole transit passive fault", () => {
-    expect(labs.map((l) => scenarioSchema.parse(getScenario(l.id)).schemaVersion)).toEqual([1, 2, 3, 4, 5]);
+    expect(labs.slice(0, 5).map((l) => scenarioSchema.parse(getScenario(l.id)).schemaVersion)).toEqual([1, 2, 3, 4, 5]);
     expect(s.devices.flatMap((d) => d.interfaces.map((i) => `${i.ip}/${i.prefix}`))).toEqual([
       "192.168.10.10/24",
       "192.168.10.1/24",
@@ -401,7 +401,7 @@ describe("assessment ownership and five-lab persistence", () => {
       feedback: grade(s, correct, evidence),
       finishedAt: latest.startedAt + 1000,
     });
-    expect(loadJournal(storage)).toHaveLength(5);
+    expect(loadJournal(storage)).toHaveLength(labs.length);
     expect(loadJournal(storage).slice(1)).toEqual(oldJournal);
     for (const [key, value] of oldPacks) expect(values.get(key!)).toBe(value);
     for (const lab of labs) expect(loadPack(storage, lab.id)).toEqual(getScenario(lab.id));

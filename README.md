@@ -2,11 +2,11 @@
 
 A mobile-first, evidence-based network troubleshooting workspace for a Universiti Malaya student studying WIA2008 Advanced Network Technology. Independent learning aid; not an official UM or Cisco product.
 
-**Milestone 2D:** five labs: OSPF area mismatch (“The silent route”), incorrect default gateway (“Beyond the local network”), access VLAN membership mismatch (“The Wrong Network”), static routing (“The Missing Return Path”), and passive OSPF troubleshooting (“The Silent OSPF Interface”). Only LAB 005 is added in this milestone. No external AI service, generated gameplay text or real network probing. Local use needs no cloud account; Netlify hosting uses its serverless runtime and Blobs storage.
+**Milestone 3A:** seven playable labs. Existing LAB 001–005 remain intact; LAB 006 **The Mismatched Timers** and LAB 007 **The Wrong Next Hop** add OSPF timer compatibility and incorrect installed static next-hop investigations. Both support practice, server-backed assessment, evidence grading, four hints, seven-part teaching, requested independent solutions, actual repaired-network previews and saved journals. No external AI service, generated gameplay output or real network probing.
 
-**Milestone 2E is an audit and plan, not new lab content.** The independently verified baseline remains 200 unit/integration tests and 48 production browser tests. The audit also found a partial client-side repair clue, an empty-evidence-rule validation gap and a timer-display inconsistency outside the shipped 10/40 profiles. These are documented, not fixed by the audit. Read the [capability matrix and findings](docs/engine-audit.md), [next authorized milestone plan](docs/multi-lab-plan.md), and [reproducible audit probes](docs/engine-audit-probes.md) before expansion.
+The three confirmed 2E defects are fixed: public repair-target narration, empty evidence requirements and the fixed neighbor Dead Time display. Read the [execution record](docs/milestone-3a.md), [verification report](docs/verification.md) and [Academy architecture audit](docs/learning-academy-audit.md). The Academy audit proposes future modules; its four current guides are unchanged. LAB 008, randomization and Academy expansion are not implemented.
 
-For a public HTTPS app that works with your laptop turned off, follow [Netlify deployment instructions](docs/NETLIFY_DEPLOYMENT.md). This milestone does not deploy or modify a live site. The existing simulator, journal and deterministic grading are extended for the new lab; the Netlify assessment storage architecture is unchanged.
+For a public HTTPS app that works with your laptop turned off, follow [Netlify deployment instructions](docs/NETLIFY_DEPLOYMENT.md). This milestone does not deploy or modify a live site. The existing simulator, journal and deterministic grading are extended for the two new labs; the Netlify assessment storage architecture is unchanged.
 
 ## Run on Windows
 
@@ -44,7 +44,7 @@ For full PWA use, put the production server behind an HTTPS reverse proxy with a
 
 ## Play the lab
 
-1. Select lab 001, 002, 003, 004 or 005, choose Practice or Assessment, then Start investigation.
+1. Select any lab 001–007, choose Practice or Assessment, then Start investigation.
 2. Read the incident and expand the design brief. Tap topology nodes or use the accessible device buttons.
 3. Run the listed commands. Enter a numeric destination for ping/trace. Select useful output as evidence; revisit all outputs in the notebook.
 4. Submit cause, affected device(s), evidence and repair. Lab 001 asks for both adjacency endpoints; lab 002 asks for the faulted device, a gateway IPv4 address and a structured explanation of forwarding. Lab 003 asks for the device, interface, observed/intended VLANs and access-port correction. Lab 004 asks for the missing prefix, next hop and reply-routing explanation; lab 005 asks for the router, interface, correction and Hello/adjacency explanation. Notes are stored, **not interpreted or graded**.
@@ -56,6 +56,7 @@ Practice is untimed with progressive hints (four in LAB 004/005; three in earlie
 
 Lab 005 supports all six router show commands listed below, router ping (including an optional local source) and traceroute; PC-A has ipconfig, /all, ping and tracert, while PC-B has ipconfig and ping. Observe physical state, Hello behavior, neighbor relationships and routes before submitting. The seven-part lesson and repair preview demonstrate why an advertised connected subnet does not prove adjacency. See [LAB 005's model, commands and rubric](docs/passive-interface-lab.md) for the authoring guide (spoilers).
 
+LAB 006 exposes the complete existing OSPF router diagnostic set and a structured router/interface/Hello/Dead/mechanism diagnosis. LAB 007 uses static route/configuration/interface views, explicit destination prefix and observed/proposed next hops, source-aware router ping and bounded traceroute. Their before/after previews derive from the actual corrected network state. Read [LAB 006](docs/timer-lab.md) and [LAB 007](docs/next-hop-lab.md) for authoring and verification details (spoilers).
 LAB 004 uses PC-A `ipconfig`, `/all`, `ping`, `tracert`; SW1 `show vlan brief`, `show interfaces status`, `show running-config`; routers `show ip interface brief`, `show ip route`, `show running-config`, `ping`, `traceroute`; PC-B `ipconfig`, `ping`. Router ping offers an optional local address/interface source, saved with its observation. No OSPF runs in this lab. The preview adds one static route to the modeled state and demonstrates separate request/reply journeys. Its seven-part lesson includes an independent exercise with an explicit solution reveal. The [LAB 004 guide](docs/return-path-lab.md) contains addressing, intended fault, rubric, references and limitations (spoilers).
 
 Lab 003 adds PC-A `arp -a`, both FastEthernet access-port `show interfaces … switchport` inspections and switch `show running-config`, alongside the existing IP, VLAN, status and probe commands. ARP begins empty and derives learned/failed next-hop observations from recorded probes; it never invents a reachable gateway MAC. The repaired preview changes only the access VLAN and runs fresh probes. Its seven-part lesson keeps the independent exercise solution behind an explicit reveal. See [LAB 003's model, commands and rubric](docs/vlan-lab.md).
@@ -68,7 +69,7 @@ The original OSPF command set remains below. Lab 002 exposes PC-A `ipconfig`, `/
 | PCs      | `ipconfig`, `ipconfig /all`, `ping`, `tracert`                                                                                                                  |
 | Switches | No switches in the OSPF lab; lab 002 adds the two access-switch commands described above                                                                        |
 
-Commands are bounded, condensed IOS-style/PC-style outputs, not byte-for-byte IOS or Windows emulation. No command abbreviations, destination names, arbitrary command flags, IOS configuration shell or live packet probes. LAB 004/005's dedicated ping-source field accepts modeled local interface names or addresses. Unsupported commands produce an honest message. The repair is selected structurally; a separate preview derives the repaired network for verification.
+Commands are bounded, condensed IOS-style/PC-style outputs, not byte-for-byte IOS or Windows emulation. No command abbreviations, destination names, arbitrary command flags, IOS configuration shell or live packet probes. LAB 004–007's dedicated ping-source field accepts modeled local interface names or addresses. Unsupported commands produce an honest message. The repair is selected structurally; a separate preview derives the repaired network for verification.
 
 ## Data, assessment and offline limits
 
@@ -87,9 +88,11 @@ pnpm typecheck
 pnpm test
 pnpm test:browser
 pnpm build
+$env:CI = "true" # require a fresh test server; stop any existing port-3100 preview first
 $env:PW_PRODUCTION = "1"
 pnpm test:browser
 Remove-Item Env:PW_PRODUCTION
+Remove-Item Env:CI
 ```
 
 Browser tests use installed Microsoft Edge for desktop and iPhone-sized Chromium emulation at **414 × 896 CSS pixels**. The production suite also tests actual service-worker offline reload and grading. It starts/stops a local server when one is not already running; ensure a dev server is not reused for a production test. Browser emulation is not physical iPhone testing. See [verification report](docs/verification.md) for actual results and limitations.

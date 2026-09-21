@@ -1,3 +1,7 @@
+# Milestone 3A execution
+
+See [the current phased execution record](milestone-3a.md): verified readiness fixes, LAB 006, LAB 007, Academy audit and combined regression. The records below are historical scopes, not restrictions overriding the explicit 3A authorization.
+
 # Milestone 2E audit execution record
 
 Completed locally on 2026-09-21 against initially clean commit `ed95191`:

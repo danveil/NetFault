@@ -398,9 +398,11 @@ export function execute(
       ...hops,
       ...(!c.outward.ok
         ? [
-            errorCanReturn
-              ? `${hops.length + 1}  !H  Destination unreachable (${c.outward.reason})`
-              : `${hops.length + 1}  * * *`,
+            c.outward.reason === "Routing loop" || c.outward.reason === "Hop limit exceeded"
+              ? `Simulator stopped: ${c.outward.reason}. No ICMP error packet is inferred; per-probe TTL expiry is not modeled.`
+              : errorCanReturn
+                ? `${hops.length + 1}  !H  Destination unreachable (${c.outward.reason})`
+                : `${hops.length + 1}  * * *`,
           ]
         : []),
       c.ok ? "Trace complete." : "Trace stopped; destination did not return a reply.",
@@ -437,11 +439,16 @@ export function execute(
   if (cmd === "show ip ospf neighbor")
     return [
       "Neighbor ID     Pri State   Dead Time Address         Interface",
-      ...neighbors(s, id).map(
-        (n) => `${n.routerId.padEnd(15)} 0   ${n.state}  00:00:36  ${n.address.padEnd(15)} ${n.interface}`,
-      ),
+      ...neighbors(s, id).map((n) => {
+        // Representative snapshot, not a running countdown; always bounded by this interface's Dead interval.
+        const remaining = Math.floor(d.interfaces.find((i) => i.name === n.interface)!.ospf!.dead * 0.9);
+        const time = [Math.floor(remaining / 3600), Math.floor(remaining / 60) % 60, remaining % 60]
+          .map((v) => String(v).padStart(2, "0"))
+          .join(":");
+        return `${n.routerId.padEnd(15)} 0   ${n.state}  ${time}  ${n.address.padEnd(15)} ${n.interface}`;
+      }),
       ...(neighbors(s, id).length ? [] : ["(No OSPF neighbors)"]),
-      "Simulator snapshot: established adjacencies only; transient neighbor states are not modeled.",
+      "Simulator snapshot: established adjacencies only; transient neighbor states are not modeled. Dead Time is a representative remaining value, not a live countdown.",
     ].join("\n");
   if (cmd === "show ip ospf interface")
     return d.interfaces
@@ -501,7 +508,12 @@ export function execute(
 export function repaired(s: Scenario): Scenario {
   const next = structuredClone(s);
   const repair = s.repair;
-  if ("passive" in repair) {
+  if ("hello" in repair) {
+    Object.assign(device(next, repair.device).interfaces.find((i) => i.name === repair.interface)!.ospf!, {
+      hello: repair.hello,
+      dead: repair.dead,
+    });
+  } else if ("passive" in repair) {
     device(next, repair.device).interfaces.find((i) => i.name === repair.interface)!.ospf!.passive = repair.passive;
   } else if ("route" in repair) {
     const d = device(next, repair.device);
