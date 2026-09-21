@@ -4,6 +4,8 @@ A mobile-first, evidence-based network troubleshooting workspace for a Universit
 
 **Milestone 2D:** five labs: OSPF area mismatch (“The silent route”), incorrect default gateway (“Beyond the local network”), access VLAN membership mismatch (“The Wrong Network”), static routing (“The Missing Return Path”), and passive OSPF troubleshooting (“The Silent OSPF Interface”). Only LAB 005 is added in this milestone. No external AI service, generated gameplay text or real network probing. Local use needs no cloud account; Netlify hosting uses its serverless runtime and Blobs storage.
 
+**Milestone 2E is an audit and plan, not new lab content.** The independently verified baseline remains 200 unit/integration tests and 48 production browser tests. The audit also found a partial client-side repair clue, an empty-evidence-rule validation gap and a timer-display inconsistency outside the shipped 10/40 profiles. These are documented, not fixed by the audit. Read the [capability matrix and findings](docs/engine-audit.md), [next authorized milestone plan](docs/multi-lab-plan.md), and [reproducible audit probes](docs/engine-audit-probes.md) before expansion.
+
 For a public HTTPS app that works with your laptop turned off, follow [Netlify deployment instructions](docs/NETLIFY_DEPLOYMENT.md). This milestone does not deploy or modify a live site. The existing simulator, journal and deterministic grading are extended for the new lab; the Netlify assessment storage architecture is unchanged.
 
 ## Run on Windows

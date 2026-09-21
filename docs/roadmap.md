@@ -1,5 +1,7 @@
 # Roadmap (remaining work not implemented)
 
+Milestone 2E completed the [engine audit](engine-audit.md) and [concrete expansion plan](multi-lab-plan.md), without adding labs or fixing runtime code. Recommended priority: readiness fixes/authoring contracts, then LAB 006 timer mismatch and LAB 007 wrong on-link static next hop together; LAB 008 incorrect mask follows a separate validation/proxy-ARP gate. Revisions/validated variants and non-chain topologies come later. All implementation remains subject to new authorization; this supersedes the ordering of the earlier broad options below.
+
 Milestones 1/1.5 provide OSPF plus Netlify readiness. Milestone 2A adds the incorrect-gateway lab. Milestone 2B adds one access-VLAN mismatch lab, switchport/running-config inspection and bounded ARP state. Milestone 2C adds LAB 004, static routing and return-path investigation with explicit router ping sources. Milestone 2D adds LAB 005, a passive OSPF transit interface, explicit Hello observations and a targeted repair through the existing engine. These remaining options are not promises or current features. Do not begin them without explicit authorization.
 
 1. Validate the exact broken and repaired configurations in CML/GNS3/physical IOS; save captures and identify formatting/model differences.

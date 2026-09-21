@@ -1,3 +1,27 @@
+# Milestone 2E independent audit verification
+
+Executed 2026-09-21 against clean baseline commit `ed95191`. This was an audit/planning task, with no production source or permanent test changes. Historical results below were independently rechecked rather than assumed current.
+
+| Check | Actual result |
+| --- | --- |
+| `pnpm lint` | Passed |
+| `pnpm typecheck` | Passed |
+| `pnpm test` | 200 passed in 9 files |
+| `pnpm build` | Passed; worker build `uM6-npiBSdd7FFv6shuiq`; dynamic `/api/lab` retained |
+| Fresh production `pnpm test:browser` (`CI=true`, `PW_PRODUCTION=1`) | 48 passed, no skips/failures: 24 desktop + 24 at 414 × 896 |
+| Eight disposable audit probes | 8 passed as assertions of observed behavior; not permanent regressions or proof the demonstrated behavior is correct |
+| Public production script inspection | Confirmed LAB 004 repair-target clue in `/_next/static/chunks/2y506hv4gjh8b.js` before practice/assessment start |
+| Development browser suite | Not rerun for this documentation-only audit |
+| Physical iPhone/Safari, controlled router lab, hosted Netlify | Not performed |
+
+All five complete practice/assessment/repair/journal workflows and cached offline packs passed the existing production suite. The previous preview's command was verified before stopping it for a fresh build/server; the preview was restarted on localhost:3100 afterward. No actual cloud instance, project or account was modified.
+
+Passing regressions coexist with three confirmed findings: a partial answer clue in client preview narration, schema acceptance of empty evidence requirements awarding full evidence credit, and fixed `00:00:36` neighbor output under an accepted 5/20 timer profile. The last two were demonstrated with disposable cloned-state probes; the five shipped authored cases do not contain those bad rule/timer configurations. Additional probes demonstrated metadata/ID/repair authoring gaps and bounded reuse of mask, static-hop and weighted-path mechanisms. See [findings and impact](engine-audit.md) and [complete reproduction code](engine-audit-probes.md). The findings remain unfixed under audit-only scope.
+
+Only local documentation was changed: `README.md`, `AGENTS.md`, architecture, roadmap, execution-plan and this verification record, plus the new audit, reproduction and next-milestone plan documents. The temporary `tests/audit-probes.test.ts` was removed after execution; the retained suite is still 200 tests. No labs, randomization, dependencies, remote infrastructure, commits, pushes or deployment were added. The installed Next.js route-handler guide and primary Cisco/RFC references were read; none of this constitutes physical-router or live-hosted validation.
+
+---
+
 # Milestone 2D verification report
 
 Executed locally on Windows, 2026-09-21, Node 24.15.0, project pnpm 11.19.0 (confirmed by `pnpm --version`), Next.js 16.3.1. Scope: exactly LAB 005. The initial working tree was clean. No dependency, lockfile, deployment configuration, API route, assessment reducer/provider, persistence-format or service-worker source changes were needed. No commits, pushes, account connections, paid services or deployments were performed.

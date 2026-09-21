@@ -1,5 +1,7 @@
 # Architecture and boundaries
 
+Milestone 2E's [independent engine audit](engine-audit.md) records the actual expansion limits, capability matrix and confirmed gaps in this implementation. In particular, private scenario imports are protected, but a LAB 004 preview narration clue is still shipped in client code; do not interpret the client/server boundary below as proof that every private clue is absent. The audit adds no runtime behavior. Follow the [next-milestone plan](multi-lab-plan.md) only after implementation authorization.
+
 Next.js 16 App Router, React 19, strict TypeScript, Zod, React Flow, Lucide icons, CSS, Vitest and Playwright. No AI inference service is required. Netlify configuration uses automatic OpenNext and Blobs for hosted sessions; ordinary local use remains filesystem-backed. The user reports the application is deployed; this milestone does not deploy or verify a new live version.
 
 ## One source of network truth
