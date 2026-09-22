@@ -1,38 +1,75 @@
-# NEXT implementation milestone — provisional IPv6 foundations pilot
+# NEXT implementation: OSPFv2 configuration-to-verification Academy bridge
 
-**Proposal only; not authorized or implemented. The firm next action is to obtain current course evidence.** No defensible definitive topic ranking is possible without the retake outline, complete chapter list, practical sheets and assessment instructions. This brief offers a bounded candidate after that gate, not an automatic continuation.
+**Historical-materials-based roadmap — 2026/27 course requirements unconfirmed.**
 
-## Why this candidate
+**Proposal only; not implemented or authorized by this audit.** This replaces the earlier provisional IPv6 address/prefix pilot. It is one tightly scoped Academy lesson, with one guided and one different independent tap exercise plus an external configuration companion. No LAB 008 and no new scenario.
 
-[H24](wia2008-sources.md), printed p.45 / PDF p.59, WIA2008 outcome 3 includes IPv6 problem-solving. Source inspection finds no IPv6 lesson, exercise or engine support. A small public Academy foundation can close part of that conceptual gap without pretending the existing IPv4 simulator supports IPv6. It reuses the accepted 3C presentation and avoids adding another familiar-fault lab merely to increase the count.
+## Objective and source evidence
 
-This preference is provisional: a current EtherChannel practical deadline or instructor-confirmed different scope may change it. Neither the workbook title nor a prior proposal to build Ethernet/LAB 008 establishes priority. No learner weakness in IPv6 is asserted.
+Given a small, newly addressed IPv4 topology and interface table, independently select the intended OSPFv2 interfaces in area 0, distinguish passive LAN advertisement from transit neighbor formation, and choose observations that verify both adjacency and remote reachability.
 
-## Entry gate before implementation authorization
+The supporting file is **`Single Area OSPF.ppt`**:
 
-- Inspect the current course outline and confirm IPv6 remains required.
-- Inspect the relevant lecture pages and original practical; record their identifiers and exact examples/objectives. Resolve semester conflicts with the instructor's current instructions.
-- Confirm which foundation is missing for the learner and check imminent practical requirements.
-- Attach these source locations to the acceptance criteria; obtain separate implementation authorization. If IPv6 is removed/deferred by the actual sources, rewrite this proposal rather than expanding anyway.
+- **36–39:** local process identity versus router identity and explicit router-ID configuration.
+- **40–42:** wildcard matching, a depicted three-router network-statement example and interface-based activation.
+- **43–44:** passive interfaces and explicit point-to-point network type.
+- **56–57:** interface/route/neighbor/protocol verification and common configuration errors.
+- **7:** neighbor, topology and routing table distinction, used only to explain what each observation proves.
 
-## Tight proposed scope
+**`Network Management.ppt` 54–61** supports documenting the device/address baseline, gathering evidence, proposing/testing a hypothesis and preparing rollback. These are lecture examples and methodological support, **not original practical-sheet requirements**. Review provenance and discrepancies in [sources](wia2008-sources.md).
 
-Primary objective: independently read IPv6 notation, reason about address equivalence and identify a supplied network prefix without applying IPv4 broadcast/host-count shortcuts.
+## Dependencies and precise boundaries
 
-- **One new conceptual lesson**, under a deliberately chosen stable curriculum identity only after E0; do not insert it into or revise the accepted IPv4 lessons merely for convenience.
-- Preserve seven-part pedagogy: simple explanation, bounded analogy, detailed mechanism, worked calculation, guided task, different independent task and requested detailed solutions.
-- Two purposeful local diagrams if they improve the selected material: expanded/compressed address correspondence and a labeled prefix boundary. No device/packet animation or remote graphics dependency.
-- A guided tap sequence for valid equivalent representations and prefix reasoning; an independent sequence with different values, plausible compression/boundary distractors and an explicit reasoning step. No mandatory text keyboard or dragging. Do not grade only which option looks familiar.
-- Clearly state that these are conceptual/paper exercises. Do not expose simulated IPv6 ping, ND, SLAAC, OSPFv3 or interface commands without an implemented model.
-- Add a concise external-practice handoff referencing the actual sheet once available. It must say which build/configure/verify work still occurs in Packet Tracer or on real devices.
-- Reuse existing Academy content validation, explicit reveals, aid tracking, revisions, persistence and offline shell behavior. A narrowly tested pure address-notation helper is acceptable if needed; it is not a network-engine extension.
+Reuse IPv4 lessons A1–A3, F2–F4, and the supported point-to-point behavior of LAB 001/005/006. Prerequisites are reading interface prefixes and distinguishing local from remote destinations. Include a short check and links back to existing lessons; do not alter them.
 
-Out of scope: LAB 008; any new fault pack; full IPv6 forwarding/ND; OSPFv3; new general course modules; network builder; account/sync changes; new dependencies without a specific demonstrated need; redesign of 3C; assessment or Netlify storage changes.
+Use supplied **contiguous wildcard masks** for ordinary /24 and /30 examples plus exact-interface 0.0.0.0 matching. Teach that an OSPF network statement selects local interfaces; it is not a remote static route. Limit topology to a small explicitly point-to-point transit arrangement with passive LANs. The slide 41 triangle can inform reasoning, but do not reproduce its screenshots or claim it is a playable NetFault topology.
 
-## Proposed independent acceptance
+The recommendation closes a specific missing skill between current IPv4 study and current OSPF investigations. It does not cover the whole Chapter 5. IPv6 and STP/EtherChannel remain supported follow-on priorities.
 
-After working through examples, the learner receives different addresses and a supplied prefix. They select equivalent notation, identify a malformed alternative with its reason, and distinguish addresses belonging to that prefix. They must explain why an IPv4 broadcast/usable-host rule is not the method. Structured reasoning can be graded; arbitrary prose remains ungraded. Only the first correct pre-help attempt is labeled unaided; retries and solution use remain separately recorded. This establishes the selected foundation, not practical IPv6 competence or a predicted exam result.
+## Content and interaction to add when authorized
 
-Implementation checks, once authorized: correct/wrong/malformed representations, prefix edge cases within the explicitly taught scope, schema and old revision retention, no private-assessment imports, all original guides and seven labs preserved, desktop/414px/360px touch and keyboard flows, wrong feedback without premature solution, duplicate taps, refreshed drafts, full offline lesson availability, lint/type/unit/build and relevant production browser regressions. Physical iPhone acceptance must be recorded separately from emulation.
+**One new lesson**, with stable new IDs and an appropriate new OSPF curriculum container if required by the Academy registry. A container is organizational metadata, not authorization for additional lessons. Preserve every published IPv4 lesson/exercise revision and all original Field Guides.
 
-Stop rather than silently broaden if the original practical requires operational ND/RA/address-selection behavior to answer the proposed questions, if current course evidence contradicts the pilot, or if a destructive progress migration would be necessary. Return to the [roadmap](wia2008-roadmap.md) and select a smaller evidence-backed increment.
+1. **Simple explanation:** interfaces participate in route learning; working addressing alone does not establish OSPF adjacency.
+2. **Bounded analogy:** selecting which meeting rooms exchange maps versus which destinations appear on the map. State explicitly that routers exchange protocol information and compute routes; people, rooms and maps do not model timers or actual packets.
+3. **Technical explanation:** local process ID, unique router ID, area/interface selection, contiguous wildcard comparison, passive LAN behavior, and why interface/neighbor/route/probe observations answer different questions.
+4. **Worked example:** original, source-reviewed addressing/interface table; show matched and unmatched interfaces, equivalent interface activation, intentional LAN passive setting and explicit transit type. Explain each command's effect and predicted observations. No copy of university slide assets.
+5. **Troubleshooting symptom:** a directly reachable router is not sufficient evidence of a remote route. Contrast an inactive OSPF interface with a correctly passive LAN using supplied configuration evidence, without importing private case repairs.
+6. **Guided tap exercise:** select matched interfaces, identify which link should exchange Hellos, and pair each verification command with the claim it can establish. Provide actionable reasoning feedback.
+7. **Independent tap exercise:** change addresses, interface names and device arrangement. Select a minimal activation plan, a valid passive setting, expected adjacency/advertisement and enough evidence for both directions. Full worked solution only on explicit request.
+
+Two purposeful local diagrams are sufficient if useful: interface-address matching and configuration → neighbor → route → probe evidence. Use short sections, readable labels, text alternatives, 44px targets, keyboard-accessible choices, review/change, deterministic grading and meaningful distractors. No mandatory typing or drag-only interaction. Do not expose complete answers in ordinary wrong feedback.
+
+Public links may lead to existing LAB 001/005/006 mode selection with neutral context. Never import their private evidence rules, faults, hints or repairs into the lesson. No automatic attempt start or practice-pack download.
+
+## External configuration companion
+
+Include an **original optional practice brief** with a newly addressed two-router/two-LAN topology. Label it as a NetFault companion derived from the lecture objectives, not a recovered UM practical. In a suitable Packet Tracer/device environment the learner should enter the configuration, verify interface addresses and reciprocal neighbors, inspect both remote LAN routes, test bidirectional host reachability, save/reopen configuration, and document an intentional single activation change with rollback.
+
+Document the actual tool/version and commands tested during implementation. Do not claim external validation if no environment is available. In that case ship the conceptual lesson only with the companion explicitly marked **unexecuted**, and leave the operational acceptance below open. No invented starter file or fabricated terminal capture.
+
+## Engine and progress decisions
+
+**No network-engine, scenario, assessment API, Blobs/CAS, service-worker, dependency or Netlify architecture change is needed.** Use existing Academy validation, structured choices, explicit reveals, persistence, immutable revisions and offline shell. A small pure wildcard comparison helper is permissible only if needed to verify authored examples; it is not an IOS configuration engine. Worked command snippets are teaching text.
+
+Retain wrong attempts and help use. Record independent tap performance using existing progress semantics without claiming new secure assessment or overall mastery. Actual configuration artifacts remain external; no new upload, account, sync or grading subsystem.
+
+## Independent acceptance and verification
+
+| Acceptance | Required evidence when implemented |
+| --- | --- |
+| Interface-selection reasoning | On the independent supplied table, correct matched/unmatched interfaces, contiguous wildcard/exact-host reasoning, and a minimal area-0 activation plan; plausible wrong area, subnet-mask-as-wildcard and remote-network distractors rejected |
+| Passive/adjacency distinction | Correct LAN passive choice with continued subnet advertisement; reject passive transit where adjacency is required; do not demand equal process IDs or infer point-to-point from /30 |
+| Verification reasoning | Distinguish local interface state, neighbor establishment, learned routes and request/reply reachability. A successful on-link ping or FULL alone cannot satisfy all claims |
+| Independent tool transfer | Separate learner-entered configuration, saved artifact and authentic bidirectional verification on new addresses; explain one change and rollback. This cannot be awarded by a tap score |
+| Content correctness | Independently enumerate intended interface matches and outcomes; validate configurations against primary Cisco references and record whether actually run in PT/IOS. No broadcast/LSDB output invented by the simulator |
+| Preservation and mobile quality | Existing three lessons/six exercises/five diagrams/four guides/seven labs unchanged; new draft/retry/reveal/history behavior tested; desktop, 414px and 360px, keyboard and production offline checks. Physical iPhone results separately attributed |
+| Engineering checks | Once implementation is authorized: lint, strict type check, relevant Academy schema/grading/progress and seven-lab regressions, production build and relevant browser/offline/privacy tests. Record commands/results; none are claimed by this proposal |
+
+Fixed independent choices provide bounded reasoning evidence. Feedback-assisted retries and reveals must not be described as first-attempt unaided performance; external competence remains a separate claim.
+
+## Exclusions and stop conditions
+
+Exclude IPv6/OSPFv3, DR/BDR elections, full neighbor FSM/LSDB, default origination, ECMP, multiarea routing, authentication, new fault packs, IOS parsing/configuration terminal, arbitrary topology builder, randomization, another broad module, and redesign of accepted 3C UX.
+
+If a proposed exercise needs an excluded mechanism, narrow it or seek a separate future scope; do not quietly expand the engine. Future course materials may reorder the backlog, but their current absence is not a blocker. Stop after this specification in the current documentation-only task.

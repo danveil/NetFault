@@ -1,6 +1,6 @@
 # NetFault
 
-Milestone 3D adds a [provisional WIA2008 coverage audit and roadmap](docs/wia2008-sources.md). It combines repository inspection with an official 2024/25 handbook entry; current-retake slides, original practicals and assessment instructions are still needed. This is documentation only and does not change the accepted 3C application.
+Milestone 3D's [WIA2008 audit and roadmap](docs/wia2008-sources.md) now includes 11 inspected historical ANT lecture decks and the official 2024/25 handbook entry. **Historical-materials-based roadmap — 2026/27 course requirements unconfirmed.** The recommended next scope is one OSPFv2 configuration-to-verification Academy lesson, requiring separate implementation authorization. Original practical sheets and current assessment details remain unverified; this documentation-only audit preserves the accepted 3C application.
 
 A mobile-first, evidence-based network troubleshooting workspace for a Universiti Malaya student studying WIA2008 Advanced Network Technology. Independent learning aid; not an official UM or Cisco product.
 

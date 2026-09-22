@@ -1,14 +1,26 @@
 # “NetFault complete for ANT” — proposed release criteria
 
-**Not currently achieved or certifiable.** The [source inventory](wia2008-sources.md) lacks the current retake syllabus and original practicals. H24 provides only a historical baseline. This checklist defines a proposed evidence-based completion standard; it does not promise a grade or certify all university coursework through app usage.
+**Historical-materials-based roadmap — 2026/27 course requirements unconfirmed.**
 
-## Evidence and course coverage gate
+**Course completion is not currently achieved or certifiable.** The [source inventory](wia2008-sources.md) now records 11 historical decks alongside H24. Original practicals and the current retake syllabus remain absent. Historical learning work can proceed; only a claim of current-course completeness depends on future requirements. This checklist promises neither a grade nor university certification through app usage.
+
+## Historical roadmap readiness
+
+- [x] Inventory the supplied ANT directory, distinguish course-branded lectures from official outline, original practicals, personal notes and app documents.
+- [x] Review extracted text across all 11 decks (529 slides); visually inspect the 63 recorded covers/diagram/command slides. Explicitly mark remaining embedded-image coverage partial.
+- [x] Map the observed chapter set 1, 2, 4–12 with exact source locations. Leave Chapter 3's subject, original sheet numbers and absent workbook unknown.
+- [x] Record inconsistent ACL, NAT, GRE, OSPF and QoS examples; do not silently treat source screenshots as validated device configurations.
+- [x] Select one actionable next scope: OSPFv2 configuration-to-verification Academy bridge; remove the obsolete current-materials intake gate and automatic IPv6-first preference.
+- [ ] Obtain separate authorization for that implementation. Missing 2026/27 materials do not block authorization of a clearly labeled historical learning increment.
+- [ ] At implementation, satisfy the [specific lesson and independent-tool acceptance](wia2008-next-milestone.md#independent-acceptance-and-verification). Tap reasoning and external configuration performance are separate records.
+
+## Evidence gate for a future current-course completion claim
 
 - [ ] Record the retake session/semester/group and the authoritative current outline, chapter list, original practicals and assessment instructions; reconcile outdated versions explicitly.
 - [ ] Map every confirmed current learning outcome and practical task to exact page/slide/sheet evidence, its required depth, and Academy/case/external-practice coverage. Preserve official numbers separately from NetFault IDs.
 - [ ] Resolve every unknown in the course matrix or list it as an explicit release exclusion accepted by the learner. No generic CCNA curriculum, arbitrary case quota or unsupported coverage percentage substitutes for this mapping.
 - [ ] Check each current practical's topology, addressing, configuration, verification and submission requirements against actual learner/tool artifacts. A source code test or paper solution is not a completed practical.
-- [ ] Keep useful extra networking topics in a separate optional backlog, without labeling them WIA2008 requirements.
+- [ ] Keep useful extra networking topics in a separate optional backlog. Historical deck subjects are supported historical teaching topics, not confirmed 2026/27 assessment requirements. No arbitrary lab quota replaces outcome coverage.
 
 ## Learning and independent performance
 
@@ -40,16 +52,16 @@
 
 - [ ] After authorized application changes, run appropriate lint, strict types, unit/integration, production build and production-browser workflows. Preserve all seven labs, privacy boundaries, 3C exercises, revision history and PWA behavior. Record exact commands, counts, skips/failures and tested build.
 - [ ] Validate newly modeled network behavior against relevant primary references and, where needed, a controlled real/PT/IOS lab. Identify precisely what was actually executed; reference review alone is not external simulation validation.
-- [ ] Keep an external-practical checklist for each actual course sheet. At minimum retain required building/cabling, real configuration entry, actual show-command interpretation, save/reload verification and course-specific protocol/tool tasks outside NetFault's supported scope. Current sheets will determine whether and how IPv6, STP, EIGRP, PPP/VPN, EtherChannel or management/automation tasks apply.
+- [ ] Keep an external-practical checklist for each actual course sheet when available. Meanwhile use clearly labeled original companion activities mapped to lecture objectives: building/cabling, learner-entered configuration, actual show-command interpretation, save/reopen and changed-topology verification. No sheet number or rubric may be invented. Historical IPv6, STP, EtherChannel, ACL/NAT, management, WAN/VPN, QoS and automation scopes are mapped in the coverage document; EIGRP/PPP depth remains less specific.
 - [ ] Final review shows each confirmed outcome is supported by the appropriate combination of learning, simulation and external performance. Remaining exclusions and evidence limitations are explicit; no outcome is closed simply because a related word or lab title exists.
 
-## 3D audit verification record
+## Initial 3D audit verification record — historical
 
 This milestone makes documentation changes only. Existing 3C modifications were already present at task entry and must not be attributed to 3D. The source inspection confirms one current Academy module, three lessons, six tap exercises, five diagrams, four guides and seven scenarios, with the bounded capabilities described in the companion documents.
 
 Historical test evidence only: [3C report](milestone-3c.md) records 335 unit tests, 92 complete production browser tests, and 36 final-build checks. **No lint/type/build/unit/browser suite was rerun for 3D**, as no app behavior changed. The learner's current acceptance is user-reported; no fresh physical-device or deployed-site verification occurred.
 
-Actual checks performed on 22 September 2026:
+Initial-audit checks performed on 22 September 2026, before the ANT directory was supplied (not follow-up results):
 
 | Check | Result |
 | --- | --- |
@@ -62,3 +74,24 @@ Actual checks performed on 22 September 2026:
 | Application test suites / live site / physical device | Not run in 3D; historical results explicitly labeled, accepted 3C behavior preserved |
 
 Created six `docs/wia2008-*.md` deliverables. Updated only README, AGENTS, `docs/roadmap.md` and the closing future-priority note in `docs/learning-academy.md` to point to this audit and prevent old proposals being mistaken for authorization. No source, lesson, scenario, UI, dependency, worker, Netlify setting or stored learner data was changed; no commit, push or deployment.
+
+## Follow-up verification record
+
+This follow-up revises the existing six deliverables and four brief navigation/handoff pointers. The working tree was clean at the first follow-up status check, on `e4705ce` (`audit before revising materials`); the accepted 3C implementation and original audit were already committed before that check. No commit was made by this follow-up.
+
+Source inspection succeeded for all 11 PowerPoint files. The first restricted COM invocation failed; the approved read-only invocation succeeded. Text review spans 529 slides; visual review covers exactly 63 slides listed in the source inventory. Other image content remains partially reviewed. No original practicals, starter files, workbook or current outline were found in the permitted search scope. No external networking lab, physical iPhone, hosted deployment or new full application test was performed.
+
+Actual follow-up checks on 22 September 2026:
+
+| Check | Result |
+| --- | --- |
+| Documentation destinations and structure | **Passed:** 10 documents, 157 local links, 39 code-line references and 5 heading references; no missing destinations, out-of-range lines, unresolved headings, trailing whitespace, conflict markers, missing final newlines or unmatched fences |
+| Source inventory | **Passed:** all 11 filenames exist; byte sizes and slide counts match extraction (529 total); visual-review lists match the 63 inspected slide images |
+| Citation support | Reviewed topic/next-scope claims against extracted slide sections and selected rendered examples. Recorded concrete source conflicts. Unreviewed embedded content explicitly excluded from full-content/technical validation claims |
+| Required roadmap label | **Passed:** exact historical-materials/2026–27-unconfirmed label in all six deliverables |
+| Application preservation | **Passed:** SHA-256 comparison of 79 application/test/script/public/configuration files against the follow-up entry snapshot; zero changed, missing or added files in that set |
+| Scope | **Passed:** Git diff contains only the six audit documents plus README, AGENTS, roadmap and Academy documentation pointers. No lecture files/images/extractions in the repository |
+| `git diff --check` | **Passed**, exit 0; LF/CRLF notices are informational. A separate stale-text search initially used a Windows-incompatible wildcard path and was rerun successfully with `rg -g` |
+| Full application suites / external network / Netlify / physical iPhone | **Not run:** documentation-only work; no new runtime validation claimed |
+
+The accepted application, stored learner data and deployment configuration remain unchanged. No next-milestone implementation, commit, push or deployment was performed.
