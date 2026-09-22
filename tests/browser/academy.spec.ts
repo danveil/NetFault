@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { answerSteps } from "./academy-helpers";
 const enter = async (page: Page) =>
   page.getByRole("button", { name: "Learn networking / Field guide", exact: true }).click();
 async function openLesson(page: Page, number: number) {
@@ -23,9 +24,7 @@ test("Academy pilot: structured exercises, requested solutions, refresh, resume 
   await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
   await expect(page.getByRole("region", { name: "Detailed solution" })).toHaveCount(0);
   const guided = page.getByRole("article", { name: "Which examples have valid IPv4 dotted-decimal format?" });
-  await guided.getByLabel("10.4.8.12", { exact: true }).selectOption("Valid");
-  await guided.getByLabel("192.168.1.256", { exact: true }).selectOption("Invalid");
-  await guided.getByLabel("172.16.20", { exact: true }).selectOption("Invalid");
+  await answerSteps(guided, ["Valid", "Invalid", "Invalid"]);
   await guided.getByRole("button", { name: "Check answers" }).click();
   await expect(guided.getByRole("status")).toContainText("Correct — exercise completed");
   const independent = page.getByRole("article", { name: "Read 172.16.5.90 and identify the information it contains." });
@@ -37,16 +36,10 @@ test("Academy pilot: structured exercises, requested solutions, refresh, resume 
   await page.getByRole("button", { name: "Continue lesson" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Understanding IPv4 Addresses");
   await expect(page.locator(".academy-objectives")).toContainText("Read · Practiced · 1/2");
-  await expect(page.getByRole("region", { name: "Detailed solution" })).toHaveCount(2);
+  await expect(page.getByRole("region", { name: "Detailed solution" })).toHaveCount(1);
   await openLesson(page, 2);
   const subnet = page.getByRole("article", { name: "Find the subnet boundaries for 192.168.50.140/26." });
-  for (const [label, value] of [
-    ["Network address", "192.168.50.128"],
-    ["Broadcast address", "192.168.50.191"],
-    ["First usable host", "192.168.50.129"],
-    ["Last usable host", "192.168.50.190"],
-  ])
-    await subnet.getByLabel(label, { exact: true }).fill(value);
+  await answerSteps(subnet, ["6", "192.168.50.128", "192.168.50.191", "192.168.50.129", "192.168.50.190"]);
   await subnet.getByRole("button", { name: "Check answers" }).click();
   await expect(subnet.getByRole("status")).toContainText("Correct — exercise completed");
   await page.screenshot({ path: info.outputPath("academy-subnet.png"), fullPage: true });
@@ -132,9 +125,7 @@ test("cached Academy reads, grades and saves offline without caching assessment 
     await enter(page);
     await openLesson(page, 3);
     const exercise = page.getByRole("article", { name: "Classify destinations from 192.168.10.10/24." });
-    await exercise.getByLabel("192.168.10.55", { exact: true }).selectOption("Local");
-    await exercise.getByLabel("192.168.20.10", { exact: true }).selectOption("Remote");
-    await exercise.getByLabel("192.168.10.1", { exact: true }).selectOption("Local");
+    await answerSteps(exercise, ["Local", "Remote", "Local"]);
     await exercise.getByRole("button", { name: "Check answers" }).click();
     await expect(exercise.getByRole("status")).toContainText("Correct — exercise completed");
     await page.reload();

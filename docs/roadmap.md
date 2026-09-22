@@ -1,5 +1,7 @@
 # Roadmap (remaining work not implemented)
 
+**Milestone 3D planning update:** use the [evidence-based WIA2008 roadmap](wia2008-roadmap.md) and [source limitations](wia2008-sources.md) for future prioritization. Current-retake materials are still missing. The learner has accepted 3C; earlier Ethernet/LAB 008 suggestions below remain historical options, not the selected next milestone or course requirements.
+
 Milestone 3B now implements the separately authorized Academy foundation: one IPv4 module, three lessons, six structured exercises, revision-aware local progress and offline reading/practice. The four reference guides and seven labs are preserved. See [Academy documentation](learning-academy.md). A future bounded Ethernet/local-delivery pilot connected to LAB 003 is a recommendation only, pending explicit authorization and feedback from the IPv4 pilot. No further curriculum expansion, LAB 008 or deployment is authorized. The 3A planning notes below are historical.
 
 Milestone 3A completes the three confirmed readiness fixes and LAB 006 timer mismatch / LAB 007 incorrect installed next hop, following the [2E audit](engine-audit.md). See [execution](milestone-3a.md) and [verification](verification.md). The [Learning Academy audit](learning-academy-audit.md) was the planning handoff for the subsequently authorized 3B pilot. LAB 008 incorrect mask retains its own addressing/proxy-ARP gate. Immutable revisions must precede mutations to published content or variants. Non-chain topology and new protocols remain later work.

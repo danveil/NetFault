@@ -84,6 +84,14 @@ export function updateProgress(
     if (action.type === "submit") {
       const result = gradeExercise(e, action.answers ?? {});
       if (!result.valid) throw Error(result.errors.join(" "));
+      const last = record.submissions.filter((s) => s.exerciseId === e.id && s.exerciseRevision === e.revision).at(-1);
+      // One checked answer set is one event, even across rapid taps or a refresh.
+      if (
+        e.inputKind === "tap-steps" &&
+        last &&
+        e.fields.every((field) => last.answers[field.id] === result.answers[field.id])
+      )
+        return progress;
       record.submissions.push({
         exerciseId: e.id,
         exerciseRevision: e.revision,

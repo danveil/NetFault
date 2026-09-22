@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { academy, references } from "../src/lib/academy/content";
+import { academy, references } from "../src/lib/academy/content-v1";
 import { academySchema } from "../src/lib/academy/schema";
 import { gradeExercise, normalizeIPv4, subnet } from "../src/lib/academy/grading";
 import {

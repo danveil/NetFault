@@ -9,6 +9,16 @@ export default defineConfig({
   use: { baseURL: "http://localhost:3100", trace: "retain-on-failure", screenshot: "only-on-failure" },
   projects: [
     {
+      name: "narrow-mobile-chromium",
+      testMatch: /academy.*\.spec\.ts/,
+      use: {
+        ...devices["iPhone 11"],
+        defaultBrowserType: "chromium",
+        channel: "msedge",
+        viewport: { width: 360, height: 800 },
+      },
+    },
+    {
       name: "desktop-chromium",
       use: { ...devices["Desktop Edge"], channel: "msedge", viewport: { width: 1440, height: 1000 } },
     },

@@ -5,11 +5,22 @@ const id = z.string().regex(/^[a-z][a-z0-9-]*$/);
 const text = z.string().min(1);
 const revision = z.number().int().positive();
 export const sectionKinds = ["simple", "analogy", "technical", "worked", "guided", "independent"] as const;
+export const diagramSchema = z.discriminatedUnion("kind", [
+  z.strictObject({ kind: z.literal("octets"), address: z.ipv4(), caption: text }),
+  z.strictObject({
+    kind: z.enum(["mask", "range"]),
+    address: z.ipv4(),
+    prefix: z.number().int().min(24).max(30),
+    caption: text,
+  }),
+  z.strictObject({ kind: z.enum(["delivery", "arp"]), caption: text }),
+]);
 export const sectionSchema = z.strictObject({
   kind: z.enum(sectionKinds),
   title: text,
   body: text,
   code: text.optional(),
+  diagram: diagramSchema.optional(),
 });
 export const solutionSchema = z.strictObject({ steps: z.array(text).min(2), commonMistake: text });
 const fieldBase = { id, label: text, explanation: text };
@@ -24,12 +35,17 @@ export const exerciseSchema = z
     revision,
     stage: z.enum(["guided", "independent"]),
     prompt: text,
-    inputKind: z.literal("structured"),
+    inputKind: z.enum(["structured", "tap-steps"]),
     fields: z.array(fieldSchema).min(1),
-    solutionPolicy: z.literal("after-submit-or-request"),
+    solutionPolicy: z.enum(["after-submit-or-request", "requested-only"]),
     solution: solutionSchema,
   })
   .superRefine((exercise, ctx) => {
+    if (
+      exercise.inputKind === "tap-steps" &&
+      (exercise.fields.some((field) => field.kind !== "choice") || exercise.solutionPolicy !== "requested-only")
+    )
+      ctx.addIssue({ code: "custom", message: "Tap steps require choice fields and requested-only solutions" });
     if (new Set(exercise.fields.map((f) => f.id)).size !== exercise.fields.length)
       ctx.addIssue({ code: "custom", message: "Duplicate field ID" });
     for (const field of exercise.fields)
@@ -119,3 +135,4 @@ export const academySchema = z
 export type Lesson = z.infer<typeof lessonSchema>;
 export type Exercise = z.infer<typeof exerciseSchema>;
 export type Academy = z.infer<typeof academySchema>;
+export type Diagram = z.infer<typeof diagramSchema>;

@@ -2,6 +2,15 @@
 
 Target: iPhone 11, 414 × 896 CSS pixels, portrait. Automated Chromium viewport emulation does not demonstrate native Safari or physical touch behavior. Physical device testing has not been performed.
 
+## Milestone 3C short physical-iPhone acceptance (not performed)
+
+- [ ] Open the updated app on trusted HTTPS, accept its normal update/reload, and inspect all five diagrams in portrait and landscape. Read bit labels/captions without zoom and confirm no clipped addresses or horizontal page overflow.
+- [ ] Complete all six exercises one-handed using cards and Next/Previous/Change. No mobile keyboard should open. Swipe vertically starting over a card and confirm scrolling does not select or submit it.
+- [ ] Make a subnet mistake, check answers, retry, and confirm the full solution stays hidden until Show detailed solution. Tap check/reveal repeatedly; verify history contains one record per distinct submission and one reveal.
+- [ ] Leave a partial exercise, refresh and Continue lesson. Confirm saved choices resume; inspect a revision-1 draft in Learning history and verify it does not fill revision 2.
+- [ ] Test VoiceOver labels, radio selection, step announcements, external-keyboard arrows/Tab and visible focus; check controls above the Safari toolbar and at increased text size.
+- [ ] Wait for Available offline · Academy, enable airplane mode, reload and complete tap exercises while viewing every diagram. Reconnect for external references and timed assessments. Confirm LAB 002 still opens mode selection and active assessments block Academy access.
+
 ## Milestone 3B Academy manual acceptance (not physically performed)
 
 - [ ] On localhost for desktop, or an authorized trusted HTTPS release for iPhone, open Learn networking and the IPv4 module. Check all three lessons and four Field Guides in portrait/landscape, Safari and Home Screen mode.

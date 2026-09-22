@@ -1,4 +1,19 @@
-# Milestone 3A verification
+# NetFault verification
+
+Current Academy visual/touch refinement evidence is recorded in [Milestone 3C](milestone-3c.md). Historical records below are retained rather than relabeled as current test results.
+
+## Milestone 3C — 22 September 2026
+
+- `pnpm lint` and `pnpm typecheck`: passed.
+- `pnpm test`: 335 tests passed across 15 files.
+- `pnpm build`: passed; final build `6zHCfrGoVc_502D6JItAb` and generated offline worker; dynamic assessment API preserved.
+- `$env:CI='true'; $env:PW_PRODUCTION='1'; pnpm test:browser`: all 92 production tests passed on the preceding build, covering all seven labs and Academy.
+- After the final gesture CSS and milestone-label adjustments, `$env:CI='true'; $env:PW_PRODUCTION='1'; pnpm test:browser academy deployment privacy`: all 36 relevant final-build tests passed.
+- `git diff --check`: passed. No remaining failures or skips. Tested desktop, 414px and Academy at 360px with Chromium/Edge; no physical iPhone, Safari/VoiceOver or live Netlify claim.
+
+The [3C record](milestone-3c.md) contains exact build IDs, the corrected initial test-selector failures, diagram/exercise inventories, scope checks, changed files and manual acceptance instructions.
+
+## Historical Milestone 3A verification
 
 For the subsequent Academy foundation and IPv4 pilot, see the separate [Milestone 3B execution and verification record](milestone-3b-plan.md). This page preserves the historical seven-lab baseline.
 

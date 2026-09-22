@@ -479,7 +479,7 @@ export default function NetFault() {
           <span className="connection">
             <span className={online ? "status-dot" : "status-dot offline"} />
             {online ? "Workspace online" : "Offline"}
-            <span className="desktop-only"> · Milestone 3B</span>
+            <span className="desktop-only"> · Milestone 3C</span>
           </span>
         </header>
         <main id="main" tabIndex={-1}>

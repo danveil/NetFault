@@ -16,6 +16,8 @@ import { academyAvailableOffline } from "@/lib/academy/offline";
 import { labs } from "@/lib/catalog";
 import type { ScenarioId } from "@/lib/schema";
 import ExerciseCard from "./exercise";
+import LessonDiagram from "./diagram";
+import RevisionHistory from "./history";
 
 export default function AcademyView({
   onLab,
@@ -87,7 +89,9 @@ export default function AcademyView({
       try {
         setProgress(updateProgress(progress, target, action));
       } catch {
-        setError("Academy retention limit reached. This action was not recorded. Export your learning history before any manual recovery; existing data was preserved.");
+        setError(
+          "Academy retention limit reached. This action was not recorded. Export your learning history before any manual recovery; existing data was preserved.",
+        );
       }
     }
   }
@@ -233,7 +237,8 @@ export default function AcademyView({
               {progress.records.some((r) => r.lessonId === lesson.id && r.lessonRevision !== lesson.revision) && (
                 <p className="academy-feedback">
                   An updated lesson is available. Earlier revision records remain in your learning history; this is
-                  revision {lesson.revision}.
+                  revision {lesson.revision}. Your old drafts are preserved, not converted. Start fresh below and review
+                  earlier work in Learning history & storage.
                 </p>
               )}
               <div className="panel academy-objectives">
@@ -262,7 +267,10 @@ export default function AcademyView({
               {lesson.sections.map((section) => (
                 <section key={section.kind} className="academy-section">
                   <h2>{section.title}</h2>
-                  <p>{section.body}</p>
+                  {section.body.split("\n\n").map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))}
+                  {section.diagram && <LessonDiagram diagram={section.diagram} />}
                   {section.code && <pre>{section.code}</pre>}
                   {(section.kind === "guided" || section.kind === "independent") &&
                     lesson.exercises
@@ -349,7 +357,22 @@ export default function AcademyView({
               ))}
               <div className="quiet-card">
                 <h3>Built on documented protocol behavior</h3>
-                <p>Original guide references: <a href="https://www.rfc-editor.org/rfc/rfc2328#section-8.2" target="_blank" rel="noreferrer">RFC 2328</a> and <a href="https://www.cisco.com/c/en/us/support/docs/ip/open-shortest-path-first-ospf/13699-29.html" target="_blank" rel="noreferrer">Cisco’s OSPF troubleshooting guidance</a>. NetFault is a simplified simulator, not an IOS emulator or an official Universiti Malaya product. External references require internet.</p>
+                <p>
+                  Original guide references:{" "}
+                  <a href="https://www.rfc-editor.org/rfc/rfc2328#section-8.2" target="_blank" rel="noreferrer">
+                    RFC 2328
+                  </a>{" "}
+                  and{" "}
+                  <a
+                    href="https://www.cisco.com/c/en/us/support/docs/ip/open-shortest-path-first-ospf/13699-29.html"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Cisco’s OSPF troubleshooting guidance
+                  </a>
+                  . NetFault is a simplified simulator, not an IOS emulator or an official Universiti Malaya product.
+                  External references require internet.
+                </p>
               </div>
             </>
           )}
@@ -365,16 +388,7 @@ export default function AcademyView({
               No cross-device sync.
             </p>
             {progress.records.map((r) => (
-              <div key={`${r.lessonId}@${r.lessonRevision}`}>
-                <strong>
-                  {academy.lessons.find((l) => l.id === r.lessonId)?.title ?? r.lessonId} · revision {r.lessonRevision}
-                </strong>
-                <p>
-                  {r.readAt ? "Read" : "Opened"} · {r.submissions.length} submissions · {r.reveals.length} requested
-                  solutions · {r.submissions.filter((s) => s.unaided && s.correct).length} correct submissions before
-                  help
-                </p>
-              </div>
+              <RevisionHistory key={`${r.lessonId}@${r.lessonRevision}`} record={r} />
             ))}
           </details>
           <div className="academy-actions">

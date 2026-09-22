@@ -1,5 +1,9 @@
 # Architecture and boundaries
 
+## Milestone 3C update
+
+The existing Academy now publishes revision-2 touch exercises and five local HTML/CSS diagrams. Revision-1 content is preserved in `content-v1.ts`; saved records resolve their original prompts/labels without migration or regrading. Native radio-card steps replace typing on the standard path, and new solutions require explicit request. Identical repeated submissions are idempotent. See [3C decisions and verification](milestone-3c.md). No scenario, engine, lab API, Netlify storage, route, dependency or worker changes are introduced.
+
 ## Milestone 3B update
 
 The [Academy foundation and IPv4 pilot](learning-academy.md) now implements the bounded expansion previously proposed by the historical audit. It adds separate public content validation, structured practice grading, revision-aware local progress, reusable UI and neutral lesson-to-lab links. All seven scenario states, lab revisions, forwarding/OSPF engine, assessment routes and Netlify storage remain unchanged. The four original guide bodies are preserved through stable reference IDs. Academy answers are public practice content; lab assessment answers remain server-owned. The production shell eagerly bundles the Academy, using the existing worker without API caching or a new route.

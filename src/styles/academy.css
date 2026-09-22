@@ -126,3 +126,324 @@
     padding: 18px 14px;
   }
 }
+/* 3C: local teaching diagrams and tap-first practice, scoped to Academy. */
+.lesson-diagram {
+  margin: 26px 0;
+  padding: clamp(16px, 3vw, 24px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.lesson-diagram figcaption {
+  margin-bottom: 20px;
+}
+.lesson-diagram figcaption .eyebrow {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 10px;
+}
+.lesson-diagram h3 {
+  font-size: 20px;
+  line-height: 1.4;
+}
+.lesson-diagram p {
+  margin-top: 16px;
+}
+.lesson-diagram .diagram-caption {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+  margin-bottom: 0;
+  font-size: 13px;
+}
+.octet-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.diagram-cell {
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  min-width: 0;
+}
+.diagram-cell small,
+.diagram-flow small,
+.diagram-origin small {
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.035em;
+}
+.octet-strip .diagram-cell {
+  text-align: center;
+}
+.octet-strip strong {
+  font-size: 26px;
+}
+.octet-strip code {
+  font-size: 14px;
+  letter-spacing: 0.06em;
+}
+.diagram-equation {
+  border: 1px solid var(--accent);
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 14px;
+  text-align: center;
+  font-size: 16px;
+}
+.diagram-prefix {
+  padding: 10px;
+  border-left: 3px solid var(--accent);
+}
+.bit-row {
+  display: grid;
+  grid-template-columns: 65px repeat(8, minmax(0, 1fr));
+  gap: 2px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.bit-row > :not(:first-child) {
+  text-align: center;
+  font-family: "Cascadia Code", Consolas, monospace;
+}
+.bit-row b {
+  padding: 8px 0;
+  font-size: 16px;
+  border-bottom: 2px solid var(--line);
+}
+.bit-row .network-bit {
+  background: var(--accent-dark);
+  border-color: var(--accent);
+}
+.bit-row .host-bit {
+  background: var(--surface2);
+  border-color: var(--muted);
+}
+.diagram-flow {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.diagram-flow li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  margin-bottom: 24px;
+}
+.diagram-flow li:not(:last-child)::after {
+  content: "↓";
+  position: absolute;
+  bottom: -26px;
+  left: 24px;
+  font-size: 20px;
+  color: var(--muted);
+}
+.diagram-flow li:last-child {
+  margin-bottom: 0;
+}
+.diagram-flow strong {
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.diagram-flow span {
+  color: var(--muted);
+}
+.diagram-flow .usable-range {
+  border-color: var(--accent);
+  background: var(--accent-dark);
+}
+.diagram-origin {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+}
+.delivery-branches {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 18px;
+}
+.delivery-branches p {
+  margin: 0;
+}
+.packet-label,
+.frame-label {
+  padding: 10px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface2);
+}
+.frame-label {
+  border-left-style: double;
+  border-left-width: 5px;
+  border-color: var(--amber);
+}
+.academy-section > p {
+  max-width: 70ch;
+  margin-bottom: 18px;
+}
+.academy-exercise > h3 {
+  font-size: 21px;
+  margin-top: 12px;
+  line-height: 1.4;
+}
+.exercise-meter {
+  display: flex;
+  gap: 8px;
+  margin: 18px 0;
+}
+.exercise-meter span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+.exercise-meter .answered {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dark);
+}
+.tap-question {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.tap-question legend {
+  display: block;
+  width: 100%;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 16px;
+}
+.tap-question legend small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+.answer-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.answer-card {
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.answer-card input {
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  margin: 0;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+.answer-card > span:not(.selection-mark) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.answer-card.chosen {
+  border-color: var(--accent);
+  background: var(--accent-dark);
+}
+.answer-card:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.selection-mark {
+  margin-left: auto;
+  color: var(--accent);
+}
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+}
+.step-actions button {
+  min-height: 48px;
+}
+.answer-review ol {
+  list-style: none;
+  padding: 0;
+}
+.answer-review li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.answer-review li div {
+  min-width: 0;
+}
+.answer-review li span,
+.answer-review li strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.answer-review li span {
+  color: var(--muted);
+}
+.academy dl {
+  display: grid;
+  gap: 12px;
+}
+.academy dt {
+  color: var(--muted);
+}
+.academy dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.revision-record {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.revision-exercise {
+  border-left: 2px solid var(--line);
+  padding: 12px 0 12px 16px;
+  margin: 16px 0;
+}
+@media (max-width: 600px) {
+  .octet-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .delivery-branches,
+  .answer-cards {
+    grid-template-columns: 1fr;
+  }
+  .lesson-diagram {
+    padding: 16px 12px;
+  }
+  .academy-section {
+    margin: 32px auto;
+  }
+  .step-actions button {
+    flex: 1;
+  }
+}

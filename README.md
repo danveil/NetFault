@@ -1,12 +1,14 @@
 # NetFault
 
+Milestone 3D adds a [provisional WIA2008 coverage audit and roadmap](docs/wia2008-sources.md). It combines repository inspection with an official 2024/25 handbook entry; current-retake slides, original practicals and assessment instructions are still needed. This is documentation only and does not change the accepted 3C application.
+
 A mobile-first, evidence-based network troubleshooting workspace for a Universiti Malaya student studying WIA2008 Advanced Network Technology. Independent learning aid; not an official UM or Cisco product.
 
-**Milestone 3B:** Learn networking now includes MODULE 02 — IPv4 Addressing and Subnetting, with three complete lessons, six interactive exercises, requested solutions, separate revision-aware progress and offline practice. The four original Field Guides remain accessible. All seven troubleshooting labs, their scenario revisions and server-backed assessments are preserved.
+**Milestone 3C:** the existing IPv4 Academy now has five local teaching diagrams, shorter reading blocks and six tap-first exercises with answer review, retries and explicitly requested solutions. No mobile keyboard or dragging is required. Lesson/exercise revision 2 preserves revision-1 drafts, feedback and history without converting old answers. The four original Field Guides remain accessible. All seven troubleshooting labs, their scenario revisions and server-backed assessments are preserved.
 
 Open **Learn networking → Explore module → Open lesson 1**. Complete guided and independent exercises, review feedback, mark reading separately, refresh and use Continue lesson. The gateway lesson links to LAB 002's normal mode selection without starting an attempt or revealing its fault. Public Academy answers are inspectable learning content, not a secure exam.
 
-Read the [Academy architecture and authoring guide](docs/learning-academy.md), [3B verification record](docs/milestone-3b-plan.md), and historical [Academy audit](docs/learning-academy-audit.md). Academy progress uses its own storage key; old troubleshooting journals/packs are unchanged. Offline reading and exercise grading require a completed production shell cache; look for **Available offline · Academy**. External references and timed assessments require internet. No LAB 008, randomization, cloud progress sync, new networking engine or later curriculum modules were added.
+Read the [Academy architecture and authoring guide](docs/learning-academy.md), [3C verification record](docs/milestone-3c.md), and historical [Academy audit](docs/learning-academy-audit.md). Academy progress uses its own storage key; old troubleshooting journals/packs are unchanged. Offline reading and exercise grading require a completed production shell cache; look for **Available offline · Academy**. External references and timed assessments require internet. No LAB 008, randomization, cloud progress sync, new networking engine or later curriculum modules were added.
 
 For a public HTTPS app that works with your laptop turned off, follow [Netlify deployment instructions](docs/NETLIFY_DEPLOYMENT.md). This milestone changes no deployment configuration, environment variables, dependency versions or Netlify assessment storage. No deployment was performed.
 
