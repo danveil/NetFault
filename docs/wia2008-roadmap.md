@@ -4,9 +4,9 @@
 
 This replaces the earlier current-materials intake gate and provisional IPv6-first choice. Historical evidence now supports progress. The [coverage matrix](wia2008-coverage.md) and [source inventory](wia2008-sources.md) define what was actually read and what is missing. No target number of labs establishes completion.
 
-## One selected next implementation
+## Selected bridge implemented in Milestone 3E
 
-**One OSPFv2 configuration-to-verification Academy lesson**, with a guided exercise, a different independent exercise and a clearly labeled external Packet Tracer companion. No new troubleshooting scenario or engine change. See the [bounded specification](wia2008-next-milestone.md).
+**One OSPFv2 configuration-to-verification Academy lesson**, with a guided exercise, a different independent exercise and a clearly labeled external Packet Tracer companion. No new troubleshooting scenario or engine change. See the [bounded specification](wia2008-next-milestone.md) and [3E implementation/verification record](milestone-3e.md). The lesson, two exercises and two diagrams are implemented; the optional external companion is UNEXECUTED. Authentic configuration ability remains to be demonstrated separately.
 
 Why this order:
 
@@ -16,15 +16,15 @@ Why this order:
 - IPv6 remains well supported: S5 slides **58–61**, S6 **35–37**, S7 **29–30**, plus H24 O3. Its operational goals require foundations and external practice; the earlier address-only pilot was not wrong in content, but the newly inspected OSPF examples support a more immediate connection from existing knowledge to configuration.
 - STP and EtherChannel are substantive missing chapters, not optional names inferred from CCNA. They remain high-priority follow-on work. Their chapter numbers do not establish current teaching order, and a simulator would require new switching state. A conceptual STP pilot could also avoid engine work, but the selected bridge makes immediate use of three current cases and their prerequisites.
 
-This recommendation does **not** claim OSPF matters more academically than switching/IPv6. It chooses a small implementation that can be specified from inspected content today. Separate authorization is required before building it; 2026/27 documents are not an entry prerequisite.
+This recommendation does **not** claim OSPF matters more academically than switching/IPv6. It chooses a small implementation that can be specified from inspected content today. Separate 3E authorization allowed this bounded implementation; later work still needs authorization. 2026/27 documents are not an entry prerequisite.
 
 ## Dependency-based follow-on work
 
-Rows after NEXT are a completion backlog, not multiple selected next milestones. Split each into one bounded lesson/tool task when authorized. No automatic execution and no lab quota.
+Rows after the implemented bridge are a completion backlog, not multiple selected next milestones. Split each into one bounded lesson/tool task when authorized. No automatic execution and no lab quota.
 
 | Order / outcome | Exact historical evidence | Learning work and dependencies | Engine decision / independent acceptance |
 | --- | --- | --- | --- |
-| **NEXT: OSPFv2 configuration-to-verification** | S5 `Single Area OSPF.ppt` 36–44, 56–57; S10 `Network Management.ppt` 54–61 | One lesson after IPv4 A1–A3; two tap sequences and external configuration handoff. Reuse LAB 001/005/006 with neutral links | No engine/scenario change. Given different addresses/interfaces, select participating interfaces and passive LANs, justify checks, then demonstrate authentic configuration separately |
+| **IMPLEMENTED 3E: OSPFv2 configuration-to-verification** | S5 `Single Area OSPF.ppt` 36–44, 56–57; S10 `Network Management.ppt` 54–61 | One lesson after IPv4 A1–A3; two tap sequences and external configuration handoff. Reuse LAB 001/005/006 with neutral links | No engine/scenario change. Given different addresses/interfaces, select participating interfaces and passive LANs, justify checks, then demonstrate authentic configuration separately |
 | **Switching foundation: STP, then EtherChannel** | S1 `STP.ppt` 3–24, 28–40; S2 `Etherchannel.ppt` 3–8, 10–23 | First root/path/role reasoning with a defined protocol variant; later bundle/mode/member consistency. Supply only the Ethernet/trunk prerequisites each task needs, not an automatic large Ethernet module | Academy diagrams and PT first. A simulator requires blocked-path/election/aggregation/trunk work. Accept with unseen role or bundle prediction plus actual show-output and changed-link verification |
 | **IPv6 foundation and operational application** | S5 58–61; S6 `Access Control List(ACL).ppt` 35–37; S7 `NAT.ppt` 29–30; H24 O3 | Notation/prefix and link-local reasoning before a separately scoped OSPFv3 or IPv6 ACL companion | No IPv6 simulator by default. Require different-address reasoning and actual configured neighbor/route/traffic evidence for operational claims |
 | **Policy and translation: ACL, then NAT/PAT** | S6 3–20, 26–36; S7 6–24 | Reuse IPv4/mask/path knowledge; ordered rule decisions and direction before address/port translation. Resolve documented example conflicts | Tap tables plus PT configuration. Engine only if one distinct diagnostic gap justifies filtering or translation state. Accept both allowed and denied/untranslated control traffic, not one successful ping |
@@ -35,7 +35,7 @@ Rows after NEXT are a completion backlog, not multiple selected next milestones.
 | **Virtualization and automation** | S12 `Network Virtualization & Automation.ppt` 3–37, 39–62, 63–72 | One service/plane diagram slice, then structured-data/request interpretation and a small actual local tool exercise. Requires relevant addressing/API basics | No forwarding-engine change for conceptual lessons; no paid cloud requirement. Accept a new response/configuration example and actual script output where execution is claimed |
 | **Evidence-limited historical topics** | H24 p.46 EIGRP/PPP; S8 16/44 PPP references; missing Chapter 3 | Retain unresolved scope. No dedicated EIGRP deck or original practical available. Do not assign a subject to missing Chapter 3 | No engine proposal from a topic name alone. Revisit depth when more evidence exists; other work continues |
 
-The order within later branches can change with demonstrated learner needs or future course instructions. The stated dependencies matter more than a linear release number. Detailed OSPF broadcast elections, LSDB exchange, SPF alternatives and default origination remain separate gaps (S5 5–35, 45–56), not silently covered by the NEXT lesson.
+The order within later branches can change with demonstrated learner needs or future course instructions. The stated dependencies matter more than a linear release number. Detailed OSPF broadcast elections, LSDB exchange, SPF alternatives and default origination remain separate gaps (S5 5–35, 45–56), not silently covered by the 3E lesson.
 
 ## Completion and future reconciliation
 

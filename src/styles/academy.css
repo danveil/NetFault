@@ -420,6 +420,45 @@
   margin: 0;
   overflow-wrap: anywhere;
 }
+.academy-address-table {
+  margin: 24px 0;
+}
+.academy-address-table ul,
+.ospf-match-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 12px;
+  padding: 0;
+  list-style: none;
+}
+.academy-address-table li,
+.ospf-match-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.diagram-ospf-match code {
+  overflow-wrap: anywhere;
+}
+.ospf-evidence-flow {
+  grid-template-columns: 1fr;
+}
+.academy-companion {
+  max-width: 760px;
+  margin: 32px auto;
+}
+.academy-companion summary {
+  min-height: 44px;
+  padding: 12px 0;
+}
+.academy-companion li {
+  margin-bottom: 16px;
+}
 .revision-record {
   border-top: 1px solid var(--line);
   padding-top: 12px;

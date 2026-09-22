@@ -4,7 +4,11 @@ const enter = async (page: Page) =>
   page.getByRole("button", { name: "Learn networking / Field guide", exact: true }).click();
 async function openLesson(page: Page, number: number) {
   await page.getByRole("button", { name: "Academy home", exact: true }).click();
-  await page.getByRole("button", { name: "Explore module" }).click();
+  await page
+    .locator(".academy-module")
+    .filter({ hasText: "MODULE 02" })
+    .getByRole("button", { name: "Explore module" })
+    .click();
   await page.getByRole("button", { name: `Open lesson ${number}`, exact: true }).click();
 }
 test("Academy pilot: structured exercises, requested solutions, refresh, resume and neutral lab links", async ({

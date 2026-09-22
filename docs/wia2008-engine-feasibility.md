@@ -8,6 +8,8 @@ Milestone 3D follow-up is documentation only. [Sources](wia2008-sources.md) now 
 
 ## Capability matrix
 
+3E update: the [OSPF Academy bridge](milestone-3e.md) is implemented without changing any engine capability below. Its bounded public wildcard helper validates authored matching examples only. New teaching, two tap exercises and an UNEXECUTED external companion do not add executable configuration, neighbor FSM or LSDB behavior. See the separate 3E record for fresh regressions; this audit's historical evidence is not relabeled.
+
 | Category | Capability actually supported / boundary | Code and verification evidence |
 | --- | --- | --- |
 | Implemented and verified | Static dotted IPv4 validation, unique usable interface addresses, link/gateway references and isolated authored repairs. Interfaces support /1–/30; static destination routes /0–/32 | [schema.ts:29](../src/lib/schema.ts#L29), refinement from :196; [engine tests](../tests/engine.test.ts), [authoring tests](../tests/authoring.test.ts) |

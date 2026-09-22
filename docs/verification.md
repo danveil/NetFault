@@ -1,6 +1,16 @@
 # NetFault verification
 
-Current Academy visual/touch refinement evidence is recorded in [Milestone 3C](milestone-3c.md). Historical records below are retained rather than relabeled as current test results.
+Current OSPF Academy bridge evidence is recorded in [Milestone 3E](milestone-3e.md). Historical records below are retained rather than relabeled as current test results.
+
+## Milestone 3E — 22 September 2026
+
+- `pnpm lint` and `pnpm typecheck`: passed.
+- `pnpm test`: **358 tests passed across 16 files**, including 23 new OSPF Academy tests; zero failed/skipped.
+- `pnpm build`: passed; build `Tcxj90xrjHtUbPP4nkSe9`, generated offline worker, dynamic assessment API retained.
+- `$env:CI='true'; $env:PW_PRODUCTION='1'; pnpm test:browser`: **104 passed in 4.7 minutes**, zero failed/skipped. Fresh production server; desktop Chromium/Edge, 414px mobile and 360px Academy.
+- `git diff --check`: passed after removing extra EOF blank lines in four documentation files.
+
+Initial browser invocation stopped before running tests because an older verified NetFault production server held port 3100. Only that confirmed process was stopped; the complete rerun passed. No application assertion failed. Both new diagrams were visually inspected at 360px and 414px. Existing all-seven-lab regressions, public/private assessment boundaries, active-assessment Academy guard, old IPv4 revisions/progress, worker update and offline behavior passed. No physical iPhone/Safari/VoiceOver, real Netlify deployment or Packet Tracer/IOS execution is claimed. The optional companion is explicitly UNEXECUTED. See [3E](milestone-3e.md) for exact scope, files, sources and limitations.
 
 ## Milestone 3C — 22 September 2026
 

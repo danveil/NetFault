@@ -1,11 +1,80 @@
 import type { Diagram } from "@/lib/academy/schema";
 import { subnet } from "@/lib/academy/grading";
+import { matchesAuthoredWildcard } from "@/lib/academy/wildcard";
 
 const binary = (number: number) => number.toString(2).padStart(8, "0");
 export default function LessonDiagram({ diagram }: { diagram: Diagram }) {
   let title: string;
   let visual: React.ReactNode;
-  if (diagram.kind === "octets") {
+  if (diagram.kind === "ospf-match") {
+    title = "A network statement selects local interfaces";
+    visual = (
+      <>
+        <p>
+          <code>
+            network {diagram.selector} {diagram.wildcard} area 0
+          </code>
+        </p>
+        <p>Wildcard: 0 = compare this bit · 1 = ignore this bit</p>
+        <ul className="ospf-match-list">
+          {diagram.interfaces.rows.map((row) => (
+            <li key={`${row.device}-${row.port}`}>
+              <strong>
+                {row.device} · {row.port}
+              </strong>
+              <code>
+                {row.address}/{row.prefix}
+              </code>
+              <span>
+                {matchesAuthoredWildcard(row.address, diagram.selector, diagram.wildcard)
+                  ? "Matches → activate in area 0"
+                  : "Does not match this statement"}
+              </span>
+              <small>{row.role}</small>
+            </li>
+          ))}
+        </ul>
+      </>
+    );
+  } else if (diagram.kind === "ospf-evidence") {
+    title = "From configuration to tested reachability";
+    visual = (
+      <ol className="diagram-flow ospf-evidence-flow">
+        <li>
+          <small>1 · CONFIGURATION + INTERFACE</small>
+          <strong>Did the intended local ports participate?</strong>
+          <span>
+            show running-config / show ip protocols → activation and passive policy. show ip interface brief → address
+            and up/up. show ip ospf interface → actual area and point-to-point type.
+          </span>
+        </li>
+        <li>
+          <small>2 · NEIGHBOR</small>
+          <strong>Did both transit peers form adjacency?</strong>
+          <span>
+            show ip ospf neighbor on each router → expected peer ID and FULL state. This is not a host reachability
+            test.
+          </span>
+        </li>
+        <li>
+          <small>3 · LEARNED ROUTE</small>
+          <strong>Is each remote LAN installed?</strong>
+          <span>
+            show ip route on each router → O prefix and transit next hop for the other LAN. One side’s table cannot
+            establish the other side’s route.
+          </span>
+        </li>
+        <li>
+          <small>4 · HOST TESTS</small>
+          <strong>Do request and reply paths work?</strong>
+          <span>
+            Check host address/mask/gateway; ping East from West and West from East. Record both sources and
+            destinations. Success applies to these ICMP probes.
+          </span>
+        </li>
+      </ol>
+    );
+  } else if (diagram.kind === "octets") {
     title = "Four octets make one IPv4 address";
     visual = (
       <>

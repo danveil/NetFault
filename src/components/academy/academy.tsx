@@ -17,6 +17,7 @@ import { labs } from "@/lib/catalog";
 import type { ScenarioId } from "@/lib/schema";
 import ExerciseCard from "./exercise";
 import LessonDiagram from "./diagram";
+import InterfaceTable from "./interface-table";
 import RevisionHistory from "./history";
 
 export default function AcademyView({
@@ -170,7 +171,7 @@ export default function AcademyView({
               <div className="section-heading">
                 <h2>Your modules</h2>
                 <span>
-                  {academy.modules.length} available module · {academy.lessons.length} lessons
+                  {academy.modules.length} available modules · {academy.lessons.length} lessons
                 </span>
               </div>
               {academy.modules.map((item) => (
@@ -271,6 +272,7 @@ export default function AcademyView({
                     <p key={index}>{paragraph}</p>
                   ))}
                   {section.diagram && <LessonDiagram diagram={section.diagram} />}
+                  {section.interfaceTable && <InterfaceTable table={section.interfaceTable} />}
                   {section.code && <pre>{section.code}</pre>}
                   {(section.kind === "guided" || section.kind === "independent") &&
                     lesson.exercises
@@ -285,6 +287,18 @@ export default function AcademyView({
                       ))}
                 </section>
               ))}
+              {lesson.companion && (
+                <details className="panel academy-companion">
+                  <summary>{lesson.companion.title}</summary>
+                  <p>{lesson.companion.introduction}</p>
+                  <InterfaceTable table={lesson.companion.interfaceTable} />
+                  <ol>
+                    {lesson.companion.steps.map((step, index) => (
+                      <li key={index}>{step}</li>
+                    ))}
+                  </ol>
+                </details>
+              )}
               <div className="academy-actions">
                 <button className="secondary" onClick={() => save(lesson, { type: "read" })}>
                   {current?.readAt ? "Lesson marked read" : "Mark lesson read"}

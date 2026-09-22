@@ -1,5 +1,6 @@
 import { academy as original, references } from "./content-v1";
 import { academySchema, type Exercise, type Lesson, type Diagram } from "./schema";
+import { ospfLesson, ospfModule } from "./ospf-content";
 export { references };
 
 const hints: Record<string, Record<string, string>> = {
@@ -111,20 +112,21 @@ function paragraphs(body: string) {
     .join("");
 }
 export const academy = academySchema.parse({
-  modules: original.modules.map((item) => ({ ...item, revision: 2 })),
-  lessons: original.lessons.map((lesson) => ({
-    ...lesson,
-    revision: 2,
-    sections: lesson.sections.map((section) => ({
-      ...section,
-      body: paragraphs(section.body),
-      diagram: diagrams[lesson.id]?.[section.kind],
+  modules: [...original.modules.map((item) => ({ ...item, revision: 2 })), ospfModule],
+  lessons: [
+    ...original.lessons.map((lesson) => ({
+      ...lesson,
+      revision: 2,
+      sections: lesson.sections.map((section) => ({
+        ...section,
+        body: paragraphs(section.body),
+        diagram: diagrams[lesson.id]?.[section.kind],
+      })),
+      exercises: lesson.exercises.map(touchExercise),
     })),
-    exercises: lesson.exercises.map(touchExercise),
-  })),
+    ospfLesson,
+  ],
 });
 export function lessonRevision(id: string, revision: number): Lesson | undefined {
-  return (revision === 1 ? original : academy).lessons.find(
-    (lesson) => lesson.id === id && lesson.revision === revision,
-  );
+  return [...academy.lessons, ...original.lessons].find((lesson) => lesson.id === id && lesson.revision === revision);
 }

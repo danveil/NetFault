@@ -2,6 +2,15 @@
 
 Target: iPhone 11, 414 × 896 CSS pixels, portrait. Automated Chromium viewport emulation does not demonstrate native Safari or physical touch behavior. Physical device testing has not been performed.
 
+## Milestone 3E physical-iPhone acceptance (not performed)
+
+- [ ] On trusted HTTPS after the normal update/reload, open Learn networking, the OSPFv2 module and its single lesson. Read both diagrams and all address cards in portrait/landscape; check no clipped commands or page overflow at 414px and increased text size.
+- [ ] Complete guided and independent choices one-handed, review/change a choice and retry after a wrong submission. No keyboard or dragging is required. Check full solutions remain hidden until explicitly requested.
+- [ ] Refresh a partial draft and Continue lesson. Check completion and one reveal per exercise in revision-1 history; confirm old IPv4 revision-1/revision-2 records remain readable.
+- [ ] With VoiceOver and an external keyboard where available, check heading/fieldset focus, radio labels/arrows, long command-choice reading order and expanded companion access. Automated Chromium keyboard checks do not substitute for this.
+- [ ] After Available offline · Academy, enable airplane mode, reload, complete both exercises and read the optional UNEXECUTED companion. Reconnect for reference links and timed assessment. LAB 001/005/006 links must show normal mode selection; active assessment must block Academy access.
+- [ ] Perform the optional Packet Tracer/device brief separately if you want configuration practice; record actual software/version, outputs and rollback results. No app completion certifies that work.
+
 ## Milestone 3C short physical-iPhone acceptance (not performed)
 
 - [ ] Open the updated app on trusted HTTPS, accept its normal update/reload, and inspect all five diagrams in portrait and landscape. Read bit labels/captions without zoom and confirm no clipped addresses or horizontal page overflow.

@@ -1,8 +1,8 @@
-# NEXT implementation: OSPFv2 configuration-to-verification Academy bridge
+# Selected implementation: OSPFv2 configuration-to-verification Academy bridge
 
 **Historical-materials-based roadmap — 2026/27 course requirements unconfirmed.**
 
-**Proposal only; not implemented or authorized by this audit.** This replaces the earlier provisional IPv6 address/prefix pilot. It is one tightly scoped Academy lesson, with one guided and one different independent tap exercise plus an external configuration companion. No LAB 008 and no new scenario.
+**Implemented under separate Milestone 3E authorization on 22 September 2026.** See the [implementation and verification record](milestone-3e.md). The original bounded specification below is retained as acceptance context; this is not an outstanding NEXT task. It replaced the earlier provisional IPv6 address/prefix pilot. One Academy lesson, one guided and one different independent tap exercise, two diagrams and an **UNEXECUTED** external configuration companion are now available. No LAB 008 or new scenario. This does not complete OSPF or prove real configuration ability; no later milestone is authorized.
 
 ## Objective and source evidence
 
@@ -64,7 +64,7 @@ Retain wrong attempts and help use. Record independent tap performance using exi
 | Independent tool transfer | Separate learner-entered configuration, saved artifact and authentic bidirectional verification on new addresses; explain one change and rollback. This cannot be awarded by a tap score |
 | Content correctness | Independently enumerate intended interface matches and outcomes; validate configurations against primary Cisco references and record whether actually run in PT/IOS. No broadcast/LSDB output invented by the simulator |
 | Preservation and mobile quality | Existing three lessons/six exercises/five diagrams/four guides/seven labs unchanged; new draft/retry/reveal/history behavior tested; desktop, 414px and 360px, keyboard and production offline checks. Physical iPhone results separately attributed |
-| Engineering checks | Once implementation is authorized: lint, strict type check, relevant Academy schema/grading/progress and seven-lab regressions, production build and relevant browser/offline/privacy tests. Record commands/results; none are claimed by this proposal |
+| Engineering checks | Required checks: lint, strict type check, Academy schema/grading/progress and seven-lab regressions, production build and browser/offline/privacy tests. Actual separately executed results are in [Milestone 3E](milestone-3e.md); the original audit did not run them |
 
 Fixed independent choices provide bounded reasoning evidence. Feedback-assisted retries and reveals must not be described as first-attempt unaided performance; external competence remains a separate claim.
 
@@ -72,4 +72,4 @@ Fixed independent choices provide bounded reasoning evidence. Feedback-assisted 
 
 Exclude IPv6/OSPFv3, DR/BDR elections, full neighbor FSM/LSDB, default origination, ECMP, multiarea routing, authentication, new fault packs, IOS parsing/configuration terminal, arbitrary topology builder, randomization, another broad module, and redesign of accepted 3C UX.
 
-If a proposed exercise needs an excluded mechanism, narrow it or seek a separate future scope; do not quietly expand the engine. Future course materials may reorder the backlog, but their current absence is not a blocker. Stop after this specification in the current documentation-only task.
+If a future exercise needs an excluded mechanism, narrow it or seek a separate scope; do not quietly expand the engine. Future course materials may reorder the backlog, but their current absence is not a blocker. The 3D task stopped at this specification; the separately authorized 3E implementation fulfills this bounded lesson. No later work is automatically authorized.

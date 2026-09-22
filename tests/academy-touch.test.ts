@@ -8,6 +8,7 @@ import { gradeExercise, subnet } from "../src/lib/academy/grading";
 import { emptyProgress, updateProgress, recordFor, loadProgress, ACADEMY_KEY } from "../src/lib/academy/progress";
 const accepted = (exercise: Exercise) =>
   Object.fromEntries(exercise.fields.map((field) => [field.id, String(field.answer)]));
+const ipv4Lessons = academy.lessons.filter((lesson) => lesson.moduleId === "ipv4");
 
 describe("3C published content and visual correctness", () => {
   it("preserves the exact published revision-1 source", () => {
@@ -18,9 +19,9 @@ describe("3C published content and visual correctness", () => {
   });
   it("keeps identities and authored prose while publishing revision 2", () => {
     expect(academySchema.parse(academy)).toEqual(academy);
-    expect(academy.lessons).toHaveLength(3);
-    expect(academy.modules).toHaveLength(1);
-    academy.lessons.forEach((lesson, index) => {
+    expect(ipv4Lessons).toHaveLength(3);
+    expect(academy.modules.filter((module) => module.id === "ipv4")).toHaveLength(1);
+    ipv4Lessons.forEach((lesson, index) => {
       const old = original.lessons[index];
       expect(lesson.id).toBe(old.id);
       expect(lesson.revision).toBe(2);
@@ -30,7 +31,7 @@ describe("3C published content and visual correctness", () => {
     });
   });
   it("uses five local visuals with valid captioned data", () => {
-    const visuals = academy.lessons.flatMap((l) => l.sections.flatMap((s) => (s.diagram ? [s.diagram] : [])));
+    const visuals = ipv4Lessons.flatMap((l) => l.sections.flatMap((s) => (s.diagram ? [s.diagram] : [])));
     expect(visuals.map((d) => d.kind)).toEqual(["octets", "mask", "range", "delivery", "arp"]);
     for (const visual of visuals) expect(diagramSchema.safeParse(visual).success).toBe(true);
     expect(subnet("192.168.10.70", 26)).toEqual({
@@ -53,7 +54,7 @@ describe("3C published content and visual correctness", () => {
   });
 });
 describe("tap grading and non-spoiling feedback", () => {
-  it.each(academy.lessons.flatMap((l) => l.exercises).map((e) => [e.id, e] as const))(
+  it.each(ipv4Lessons.flatMap((l) => l.exercises).map((e) => [e.id, e] as const))(
     "preserves reasoning for %s",
     (_, exercise) => {
       expect(exercise).toMatchObject({ revision: 2, inputKind: "tap-steps", solutionPolicy: "requested-only" });

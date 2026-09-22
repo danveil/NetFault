@@ -5,7 +5,29 @@ const id = z.string().regex(/^[a-z][a-z0-9-]*$/);
 const text = z.string().min(1);
 const revision = z.number().int().positive();
 export const sectionKinds = ["simple", "analogy", "technical", "worked", "guided", "independent"] as const;
+export const interfaceTableSchema = z.strictObject({
+  title: text,
+  rows: z
+    .array(
+      z.strictObject({
+        device: text,
+        port: text,
+        address: z.ipv4(),
+        prefix: z.number().int().min(1).max(30),
+        role: text,
+      }),
+    )
+    .min(1),
+});
 export const diagramSchema = z.discriminatedUnion("kind", [
+  z.strictObject({
+    kind: z.literal("ospf-match"),
+    selector: z.ipv4(),
+    wildcard: z.enum(["0.0.0.0", "0.0.0.3", "0.0.0.255"]),
+    interfaces: interfaceTableSchema,
+    caption: text,
+  }),
+  z.strictObject({ kind: z.literal("ospf-evidence"), caption: text }),
   z.strictObject({ kind: z.literal("octets"), address: z.ipv4(), caption: text }),
   z.strictObject({
     kind: z.enum(["mask", "range"]),
@@ -20,6 +42,7 @@ export const sectionSchema = z.strictObject({
   title: text,
   body: text,
   code: text.optional(),
+  interfaceTable: interfaceTableSchema.optional(),
   diagram: diagramSchema.optional(),
 });
 export const solutionSchema = z.strictObject({ steps: z.array(text).min(2), commonMistake: text });
@@ -72,6 +95,14 @@ export const lessonSchema = z
     exercises: z.array(exerciseSchema).min(2),
     relatedLabs: z.array(labLinkSchema),
     sources: z.array(z.strictObject({ title: text, url: z.url() })).min(1),
+    companion: z
+      .strictObject({
+        title: text,
+        introduction: text,
+        interfaceTable: interfaceTableSchema,
+        steps: z.array(text).min(1),
+      })
+      .optional(),
     scope: z.literal("concepts-and-structured-practice"),
   })
   .superRefine((lesson, ctx) => {

@@ -6,6 +6,8 @@ Audit date: 22 September 2026. The historical lecture collection now supports an
 
 ## Deliverable index
 
+Implementation update, 22 September 2026: separate 3E authorization produced the [one OSPFv2 bridge](milestone-3e.md). Relevant local source ranges were re-read and Cisco references checked; the original inventory/provenance below remains the historical audit. The device companion is UNEXECUTED, and current-semester requirements remain unconfirmed. Later curriculum work still requires authorization.
+
 1. Sources and limitations: this document.
 2. [Coverage matrix and actual app inventory](wia2008-coverage.md).
 3. [Engine capabilities, commands and feasibility](wia2008-engine-feasibility.md).

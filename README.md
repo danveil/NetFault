@@ -1,6 +1,8 @@
 # NetFault
 
-Milestone 3D's [WIA2008 audit and roadmap](docs/wia2008-sources.md) now includes 11 inspected historical ANT lecture decks and the official 2024/25 handbook entry. **Historical-materials-based roadmap — 2026/27 course requirements unconfirmed.** The recommended next scope is one OSPFv2 configuration-to-verification Academy lesson, requiring separate implementation authorization. Original practical sheets and current assessment details remain unverified; this documentation-only audit preserves the accepted 3C application.
+**Milestone 3E:** one [OSPFv2 configuration-to-verification Academy lesson](docs/milestone-3e.md) now connects original interface tables to area-0 activation, passive LANs and complementary verification evidence. It adds two tap exercises, two local diagrams and an optional **UNEXECUTED** device practice brief. Open **Learn networking / Field guide → OSPFv2 — Configuration and verification → Explore module → Open lesson 1**. No new lab or networking engine was added.
+
+The [WIA2008 audit and roadmap](docs/wia2008-sources.md) includes 11 inspected historical ANT lecture decks and the official 2024/25 handbook entry. **Historical-materials-based roadmap — 2026/27 course requirements unconfirmed.** Original practical sheets and current assessment details remain unverified. OSPF coverage is partial; tap completion does not prove independent real-device configuration.
 
 A mobile-first, evidence-based network troubleshooting workspace for a Universiti Malaya student studying WIA2008 Advanced Network Technology. Independent learning aid; not an official UM or Cisco product.
 

@@ -17,6 +17,10 @@ export async function openAcademy(page: Page) {
 }
 export async function lessonPage(page: Page, number: number) {
   await page.getByRole("button", { name: "Academy home", exact: true }).click();
-  await page.getByRole("button", { name: "Explore module" }).click();
+  await page
+    .locator(".academy-module")
+    .filter({ hasText: "MODULE 02" })
+    .getByRole("button", { name: "Explore module" })
+    .click();
   await page.getByRole("button", { name: `Open lesson ${number}`, exact: true }).click();
 }
