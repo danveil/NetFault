@@ -1,5 +1,14 @@
-import type { Diagnosis, Feedback, Observation, Scenario } from "./schema";
-export function grade(s: Scenario, answer: Diagnosis, history: Observation[], timedOut = false): Feedback {
+import type { Diagnosis, Feedback, Observation, Scenario, RepairAction } from "./schema";
+import { channelState } from "./etherchannel";
+import { connectivity } from "./engine";
+import { trialNetwork } from "./repair-trial";
+export function grade(
+  s: Scenario,
+  answer: Diagnosis,
+  history: Observation[],
+  timedOut = false,
+  repairs: RepairAction[] = [],
+): Feedback {
   const selected = history.filter(
     (o) => answer.evidence.includes(o.id) && (!o.scenario || o.scenario === s.id) && !o.output.startsWith("%"),
   );
@@ -11,10 +20,98 @@ export function grade(s: Scenario, answer: Diagnosis, history: Observation[], ti
         (r) =>
           r.devices.length > 0 &&
           r.commands.length > 0 &&
-          selected.some((o) => r.devices.includes(o.device) && r.commands.includes(o.command)),
+          selected.some(
+            (o) =>
+              (s.schemaVersion !== 7 || !o.repairIndex) &&
+              r.devices.includes(o.device) &&
+              r.commands.includes(o.command),
+          ),
       ),
   }));
   const exactDevices = [...new Set(answer.devices)].sort().join(",") === [...s.fault.devices].sort().join(",");
+  if ("group" in s.repair) {
+    const actual = trialNetwork(s, repairs),
+      switches = actual.devices.filter((d) => d.kind === "switch"),
+      hosts = actual.devices.filter((d) => d.kind === "pc");
+    const formed = switches.every(
+      (d) => channelState(actual, d.id)?.activeMembers === d.portChannels![0].members.length,
+    );
+    const reachable = hosts.every((d) =>
+      hosts.filter((p) => p.id !== d.id).every((p) => connectivity(actual, d.id, p.interfaces[0].ip).ok),
+    );
+    const changed = switches.filter(
+      (d) => d.portChannels![0].mode !== s.devices.find((p) => p.id === d.id)!.portChannels![0].mode,
+    );
+    const repairedState = repairs.length > 0 && formed && reachable && changed.length === 1;
+    const fresh = selected.filter((o) => repairs.length > 0 && o.repairIndex === repairs.length);
+    const verified =
+      repairedState &&
+      switches.every((d) =>
+        fresh.some(
+          (o) =>
+            o.device === d.id && ["show etherchannel summary", "show interfaces port-channel 1"].includes(o.command),
+        ),
+      ) &&
+      hosts.every((d) =>
+        hosts
+          .filter((p) => p.id !== d.id)
+          .every((p) =>
+            fresh.some(
+              (o) =>
+                o.device === d.id &&
+                o.command === "ping" &&
+                o.target === p.interfaces[0].ip &&
+                connectivity(actual, d.id, o.target).ok,
+            ),
+          ),
+      );
+    const parts = [
+      {
+        name: "Root cause",
+        earned: answer.cause === s.fault.cause ? 20 : 0,
+        possible: 20,
+        message:
+          "Compare the initial physical, logical and negotiation evidence. A missing bundle alone cannot identify its cause.",
+      },
+      {
+        name: "Affected endpoints",
+        earned: exactDevices ? 10 : 0,
+        possible: 10,
+        message:
+          "Identify the switches participating in the failed relationship, rather than the hosts experiencing it.",
+      },
+      {
+        name: "Supporting evidence",
+        earned: checks.reduce((n, c) => n + (c.met ? c.points : 0), 0),
+        possible: 30,
+        message: checks.map((c) => `${c.label}: ${c.met ? "captured" : "missing"}.`).join(" "),
+      },
+      {
+        name: "Applied repair and mechanism",
+        earned:
+          (repairedState && s.acceptedFixes.includes(answer.fix) ? 15 : 0) +
+          (answer.reason === s.repair.reason ? 5 : 0),
+        possible: 20,
+        message: `Minimal applied change with both members and both host paths restored: ${repairedState ? "verified by model" : "not established"}. The selected explanation contributes 5 points. Notes are not graded.`,
+      },
+      {
+        name: "Fresh recovery verification",
+        earned: verified ? 20 : 0,
+        possible: 20,
+        message: verified
+          ? "Selected evidence checks both logical endpoints and both host directions after the latest configuration change."
+          : "Select fresh logical status on both switches and successful host pings in both directions after the latest change. Pre-change or older trial evidence cannot verify the current state.",
+      },
+    ];
+    return {
+      score: parts.reduce((n, p) => n + p.earned, 0),
+      parts,
+      explanation: s.explanation,
+      solution: s.solution,
+      lesson: s.lesson,
+      timedOut,
+    };
+  }
   if ("passive" in s.repair || "hello" in s.repair) {
     const timer = "hello" in s.repair;
     const correctInterface = answer.interface?.trim().toLowerCase() === s.repair.interface.toLowerCase();

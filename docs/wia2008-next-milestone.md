@@ -1,5 +1,7 @@
 # Selected implementation: OSPFv2 configuration-to-verification Academy bridge
 
+**3F follow-up, 23 September 2026:** separately authorized LAB 008 now implements one bounded EtherChannel investigation; see [3F](milestone-3f.md) and [model](etherchannel-model.md). The original 3E specification below remains historical acceptance context. Neither this file nor completed 3F authorizes another milestone. STP, trunk aggregation and authentic device verification remain unimplemented/unperformed.
+
 **Historical-materials-based roadmap — 2026/27 course requirements unconfirmed.**
 
 **Implemented under separate Milestone 3E authorization on 22 September 2026.** See the [implementation and verification record](milestone-3e.md). The original bounded specification below is retained as acceptance context; this is not an outstanding NEXT task. It replaced the earlier provisional IPv6 address/prefix pilot. One Academy lesson, one guided and one different independent tap exercise, two diagrams and an **UNEXECUTED** external configuration companion are now available. No LAB 008 or new scenario. This does not complete OSPF or prove real configuration ability; no later milestone is authorized.

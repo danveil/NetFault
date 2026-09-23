@@ -9,6 +9,7 @@ import {
   type Observation,
   type Scenario,
 } from "./schema";
+import { etherChannelOutput, forwardingLinks, forwardingPorts, channelState, physicalPortUp } from "./etherchannel";
 
 export type Neighbor = {
   device: string;
@@ -26,6 +27,7 @@ export function device(s: Scenario, id: string): Device {
   return d;
 }
 function peers(s: Scenario, id: string) {
+  const links = forwardingLinks(s);
   const result: { local: Interface; remote: Interface; device: Device }[] = [];
   for (const local of device(s, id).interfaces) {
     const visited = new Set<string>();
@@ -33,7 +35,7 @@ function peers(s: Scenario, id: string) {
       const key = `${owner}:${port}`;
       if (visited.has(key)) return;
       visited.add(key);
-      for (const link of s.links) {
+      for (const link of links) {
         const remote =
           link.a.device === owner && link.a.interface === port
             ? link.b
@@ -46,9 +48,10 @@ function peers(s: Scenario, id: string) {
           const intf = d.interfaces.find((i) => i.name === remote.interface)!;
           if (d.id !== id) result.push({ local, remote: intf, device: d });
         } else {
-          const ingress = d.ports!.find((p) => p.name === remote.interface)!;
+          const ports = forwardingPorts(s, d);
+          const ingress = ports.find((p) => p.name === remote.interface)!;
           if (!ingress.up || !d.vlans!.some((v) => v.id === ingress.vlan && v.active)) continue;
-          for (const p of d.ports!.filter((p) => p.up && p.vlan === ingress.vlan && p.name !== ingress.name))
+          for (const p of ports.filter((p) => p.up && p.vlan === ingress.vlan && p.name !== ingress.name))
             walk(d.id, p.name);
         }
       }
@@ -195,12 +198,23 @@ export function runningConfig(s: Scenario, id: string) {
       ...d.vlans!.flatMap((v) => [`vlan ${v.id}`, ` name ${v.name}`, ` state ${v.active ? "active" : "suspend"}`, "!"]),
       ...d.ports!.flatMap((p) => [
         `interface ${p.name}`,
+        ...(d.portChannels
+          ?.filter((c) => c.members.includes(p.name))
+          .map((c) => ` channel-group ${c.id} mode ${c.mode}`) ?? []),
         " switchport mode access",
         ` switchport access vlan ${p.vlan}`,
         p.up ? " no shutdown" : " shutdown",
         "!",
       ]),
       "! Modeled access ports only; no routed interfaces or SVI.",
+      ...(d.portChannels?.flatMap((c) => [
+        `interface Port-channel${c.id}`,
+        " switchport mode access",
+        ` switchport access vlan ${c.vlan}`,
+        " port-channel standalone-disable",
+        c.up ? " no shutdown" : " shutdown",
+        "!",
+      ]) ?? []),
     ].join("\n");
   return [
     `hostname ${d.id}`,
@@ -284,7 +298,7 @@ function portStatus(s: Scenario, id: string, name: string) {
     (peer.interfaces.find((i) => i.name === other!.interface) ?? peer.ports?.find((i) => i.name === other!.interface));
   return !p.up
     ? "disabled"
-    : !remote?.up
+    : !remote?.up || link?.up === false
       ? "notconnect"
       : !d.vlans!.some((v) => v.id === p.vlan && v.active)
         ? "inactive"
@@ -303,6 +317,8 @@ export function execute(
   if (!d.commands.some((c) => c === cmd))
     return `% Unsupported command on ${id}: ${raw}. Use the supported command buttons. This is a bounded simulator, not an IOS shell.`;
   if (source && cmd !== "ping") return "% Explicit source is supported only for router ping.";
+  const channelOutput = etherChannelOutput(s, d, cmd);
+  if (channelOutput !== undefined) return channelOutput;
   if (cmd === "arp -a") {
     const state = arpState(s, id, history);
     return [
@@ -354,7 +370,8 @@ export function execute(
       "Port      Status       Vlan  Duplex Speed Type",
       ...d.ports!.map((p) => {
         const status = portStatus(s, id, p.name);
-        return `${p.name.padEnd(9)} ${status.padEnd(12)} ${String(p.vlan).padEnd(5)} ${p.duplex}   ${p.speed}  ${p.speed === 100 ? "10/100BaseTX" : "10/100/1000BaseTX"}`;
+        const member = channelState(s, id)?.members.find((m) => m.name === p.name);
+        return `${p.name.padEnd(9)} ${(member?.physical && !member.bundled ? "suspended" : status).padEnd(12)} ${String(p.vlan).padEnd(5)} ${p.duplex}   ${p.speed}  ${p.speed === 100 ? "10/100BaseTX" : "10/100/1000BaseTX"}${d.portChannels ? ` | physical carrier ${physicalPortUp(s, id, p.name) ? "up" : "down"}` : ""}`;
       }),
     ].join("\n");
   if (cmd === "route print")
@@ -364,7 +381,7 @@ export function execute(
       ...d.interfaces
         .filter((i) => i.up)
         .flatMap((i) => [
-          `0.0.0.0              0.0.0.0          ${d.gateway!.padEnd(16)} ${i.ip}`,
+          ...(d.gateway ? [`0.0.0.0              0.0.0.0          ${d.gateway.padEnd(16)} ${i.ip}`] : []),
           `${network(i.ip, i.prefix).split("/")[0].padEnd(21)} ${dotted(mask(i.prefix)).padEnd(16)} On-link          ${i.ip}`,
           `${i.ip.padEnd(21)} 255.255.255.255  On-link          ${i.ip}`,
         ]),
@@ -416,7 +433,7 @@ export function execute(
         `Ethernet adapter ${i.name}`,
         ` IPv4 Address . . . : ${i.ip}`,
         ` Subnet Mask . . . : ${dotted(mask(i.prefix))}`,
-        ` Default Gateway . : ${d.gateway}`,
+        ` Default Gateway . : ${d.gateway ?? "Not configured (local subnet only)"}`,
         ` Media State . . . : ${i.up ? "Connected" : "Disconnected"}`,
         ...(cmd.endsWith("/all")
           ? [
@@ -508,7 +525,9 @@ export function execute(
 export function repaired(s: Scenario): Scenario {
   const next = structuredClone(s);
   const repair = s.repair;
-  if ("hello" in repair) {
+  if ("group" in repair) {
+    device(next, repair.device).portChannels!.find((c) => c.id === repair.group)!.mode = repair.mode;
+  } else if ("hello" in repair) {
     Object.assign(device(next, repair.device).interfaces.find((i) => i.name === repair.interface)!.ospf!, {
       hello: repair.hello,
       dead: repair.dead,

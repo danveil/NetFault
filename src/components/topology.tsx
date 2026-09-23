@@ -1,5 +1,17 @@
 "use client";
-import { ReactFlow, Background, Controls, Handle, Position, type NodeProps, type Node } from "@xyflow/react";
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  Handle,
+  Position,
+  BaseEdge,
+  EdgeLabelRenderer,
+  type Edge,
+  type EdgeProps,
+  type NodeProps,
+  type Node,
+} from "@xyflow/react";
 import { Monitor, Router, Network } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 import { useSyncExternalStore } from "react";
@@ -26,6 +38,31 @@ function NetworkDevice({ data }: NodeProps<DeviceNode>) {
   );
 }
 const nodeTypes = { device: NetworkDevice };
+function PhysicalEdge({ id, sourceX, sourceY, targetX, targetY, label, data, style }: EdgeProps) {
+  const offset = Number(data?.offset ?? 0),
+    dx = targetX - sourceX,
+    dy = targetY - sourceY,
+    length = Math.hypot(dx, dy) || 1;
+  const x = (sourceX + targetX) / 2 - (dy / length) * offset,
+    y = (sourceY + targetY) / 2 + (dx / length) * offset;
+  return (
+    <>
+      <BaseEdge id={id} path={`M ${sourceX},${sourceY} Q ${x},${y} ${targetX},${targetY}`} style={style} />
+      <EdgeLabelRenderer>
+        <span
+          className="physical-link-label"
+          style={{
+            position: "absolute",
+            transform: `translate(-50%, -50%) translate(${(sourceX + 2 * x + targetX) / 4}px,${(sourceY + 2 * y + targetY) / 4}px)`,
+          }}
+        >
+          {label}
+        </span>
+      </EdgeLabelRenderer>
+    </>
+  );
+}
+const edgeTypes = { physical: PhysicalEdge };
 export default function Topology({
   lab,
   selected,
@@ -77,39 +114,62 @@ export default function Topology({
     },
     ariaLabel: `Inspect ${d.id}`,
   }));
-  const edges = lab.subnets.map((subnet, i) => ({
-    id: `e${i}`,
-    source: lab.devices[i].id,
-    target: lab.devices[i + 1].id,
-    label: subnet,
-    type: "straight",
-    style: { stroke: "#536a80", strokeWidth: 2 },
-    labelStyle: { fill: "#b0bdcc", fontSize: 12 },
-    labelBgStyle: { fill: "#101923" },
-    labelBgPadding: [5, 7] as [number, number],
-  }));
+  const edges: Edge[] =
+    "physicalLinks" in lab
+      ? lab.physicalLinks.map((link, index) => ({
+          id: `p${index}`,
+          source: link.source,
+          target: link.target,
+          label: link.label,
+          type: "physical",
+          data: { offset: link.offset * 2 },
+          style: { stroke: "#536a80", strokeWidth: 2 },
+        }))
+      : lab.subnets.map((subnet, i) => ({
+          id: `e${i}`,
+          source: lab.devices[i].id,
+          target: lab.devices[i + 1].id,
+          label: subnet,
+          type: "straight",
+          style: { stroke: "#536a80", strokeWidth: 2 },
+          labelStyle: { fill: "#b0bdcc", fontSize: 12 },
+          labelBgStyle: { fill: "#101923" },
+          labelBgPadding: [5, 7] as [number, number],
+        }));
   return (
-    <div className={compact ? "topology compact" : "topology"} aria-label="Interactive network topology">
-      <ReactFlow
-        key={`${lab.id}-${mobile ? "mobile" : "wide"}`}
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        onNodeClick={(_, node) => onSelect(node.id)}
-        nodesDraggable={false}
-        nodesConnectable={false}
-        edgesFocusable={false}
-        fitView
-        fitViewOptions={{ padding: 0.17 }}
-        minZoom={0.25}
-        maxZoom={1.6}
-        colorMode="dark"
-        zoomOnScroll={false}
-        preventScrolling={false}
+    <>
+      <div
+        className={`${compact ? "topology compact" : "topology"}${"physicalLinks" in lab ? " topology-bundle" : ""}`}
+        aria-label="Interactive network topology"
       >
-        <Background color="#2c3a4d" gap={22} />
-        <Controls position="bottom-right" showInteractive={false} />
-      </ReactFlow>
-    </div>
+        <ReactFlow
+          key={`${lab.id}-${mobile ? "mobile" : "wide"}`}
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          onNodeClick={(_, node) => onSelect(node.id)}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          edgesFocusable={false}
+          fitView
+          fitViewOptions={{ padding: 0.17 }}
+          minZoom={0.25}
+          maxZoom={1.6}
+          colorMode="dark"
+          zoomOnScroll={false}
+          preventScrolling={false}
+        >
+          <Background color="#2c3a4d" gap={22} />
+          <Controls position="bottom-right" showInteractive={false} />
+        </ReactFlow>
+      </div>
+      {"physicalLinks" in lab && (
+        <p className="topology-text">
+          PC-A — SW1 ⇄ SW2 — PC-B. Two physical member links: Gi1/0/1 and Gi1/0/2 on both switches. Lines show cabling,
+          not operational bundle status. Inspect each switch for logical state.
+        </p>
+      )}
+    </>
   );
 }

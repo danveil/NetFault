@@ -23,6 +23,8 @@ import {
   X,
 } from "lucide-react";
 import Topology from "./topology";
+import EtherChannelRepair from "./etherchannel-repair";
+import { recordRepair, trialNetwork } from "@/lib/repair-trial";
 import PwaUpdate from "./pwa-update";
 import {
   labs,
@@ -44,6 +46,9 @@ import {
   nextHopCauses,
   nextHopFixes,
   nextHopReasons,
+  etherChannelCauses,
+  etherChannelFixes,
+  etherChannelReasons,
 } from "@/lib/catalog";
 import { execute } from "@/lib/engine";
 import { repairPreview } from "@/lib/preview";
@@ -55,6 +60,7 @@ import {
   type Diagnosis,
   type Scenario,
   type ScenarioId,
+  type RepairAction,
 } from "@/lib/schema";
 import { ACTIVE_KEY, elapsed, loadJournal, loadPack, saveAttempt, savePack } from "@/lib/storage";
 import AcademyView from "./academy/academy";
@@ -110,30 +116,35 @@ export default function NetFault() {
   const routingReasons = isNextHop ? nextHopReasons : returnReasons;
   const isPassive = lab.id === "passive-01";
   const isTimer = lab.id === "timer-01";
+  const isEtherChannel = lab.id === "etherchannel-01";
   const protocolReasons = isTimer ? timerReasons : passiveReasons;
-  const singleDeviceFault = lab.id !== "ospf-01";
+  const singleDeviceFault = lab.id !== "ospf-01" && !isEtherChannel;
   const supportsPingSource = isRouting || isPassive || isTimer;
-  const hintCount = isRouting || isPassive || isTimer ? 4 : 3;
-  const causeChoices = isNextHop
-    ? nextHopCauses
-    : isPassive || isTimer
-      ? passiveCauses
-      : isRouting
-        ? returnCauses
-        : isVlan
-          ? vlanCauses
-          : causes;
-  const repairChoices = isNextHop
-    ? nextHopFixes
-    : isPassive || isTimer
-      ? passiveFixes
-      : isRouting
-        ? returnFixes
-        : isVlan
-          ? vlanFixes
-          : isGateway
-            ? gatewayFixes
-            : fixes;
+  const hintCount = isRouting || isPassive || isTimer || isEtherChannel ? 4 : 3;
+  const causeChoices = isEtherChannel
+    ? etherChannelCauses
+    : isNextHop
+      ? nextHopCauses
+      : isPassive || isTimer
+        ? passiveCauses
+        : isRouting
+          ? returnCauses
+          : isVlan
+            ? vlanCauses
+            : causes;
+  const repairChoices = isEtherChannel
+    ? etherChannelFixes
+    : isNextHop
+      ? nextHopFixes
+      : isPassive || isTimer
+        ? passiveFixes
+        : isRouting
+          ? returnFixes
+          : isVlan
+            ? vlanFixes
+            : isGateway
+              ? gatewayFixes
+              : fixes;
   const inFlight = useRef(false),
     timeoutRequested = useRef(false);
   const latestAttempt = useRef<Attempt | undefined>(undefined);
@@ -328,12 +339,30 @@ export default function NetFault() {
               command,
               ...(probeSource ? { source: probeSource } : {}),
               target: ["ping", "tracert", "traceroute"].includes(command) ? target : "",
-              output: execute(p, selectedDevice.id, command, target, attempt.history, probeSource),
+              ...(attempt.repairs?.length ? { repairIndex: attempt.repairs.length } : {}),
+              output: execute(
+                trialNetwork(p, attempt.repairs),
+                selectedDevice.id,
+                command,
+                target,
+                attempt.history,
+                probeSource,
+              ),
               at: Date.now(),
             },
           ],
         });
       }
+    });
+  }
+  function applyRepair(change: RepairAction) {
+    if (!attempt || attempt.finishedAt) return;
+    void task(async () => {
+      if (attempt.mode === "assessment") {
+        const data = await api({ action: "repair", id: attempt.id, change });
+        const a = attemptSchema.parse(data.attempt);
+        store({ ...a, diagnosis: a.diagnosis ?? latestAttempt.current?.diagnosis });
+      } else store(recordRepair(await getPack(), latestAttempt.current ?? attempt, change, Date.now()));
     });
   }
   function editAnswer(patch: Partial<Diagnosis>) {
@@ -358,7 +387,7 @@ export default function NetFault() {
           diagnosis: answer,
           finishedAt: Date.now(),
           revealed: reveal,
-          feedback: grade(p, answer, attempt.history),
+          feedback: grade(p, answer, attempt.history, false, attempt.repairs),
         });
       }
       setTab("diagnose");
@@ -384,6 +413,7 @@ export default function NetFault() {
             nextHopPractice: localStorage.getItem("netfault.practice.next-hop-01.v1"),
             timerPractice: localStorage.getItem("netfault.practice.timer-01.v1"),
             passivePractice: localStorage.getItem("netfault.practice.passive-01.v1"),
+            etherChannelPractice: localStorage.getItem("netfault.practice.etherchannel-01.v1"),
           }
         : { version: 1, exportedAt: new Date().toISOString(), attempts: journal };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -479,7 +509,7 @@ export default function NetFault() {
           <span className="connection">
             <span className={online ? "status-dot" : "status-dot offline"} />
             {online ? "Workspace online" : "Offline"}
-            <span className="desktop-only"> · Milestone 3C</span>
+            <span className="desktop-only"> · Milestone 3F</span>
           </span>
         </header>
         <main id="main" tabIndex={-1}>
@@ -886,6 +916,15 @@ export default function NetFault() {
                       <span className="tag">INSPECTOR</span>
                     </div>
                     <div className="command-area">
+                      {isEtherChannel && (
+                        <p className="muted">
+                          Inspecting{" "}
+                          {attempt.repairs?.length
+                            ? `configuration version ${attempt.repairs.length}`
+                            : "the initial configuration"}
+                          . Apply a trial in Diagnose, then return here to verify it.
+                        </p>
+                      )}
                       {commands.some((c) => ["ping", "tracert", "traceroute"].includes(c)) && (
                         <>
                           <label htmlFor="destination">
@@ -954,6 +993,15 @@ export default function NetFault() {
                             {current.source ? ` source ${current.source}` : ""}
                           </div>
                           <pre>{current.output}</pre>
+                          {isEtherChannel && (
+                            <small>
+                              Recorded from{" "}
+                              {current.repairIndex
+                                ? `configuration version ${current.repairIndex}`
+                                : "the initial configuration"}
+                              . Outputs are preserved observations, not live readings.
+                            </small>
+                          )}
                         </>
                       ) : (
                         <div className="terminal-empty">
@@ -1015,6 +1063,9 @@ export default function NetFault() {
                             />
                             <span>
                               <strong>{o.device}</strong>{" "}
+                              {isEtherChannel && (
+                                <span className="tag">{o.repairIndex ? `Version ${o.repairIndex}` : "Initial"}</span>
+                              )}
                               <code>
                                 {o.command} {o.target}
                                 {o.source ? ` source ${o.source}` : ""}
@@ -1076,10 +1127,19 @@ export default function NetFault() {
                           </div>
                         ))}
                       </div>
-                      <h3>What happened</h3>
-                      <p>{attempt.feedback.explanation}</p>
+                      {isEtherChannel ? (
+                        <details className="solution" open={attempt.revealed}>
+                          <summary>Explanation — reveal when ready</summary>
+                          <p>{attempt.feedback.explanation}</p>
+                        </details>
+                      ) : (
+                        <>
+                          <h3>What happened</h3>
+                          <p>{attempt.feedback.explanation}</p>
+                        </>
+                      )}
                       {attempt.feedback.lesson?.map((part) =>
-                        part.revealOnRequest ? (
+                        part.revealOnRequest || isEtherChannel ? (
                           <details key={`${attempt.id}-${part.title}`} className="solution">
                             <summary>{part.title} — reveal when ready</summary>
                             <p>{part.text}</p>
@@ -1154,7 +1214,23 @@ export default function NetFault() {
                         </p>
                       )}
                       {isNextHop && <p>Observed next hop: {answer.observedNextHop ?? "Not submitted"}</p>}
-                      <details className="solution" open>
+                      {isEtherChannel && (
+                        <details className="solution">
+                          <summary>Recorded configuration changes</summary>
+                          {attempt.repairs?.length ? (
+                            <ol>
+                              {attempt.repairs.map((change, index) => (
+                                <li key={index}>
+                                  Version {index + 1}: {change.device}, channel-group {change.group}, mode {change.mode}
+                                </li>
+                              ))}
+                            </ol>
+                          ) : (
+                            <p>No configuration changes recorded.</p>
+                          )}
+                        </details>
+                      )}
+                      <details className="solution" open={!isEtherChannel || attempt.revealed}>
                         <summary>Worked repair & verification</summary>
                         <pre>{attempt.feedback.solution}</pre>
                       </details>
@@ -1193,6 +1269,14 @@ export default function NetFault() {
                         </div>
                         <ShieldCheck size={25} />
                       </div>
+                      {isEtherChannel && (
+                        <EtherChannelRepair
+                          attempt={attempt}
+                          disabled={disabled}
+                          onApply={applyRepair}
+                          onInspect={() => setTab("inspect")}
+                        />
+                      )}
                       <label htmlFor="cause">01 / Root cause</label>
                       <select
                         id="cause"
@@ -1216,11 +1300,13 @@ export default function NetFault() {
                         <p className="muted">
                           {singleDeviceFault
                             ? "Choose the device containing the incorrect configuration."
-                            : "Choose the two routers whose intended adjacency fails."}
+                            : isEtherChannel
+                              ? "Choose the switches participating in the failed relationship."
+                              : "Choose the two routers whose intended adjacency fails."}
                         </p>
                         <div className="device-checks">
                           {lab.devices
-                            .filter((d) => singleDeviceFault || d.kind === "router")
+                            .filter((d) => singleDeviceFault || d.kind === (isEtherChannel ? "switch" : "router"))
                             .map((d) => (
                               <label key={d.id}>
                                 <input
@@ -1422,6 +1508,26 @@ export default function NetFault() {
                           </option>
                         ))}
                       </select>
+                      {isEtherChannel && (
+                        <>
+                          <label htmlFor="lacp-reason">Why does the correction work?</label>
+                          <select
+                            id="lacp-reason"
+                            required
+                            value={answer.reason ?? ""}
+                            onChange={(e) => editAnswer({ reason: e.target.value as Diagnosis["reason"] })}
+                          >
+                            <option value="" disabled>
+                              Select a mechanism
+                            </option>
+                            {etherChannelReasons.map(([id, label]) => (
+                              <option key={id} value={id}>
+                                {label}
+                              </option>
+                            ))}
+                          </select>
+                        </>
+                      )}
                       {isGateway && (
                         <>
                           <label htmlFor="gateway-answer">Correct default gateway</label>
@@ -1461,17 +1567,19 @@ export default function NetFault() {
                         <div>
                           <strong>04 / {answer.evidence.length} evidence items selected</strong>
                           <p>
-                            {isPassive || isTimer
-                              ? "Combine the observed configuration with physical interface state, neighbor relationships and routing impact. A missing neighbor or failed ping alone cannot identify the cause."
-                              : isRouting
-                                ? isNextHop
-                                  ? "Map the installed route to its adjacent router and compare onward forwarding and interface evidence. A failed ping alone cannot prove the cause."
-                                  : "Combine both routing tables with the source host's IP configuration. Failed ping alone cannot prove which route is missing."
-                                : isVlan
-                                  ? "Combine host configuration with membership observations for both connected switch ports. A failed ping alone does not identify the cause."
-                                  : isGateway
-                                    ? "Include at least one observation of PC-A's configured next hop. Compare it with the router interface and local/remote probes."
-                                    : "Include both interface configurations and observations of the neighbor and routing impact."}
+                            {isEtherChannel
+                              ? "Preserve initial host, physical, logical and negotiation evidence. After your change, select fresh logical status on both switches and host pings in both directions."
+                              : isPassive || isTimer
+                                ? "Combine the observed configuration with physical interface state, neighbor relationships and routing impact. A missing neighbor or failed ping alone cannot identify the cause."
+                                : isRouting
+                                  ? isNextHop
+                                    ? "Map the installed route to its adjacent router and compare onward forwarding and interface evidence. A failed ping alone cannot prove the cause."
+                                    : "Combine both routing tables with the source host's IP configuration. Failed ping alone cannot prove which route is missing."
+                                  : isVlan
+                                    ? "Combine host configuration with membership observations for both connected switch ports. A failed ping alone does not identify the cause."
+                                    : isGateway
+                                      ? "Include at least one observation of PC-A's configured next hop. Compare it with the router interface and local/remote probes."
+                                      : "Include both interface configurations and observations of the neighbor and routing impact."}
                           </p>
                           <button className="text-button" type="button" onClick={() => setTab("evidence")}>
                             Review evidence <ArrowRight size={15} />

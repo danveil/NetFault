@@ -1,5 +1,7 @@
 # WIA2008 evidence inventory — Milestone 3D follow-up
 
+**Milestone 3F source follow-up (23 September 2026):** all 23 native-text slides of `Etherchannel.ppt` were read again for the bounded LACP implementation. [The model/source record](etherchannel-model.md) links the Cisco references used for mode combinations, diagnostic flags and explicit standalone-disable policy, and qualifies the deck's STP, static `on` and platform-limit claims. No lecture images were copied, and no IOS/Packet Tracer execution is claimed. This does not change the historical provenance or confirm current-semester requirements.
+
 **Historical-materials-based roadmap — 2026/27 course requirements unconfirmed.**
 
 Audit date: 22 September 2026. The historical lecture collection now supports an actionable development order. The learner does not yet have the 2026/27 materials; their absence does not block this roadmap. It prevents certification of current-semester coverage, sequence, weights and rubrics. Implementation still requires separate authorization.

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { validateEtherChannelTopology } from "./etherchannel";
 
 export const ipv4 = z
   .string()
@@ -7,6 +8,9 @@ export const ipv4 = z
     "Valid dotted IPv4 required",
   );
 export const commandNames = [
+  "show etherchannel summary",
+  "show lacp internal",
+  "show interfaces port-channel 1",
   "arp -a",
   "show interfaces fastethernet0/1 switchport",
   "show interfaces fastethernet0/24 switchport",
@@ -51,6 +55,20 @@ export const staticRouteSchema = z.object({
   nextHop: ipv4,
 });
 export const deviceSchema = z.object({
+  portChannels: z
+    .array(
+      z.strictObject({
+        id: z.number().int().min(1).max(128),
+        members: z.array(z.string()).length(2),
+        mode: z.enum(["active", "passive"]),
+        vlan: z.number().int().min(1).max(4094),
+        speed: z.union([z.literal(100), z.literal(1000)]),
+        up: z.boolean(),
+        standaloneDisable: z.literal(true),
+      }),
+    )
+    .max(1)
+    .optional(),
   id: z.string(),
   kind: z.enum(["router", "pc", "switch"]),
   role: z.string(),
@@ -73,6 +91,7 @@ export const deviceSchema = z.object({
   commands: z.array(z.enum(commandNames)).min(1),
 });
 export const linkSchema = z.object({
+  up: z.boolean().optional(),
   id: z.string(),
   a: z.object({ device: z.string(), interface: z.string() }),
   b: z.object({ device: z.string(), interface: z.string() }),
@@ -91,6 +110,8 @@ export const diagnosisSchema = z.object({
   reason: z
     .enum([
       "unspecified",
+      "lacp-initiation",
+      "physical-equals-logical",
       "on-link-router",
       "dns-resolution",
       "switch-routing",
@@ -104,6 +125,7 @@ export const diagnosisSchema = z.object({
     ])
     .optional(),
   cause: z.enum([
+    "lacp-negotiation",
     "unspecified",
     "area-mismatch",
     "interface-down",
@@ -117,6 +139,7 @@ export const diagnosisSchema = z.object({
   ]),
   devices: z.array(z.string()).max(5),
   fix: z.enum([
+    "lacp-mode",
     "unspecified",
     "r3-area0",
     "r2-area1",
@@ -140,6 +163,7 @@ export const scenarioIdSchema = z.enum([
   "passive-01",
   "timer-01",
   "next-hop-01",
+  "etherchannel-01",
 ]);
 export type ScenarioId = z.infer<typeof scenarioIdSchema>;
 const lessonSchema = z.array(
@@ -147,7 +171,15 @@ const lessonSchema = z.array(
 );
 export const scenarioSchema = z
   .object({
-    schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5), z.literal(6)]),
+    schemaVersion: z.union([
+      z.literal(1),
+      z.literal(2),
+      z.literal(3),
+      z.literal(4),
+      z.literal(5),
+      z.literal(6),
+      z.literal(7),
+    ]),
     id: scenarioIdSchema,
     revision: z.literal(1),
     title: z.string(),
@@ -158,6 +190,12 @@ export const scenarioSchema = z
     fault: z.object({ cause: diagnosisSchema.shape.cause, devices: z.array(z.string()), interface: z.string() }),
     acceptedFixes: z.array(diagnosisSchema.shape.fix),
     repair: z.union([
+      z.object({
+        device: z.string(),
+        group: z.number().int().min(1).max(128),
+        mode: z.literal("active"),
+        reason: z.literal("lacp-initiation"),
+      }),
       z.object({
         device: z.string(),
         interface: z.string(),
@@ -192,6 +230,7 @@ export const scenarioSchema = z
   })
   .superRefine((s, ctx) => {
     const fail = (message: string) => ctx.addIssue({ code: "custom", message });
+    validateEtherChannelTopology(s, fail);
     const ids = s.devices.map((d) => d.id);
     if (new Set(ids).size !== ids.length) fail("Duplicate device IDs");
     const ips = s.devices.flatMap((d) => d.interfaces.map((i) => i.ip));
@@ -236,6 +275,9 @@ export const scenarioSchema = z
               "show vlan brief",
               "show interfaces status",
               "show running-config",
+              "show etherchannel summary",
+              "show lacp internal",
+              "show interfaces port-channel 1",
               ...commandNames.filter((c) => c.endsWith(" switchport")),
             ]
           : d.kind === "pc"
@@ -244,6 +286,9 @@ export const scenarioSchema = z
                 (c) =>
                   !c.endsWith(" switchport") &&
                   ![
+                    "show etherchannel summary",
+                    "show lacp internal",
+                    "show interfaces port-channel 1",
                     "arp -a",
                     "ipconfig",
                     "ipconfig /all",
@@ -270,7 +315,11 @@ export const scenarioSchema = z
         const host = ipNumber(i.ip) & ~mask(i.prefix);
         if (host === 0 || host === ~mask(i.prefix) >>> 0) fail("Network/broadcast address assigned");
       }
-      if (d.kind === "pc" && (!d.gateway || !d.interfaces.some((i) => sameSubnet(i.ip, d.gateway!, i.prefix))))
+      if (
+        d.kind === "pc" &&
+        !(s.schemaVersion === 7 && !d.gateway) &&
+        (!d.gateway || !d.interfaces.some((i) => sameSubnet(i.ip, d.gateway!, i.prefix)))
+      )
         fail("PC gateway must be on-link");
       if (d.kind === "pc" && d.interfaces.some((i) => i.ospf)) fail("PC cannot run OSPF");
       if (
@@ -304,6 +353,7 @@ export const scenarioSchema = z
     for (const d of s.devices)
       if (
         d.kind === "pc" &&
+        !(s.schemaVersion === 7 && !d.gateway) &&
         !s.devices.some((r) => r.kind === "router" && r.interfaces.some((i) => i.ip === d.gateway)) &&
         !(
           s.schemaVersion === 2 &&
@@ -324,13 +374,20 @@ export const scenarioSchema = z
       if (
         extra ||
         !s.fault.devices.includes(id) ||
-        !(d?.interfaces.some((i) => i.name === name) || d?.ports?.some((p) => p.name === name))
+        !(
+          d?.interfaces.some((i) => i.name === name) ||
+          d?.ports?.some((p) => p.name === name) ||
+          d?.portChannels?.some((p) => `Port-channel${p.id}` === name)
+        )
       )
         fail("Fault references absent interface");
     }
     const repair = s.repair;
     const repairedDevice = s.devices.find((d) => d.id === repair.device);
-    if ("hello" in repair) {
+    if ("group" in repair) {
+      if (s.schemaVersion !== 7 || !repairedDevice?.portChannels?.some((p) => p.id === repair.group))
+        fail("LACP repair requires a supported port channel");
+    } else if ("hello" in repair) {
       const target = repairedDevice?.interfaces.find((i) => i.name === repair.interface);
       if (s.schemaVersion < 6 || repairedDevice?.kind !== "router" || target?.ospf?.networkType !== "point-to-point")
         fail("Timer repair requires schema v6 and an existing point-to-point OSPF router interface");
@@ -415,6 +472,7 @@ export function sameSubnet(a: string, b: string, p: number) {
 }
 
 export const observationSchema = z.object({
+  repairIndex: z.number().int().positive().optional(),
   source: z.string().max(64).optional(),
   scenario: scenarioIdSchema.optional(),
   id: z.string(),
@@ -434,7 +492,17 @@ export const feedbackSchema = z.object({
   timedOut: z.boolean(),
 });
 export type Feedback = z.infer<typeof feedbackSchema>;
+export const repairActionSchema = z.strictObject({
+  device: z.string().min(1).max(64),
+  group: z.number().int().min(1).max(128),
+  mode: z.enum(["active", "passive"]),
+});
+export type RepairAction = z.infer<typeof repairActionSchema>;
 export const attemptSchema = z.object({
+  repairs: z
+    .array(repairActionSchema.extend({ at: z.number() }))
+    .max(10)
+    .optional(),
   version: z.literal(1),
   id: z.string(),
   scenario: scenarioIdSchema,

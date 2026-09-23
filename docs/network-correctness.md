@@ -1,5 +1,7 @@
 # Network correctness: OSPF lab 001
 
+Milestone 3F adds a separate [bounded EtherChannel model](etherchannel-model.md). Physical members, negotiation, logical forwarding and end-to-end reachability derive from common state, with explicit standalone-disable and no alternate path. It does not change this OSPF scenario or the other six existing authored networks. Vendor/source review and automated model validation are documented separately from unperformed physical-device tests in [3F](milestone-3f.md).
+
 Milestone 3A adds [LAB 006 timer compatibility](timer-lab.md) and [LAB 007 incorrect installed static next hop](next-hop-lab.md), reusing the existing adjacency/routing/loop algorithms. The original five authored networks remain unchanged. Neighbor Dead Time now derives from configured Dead as a bounded representative snapshot. Historical milestone notes below retain their original scope.
 
 Milestone 2D adds [passive OSPF interface correctness](passive-interface-lab.md). LAB 005 uses all area 0 and only R2 Gi0/1's passive flag is faulty; this is separate from LAB 001's area mismatch. The same adjacency/routing algorithms drive both. OSPF interface output now explicitly shows Hello behavior and omits a vendor-specific FSM state on passive interfaces. Five labs are supported; the original state below is unchanged.

@@ -1,5 +1,14 @@
 # iPhone, HTTPS and manual QA
 
+## Milestone 3F physical-device acceptance — not performed
+
+- [ ] On the updated HTTPS production app, open LAB 008 through normal mode selection. Read the physical-link diagram and text alternative in portrait/landscape; select each device by both diagram and device buttons.
+- [ ] At increased text size, read commands and horizontally scroll long output without page overflow. Distinguish physical carrier from logical state and record initial evidence.
+- [ ] In Diagnose, enter the observed local group and apply a justified mode trial. Confirm selecting alone changes nothing. Return to Inspect, verify the current version, select new evidence and submit. Detailed worked answers should require an explicit tap.
+- [ ] Reload during Practice and Assessment and verify configuration/history retention. Reopen a finished journal entry and its configuration changes. Assessment requires internet and the deadline continues while closed.
+- [ ] After the production shell and Practice pack finish downloading, enable airplane mode, reload, investigate/apply/verify/grade, then reopen the saved result. Restore connectivity and verify normal mode selection. Do not expect Assessment offline.
+- [ ] Check VoiceOver labels/focus, numeric keyboard, select menus, zoom controls and 44px touch targets on the actual phone. Desktop Chromium at 414px/360px is not Safari or physical-touch validation.
+
 Target: iPhone 11, 414 × 896 CSS pixels, portrait. Automated Chromium viewport emulation does not demonstrate native Safari or physical touch behavior. Physical device testing has not been performed.
 
 ## Milestone 3E physical-iPhone acceptance (not performed)

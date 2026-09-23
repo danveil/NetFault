@@ -8,7 +8,7 @@ export function repairPreview(original: Scenario) {
   const hosts = original.devices.filter((d) => d.kind === "pc");
   for (const d of original.devices) {
     for (const c of d.commands.filter((c) => !["ping", "traceroute", "tracert"].includes(c))) commands.push([d.id, c]);
-    if (d.kind === "pc") {
+    if (d.kind === "pc" && d.gateway) {
       commands.push([d.id, "ping", d.gateway]);
       if (d.commands.includes("arp -a")) commands.push([d.id, "arp -a"]);
     }

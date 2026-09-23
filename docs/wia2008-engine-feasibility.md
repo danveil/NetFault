@@ -1,5 +1,9 @@
 # Engine capability and course feasibility audit
 
+## Milestone 3F capability delta
+
+The original 3D snapshot below is retained as historical evidence. **3F separately passed its feasibility gate and adds one bounded LACP model**, documented in [etherchannel-model.md](etherchannel-model.md), with [fresh verification](milestone-3f.md). Exactly two switches, two same-subnet hosts, two physical members, one access VLAN and explicit standalone-disable support deterministic negotiation, logical state and one forwarding edge. Group-mode trials persist per attempt with fresh verification evidence. Thus the old table's blanket EtherChannel/persistent-edit/chain-only exclusions no longer apply to this narrow subset. Old seven scenarios and Academy remain unchanged. STP, trunks, general IOS editing and arbitrary graphs remain unsupported. Access speed/duplex is a declared eligibility constraint for this subset, not an Ethernet autonegotiation simulator.
+
 **Historical-materials-based roadmap — 2026/27 course requirements unconfirmed.**
 
 Milestone 3D follow-up is documentation only. [Sources](wia2008-sources.md) now include 11 historical lecture decks and distinguish them from current requirements. No application behavior or tests changed. Slide rendering was used for source inspection; the simulator was not externally validated or newly tested here.

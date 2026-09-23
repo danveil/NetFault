@@ -1,5 +1,9 @@
 # Scenario authoring contract
 
+## Milestone 3F update
+
+Eight labs are registered; `etherchannel-01` is revision 1/schema v7. Only its bounded two-switch/two-host access-VLAN topology permits gateway-free PCs, parallel physical members and strict port-channel fields. Read [the model contract](etherchannel-model.md) before authoring changes. Validate explicit standalone-disable, no alternate path and locally resolvable members/groups. Unsupported remote VLAN differences are rejected; LACP does not negotiate VLAN identity. Tests must independently derive all mode combinations, partial membership, failed-member isolation, diagnostics and reciprocal forwarding. Public metadata remains neutral; private evidence/fault/teaching stays server-only. Initial evidence plus latest-version verification must support the learner's actual applied repair, not a canonical preview or selected answer alone. Preserve all seven old modules and revisions.
+
 ## Milestone 3A update
 
 The 2E audit below/linked is historical. D1–D3 are now corrected; see [execution evidence](milestone-3a.md). Seven labs are supported with the original five configurations/revisions unchanged. Schema v6 adds a timer-profile repair and forward-route diagnosis semantics. The existing adjacency, route derivation, longest-prefix lookup and loop guard are reused; no second engine or server storage change was introduced.

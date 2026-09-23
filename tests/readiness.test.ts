@@ -53,7 +53,19 @@ it.each(labs.map((l) => [l.id] as const))("public catalog/preview boundary and o
   const s = getScenario(id);
   const publicLab = labs.find((l) => l.id === id)!;
   expect(Object.keys(publicLab).sort()).toEqual(
-    ["id", "number", "topic", "target", "title", "subtitle", "incident", "design", "devices", "subnets"].sort(),
+    [
+      "id",
+      "number",
+      "topic",
+      "target",
+      "title",
+      "subtitle",
+      "incident",
+      "design",
+      "devices",
+      "subnets",
+      ...(id === "etherchannel-01" ? ["physicalLinks"] : []),
+    ].sort(),
   );
   for (const d of publicLab.devices) expect(Object.keys(d).sort()).toEqual(["id", "kind", "role"]);
   const oldPack = scenarioSchema.parse(JSON.parse(JSON.stringify(s)));

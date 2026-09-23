@@ -1,5 +1,7 @@
 # NetFault
 
+**Milestone 3F:** LAB 008, **Across the connection**, adds one playable EtherChannel investigation. Compare physical members with their logical connection, gather evidence, apply a bounded configuration trial, verify recovery and submit a reasoned diagnosis. Open **Troubleshooting labs → LAB 008 → Practice or Assessment → Start investigation**. Both modes save configuration history; cached Practice also works offline. The seven earlier labs and Academy remain intact. Read the [model boundaries](docs/etherchannel-model.md) and [verification record](docs/milestone-3f.md).
+
 **Milestone 3E:** one [OSPFv2 configuration-to-verification Academy lesson](docs/milestone-3e.md) now connects original interface tables to area-0 activation, passive LANs and complementary verification evidence. It adds two tap exercises, two local diagrams and an optional **UNEXECUTED** device practice brief. Open **Learn networking / Field guide → OSPFv2 — Configuration and verification → Explore module → Open lesson 1**. No new lab or networking engine was added.
 
 The [WIA2008 audit and roadmap](docs/wia2008-sources.md) includes 11 inspected historical ANT lecture decks and the official 2024/25 handbook entry. **Historical-materials-based roadmap — 2026/27 course requirements unconfirmed.** Original practical sheets and current assessment details remain unverified. OSPF coverage is partial; tap completion does not prove independent real-device configuration.
@@ -10,7 +12,7 @@ A mobile-first, evidence-based network troubleshooting workspace for a Universit
 
 Open **Learn networking → Explore module → Open lesson 1**. Complete guided and independent exercises, review feedback, mark reading separately, refresh and use Continue lesson. The gateway lesson links to LAB 002's normal mode selection without starting an attempt or revealing its fault. Public Academy answers are inspectable learning content, not a secure exam.
 
-Read the [Academy architecture and authoring guide](docs/learning-academy.md), [3C verification record](docs/milestone-3c.md), and historical [Academy audit](docs/learning-academy-audit.md). Academy progress uses its own storage key; old troubleshooting journals/packs are unchanged. Offline reading and exercise grading require a completed production shell cache; look for **Available offline · Academy**. External references and timed assessments require internet. No LAB 008, randomization, cloud progress sync, new networking engine or later curriculum modules were added.
+Read the [Academy architecture and authoring guide](docs/learning-academy.md), [3C verification record](docs/milestone-3c.md), and historical [Academy audit](docs/learning-academy-audit.md). Academy progress uses its own storage key; old troubleshooting journals/packs are unchanged. Offline reading and exercise grading require a completed production shell cache; look for **Available offline · Academy**. External references and timed assessments require internet. The 3C/3E Academy work added no labs; 3F separately adds only LAB 008. Randomization, cloud progress sync and further curriculum modules remain outside scope.
 
 For a public HTTPS app that works with your laptop turned off, follow [Netlify deployment instructions](docs/NETLIFY_DEPLOYMENT.md). This milestone changes no deployment configuration, environment variables, dependency versions or Netlify assessment storage. No deployment was performed.
 
@@ -50,7 +52,7 @@ For full PWA use, put the production server behind an HTTPS reverse proxy with a
 
 ## Play the lab
 
-1. Select any lab 001–007, choose Practice or Assessment, then Start investigation.
+1. Select any lab 001–008, choose Practice or Assessment, then Start investigation.
 2. Read the incident and expand the design brief. Tap topology nodes or use the accessible device buttons.
 3. Run the listed commands. Enter a numeric destination for ping/trace. Select useful output as evidence; revisit all outputs in the notebook.
 4. Submit cause, affected device(s), evidence and repair. Lab 001 asks for both adjacency endpoints; lab 002 asks for the faulted device, a gateway IPv4 address and a structured explanation of forwarding. Lab 003 asks for the device, interface, observed/intended VLANs and access-port correction. Lab 004 asks for the missing prefix, next hop and reply-routing explanation; lab 005 asks for the router, interface, correction and Hello/adjacency explanation. Notes are stored, **not interpreted or graded**.
@@ -59,6 +61,8 @@ For full PWA use, put the production server behind an HTTPS reverse proxy with a
 Practice is untimed with progressive hints (four in LAB 004/005; three in earlier labs) and a recorded solution reveal. It downloads the lab pack, which enables offline play after the production shell is cached. Assessment lasts 20 minutes, requires the server, and locks hints/guide/journal until it ends. Submit before the deadline: an expired attempt without an on-time final submission receives zero and final feedback. Draft choices are saved locally but do not count as a submitted assessment. Closing the app does not pause time.
 
 ## Commands implemented
+
+LAB 008 adds switch `show etherchannel summary`, `show lacp internal` and `show interfaces port-channel 1`, alongside status, VLAN and running-config inspections. PCs provide IP configuration, route print, ping and tracert. These are labeled educational steady-state outputs. In Diagnose, select a switch, enter its observed local group and choose a trial mode; then return to Inspect and select fresh verification outputs. Full recovery credit depends on the resulting network and observations. Detailed teaching and worked solutions open only on request. [Boundaries and sources](docs/etherchannel-model.md).
 
 Lab 005 supports all six router show commands listed below, router ping (including an optional local source) and traceroute; PC-A has ipconfig, /all, ping and tracert, while PC-B has ipconfig and ping. Observe physical state, Hello behavior, neighbor relationships and routes before submitting. The seven-part lesson and repair preview demonstrate why an advertised connected subnet does not prove adjacency. See [LAB 005's model, commands and rubric](docs/passive-interface-lab.md) for the authoring guide (spoilers).
 

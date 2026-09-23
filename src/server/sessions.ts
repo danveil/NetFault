@@ -1,6 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { type Attempt, type Diagnosis, type ScenarioId } from "@/lib/schema";
+import { type Attempt, type Diagnosis, type ScenarioId, type RepairAction } from "@/lib/schema";
+import { recordRepair, trialNetwork } from "@/lib/repair-trial";
 import { execute } from "@/lib/engine";
 import { grade } from "@/lib/grading";
 import { getScenario } from "./scenarios";
@@ -25,8 +26,8 @@ export async function startAssessment(store: SessionStore = sessionStore(), scen
 }
 export async function assessmentAction(
   id: string,
-  action: "resume" | "command" | "submit",
-  input?: { device: string; command: string; target: string; source?: string } | Diagnosis,
+  action: "resume" | "command" | "submit" | "repair",
+  input?: { device: string; command: string; target: string; source?: string } | Diagnosis | RepairAction,
   store: SessionStore = sessionStore(),
 ) {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id))
@@ -39,10 +40,17 @@ export async function assessmentAction(
       const answer: Diagnosis = { cause: "unspecified", devices: [], fix: "unspecified", evidence: [], notes: "" };
       a.diagnosis = answer;
       a.finishedAt = a.expiresAt;
-      a.feedback = grade(scenario, answer, a.history, true);
+      a.feedback = grade(scenario, answer, a.history, true, a.repairs);
       return true;
     }
     if (a.finishedAt) return false;
+    if (action === "repair") {
+      try {
+        Object.assign(a, recordRepair(scenario, a, input as RepairAction, now));
+      } catch (error) {
+        throw new LabError(error instanceof Error ? error.message : "Invalid configuration change");
+      }
+    }
     if (action === "command") {
       if (a.history.length >= 100)
         throw new LabError("This attempt has reached its 100-command limit. Review your evidence and submit.");
@@ -52,14 +60,15 @@ export async function assessmentAction(
         id: observationId,
         scenario: a.scenario,
         ...c,
-        output: execute(scenario, c.device, c.command, c.target, a.history, c.source),
+        ...(a.repairs?.length ? { repairIndex: a.repairs.length } : {}),
+        output: execute(trialNetwork(scenario, a.repairs), c.device, c.command, c.target, a.history, c.source),
         at: now,
       });
     }
     if (action === "submit") {
       a.diagnosis = input as Diagnosis;
       a.finishedAt = now;
-      a.feedback = grade(scenario, a.diagnosis, a.history);
+      a.feedback = grade(scenario, a.diagnosis, a.history, false, a.repairs);
     }
     return action !== "resume";
   });

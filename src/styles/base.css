@@ -1164,6 +1164,50 @@ footer > span:last-child {
   padding: 24px 0;
   margin-bottom: 25px;
 }
+.physical-link-label {
+  background: #101923;
+  color: #b0bdcc;
+  font-size: 10px;
+  padding: 3px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.topology.topology-bundle .react-flow__controls {
+  top: 12px !important;
+  bottom: auto !important;
+  flex-direction: row;
+}
+@media (min-width: 681px) {
+  .topology.topology-bundle .react-flow__controls {
+    top: auto !important;
+    bottom: 12px !important;
+    left: 12px !important;
+    right: auto !important;
+  }
+}
+.topology-text {
+  padding: 12px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.repair-trial {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.repair-trial select,
+.repair-trial input {
+  width: 100%;
+  min-height: 44px;
+}
+.repair-trial button {
+  margin: 12px 0;
+}
+.repair-trial p,
+.repair-trial li {
+  overflow-wrap: anywhere;
+}
 .diagnosis select {
   margin-bottom: 25px;
 }

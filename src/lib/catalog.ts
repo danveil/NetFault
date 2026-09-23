@@ -215,7 +215,61 @@ export const nextHopReasons = [
   ["dns-resolution", "The static next hop translates a name to an address."],
   ["same-address", "The route puts both PCs in the same local subnet."],
 ] as const;
-export const labs = [lab, gatewayLab, vlanLab, returnLab, passiveLab, timerLab, nextHopLab] as const;
+export const etherChannelLab = {
+  id: "etherchannel-01",
+  number: "008",
+  topic: "Ethernet aggregation investigation",
+  title: "Across the connection",
+  subtitle: "Two work areas, one intended logical connection.",
+  target: "172.22.40.20",
+  incident:
+    "PC-A cannot reach PC-B in the other work area. Investigate host addressing, physical connections and the intended logical inter-switch link. Apply a justified configuration change, gather fresh verification and submit your diagnosis.",
+  design:
+    "PC-A and PC-B share 172.22.40.0/24 in access VLAN 40; no router or default gateway is needed. SW1 and SW2 each have local Port-channel1, with Gi1/0/1 and Gi1/0/2 as the intended LACP members. Gi1/0/3 connects each host. All switch ports are access ports; the intended member speed is 1000 Mb/s, full duplex. Standalone forwarding is explicitly disabled on the port channel. No other inter-switch path exists. This bounded model does not simulate STP, LACP timing or throughput.",
+  devices: [
+    { id: "PC-A", kind: "pc", role: "West workstation" },
+    { id: "SW1", kind: "switch", role: "West access" },
+    { id: "SW2", kind: "switch", role: "East access" },
+    { id: "PC-B", kind: "pc", role: "East workstation" },
+  ],
+  subnets: ["172.22.40.0/24", "172.22.40.0/24", "172.22.40.0/24", "172.22.40.0/24"],
+  physicalLinks: [
+    { source: "PC-A", target: "SW1", label: "Host access · VLAN 40", offset: 0 },
+    { source: "SW1", target: "SW2", label: "Gi1/0/1", offset: -30 },
+    { source: "SW1", target: "SW2", label: "Gi1/0/2", offset: 30 },
+    { source: "SW2", target: "PC-B", label: "Host access · VLAN 40", offset: 0 },
+  ],
+} as const;
+export const etherChannelCommands = [
+  "show interfaces status",
+  "show vlan brief",
+  "show etherchannel summary",
+  "show lacp internal",
+  "show interfaces port-channel 1",
+  "show running-config",
+] as const;
+export const etherChannelCauses = [
+  ["interface-down", "Physical or administrative interface failure"],
+  ["access-vlan", "Access VLAN configuration mismatch"],
+  ["wrong-gateway", "Host IP configuration problem"],
+  ["lacp-negotiation", "LACP negotiation configuration prevents aggregation"],
+] as const;
+export const etherChannelFixes = [
+  ["no-shutdown", "Enable an interface"],
+  ["lacp-mode", "Change the selected channel group's LACP mode"],
+  ["gateway", "Change a host gateway"],
+  ["access-vlan", "Change access VLAN membership"],
+] as const;
+export const etherChannelReasons = [
+  ["physical-equals-logical", "Physical carrier alone guarantees that an aggregate is forwarding."],
+  [
+    "lacp-initiation",
+    "A participant initiates negotiation with a compatible responder; the formed logical link can forward frames.",
+  ],
+  ["same-address", "Aggregation assigns identical IP addresses to both hosts."],
+  ["reverse-automatically", "A successful request creates new IP routes automatically."],
+] as const;
+export const labs = [lab, gatewayLab, vlanLab, returnLab, passiveLab, timerLab, nextHopLab, etherChannelLab] as const;
 export type PublicLab = (typeof labs)[number];
 export function catalog(id: ScenarioId): PublicLab {
   return labs.find((l) => l.id === id)!;
@@ -223,6 +277,10 @@ export function catalog(id: ScenarioId): PublicLab {
 export function commandsFor(id: ScenarioId, deviceId: string): string[] {
   const d = catalog(id).devices.find((d) => d.id === deviceId);
   if (!d) return [];
+  if (id === "etherchannel-01")
+    return d.kind === "switch"
+      ? [...etherChannelCommands]
+      : ["ipconfig", "ipconfig /all", "route print", "ping", "tracert"];
   if (id === "ospf-01") return d.kind === "router" ? routerCommands : pcCommands;
   if (id === "passive-01" || id === "timer-01")
     return d.kind === "router" ? routerCommands : d.id === "PC-A" ? pcCommands : ["ipconfig", "ping"];

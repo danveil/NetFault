@@ -1,5 +1,9 @@
 # Architecture and boundaries
 
+## Milestone 3F update
+
+One schema-v7 EtherChannel graph uses `etherchannel.ts` to replace physical members with one derived forwarding edge. Old scenario modules and traversal behavior are preserved. `repair-trial.ts` replays bounded per-attempt group-mode changes; commands and grading see that same state. Assessment changes run inside the existing durable session reducer/CAS store, with no storage redesign. Optional repair events and observation versions retain journal compatibility. Public topology supports parallel physical edges and an equivalent text description. See [bounded model, diagnostics and privacy](etherchannel-model.md) and [verification](milestone-3f.md). Academy and deployment architecture are unchanged.
+
 ## Milestone 3C update
 
 The existing Academy now publishes revision-2 touch exercises and five local HTML/CSS diagrams. Revision-1 content is preserved in `content-v1.ts`; saved records resolve their original prompts/labels without migration or regrading. Native radio-card steps replace typing on the standard path, and new solutions require explicit request. Identical repeated submissions are idempotent. See [3C decisions and verification](milestone-3c.md). No scenario, engine, lab API, Netlify storage, route, dependency or worker changes are introduced.

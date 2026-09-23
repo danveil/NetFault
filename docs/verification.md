@@ -1,6 +1,17 @@
 # NetFault verification
 
-Current OSPF Academy bridge evidence is recorded in [Milestone 3E](milestone-3e.md). Historical records below are retained rather than relabeled as current test results.
+Current EtherChannel evidence is recorded in [Milestone 3F](milestone-3f.md). Historical records below are retained rather than relabeled as current test results.
+
+## Milestone 3F — 23 September 2026
+
+- `pnpm lint`, `pnpm typecheck`: passed.
+- `pnpm test`: **387 passed across 17 files**, zero failed/skipped.
+- `pnpm build`: passed; final build `Q-j1MOMn7xgIhyAsTL2Zp`, generated offline worker and dynamic assessment API retained.
+- `$env:CI='true'; $env:PW_PRODUCTION='1'; pnpm test:browser`: final full run **115 passed, 1 failed, 0 skipped** of 116 in 5.1 minutes. All 12 new-lab cases passed at desktop, 414px and 360px. The one failure was an existing mobile offline test's teardown: `browserContext.close: UNKNOWN: unknown error, write`, not a reported app assertion failure.
+- Same build, `pnpm test:browser passive --project=mobile-chromium --grep 'five cached labs'` with the same production/CI variables: **1 passed, 0 failed/skipped**, 14.5 seconds. All cases have passing results across those two runs; no claim of a single uninterrupted 116-pass run.
+- `git diff --check`: passed.
+
+Earlier test-assumption and selector failures, the corrected diagram overlap, sandbox startup failure, exact changed-file inventory and source qualifications are in [3F](milestone-3f.md). Final checks cover applied configuration, fresh verification, server ownership/concurrency, immutable finalization, all-eight-pack offline retention, all seven old case regressions, Academy, static-asset answer privacy and service-worker updates. No dependencies, cloud storage/deployment configuration or old scenario revisions changed. No physical iPhone/Safari/VoiceOver, live Netlify deployment or real IOS/Packet Tracer execution was performed. The [manual checklist](iphone-testing.md) remains outstanding.
 
 ## Milestone 3E — 22 September 2026
 

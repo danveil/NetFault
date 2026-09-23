@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { diagnosisSchema, scenarioIdSchema } from "@/lib/schema";
+import { diagnosisSchema, scenarioIdSchema, repairActionSchema } from "@/lib/schema";
 import { getScenario } from "@/server/scenarios";
 import { assessmentAction, startAssessment } from "@/server/sessions";
 import { LabError } from "@/server/session-store";
@@ -8,10 +8,11 @@ const requestSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("practice-pack"), scenario: scenarioIdSchema.default("ospf-01") }),
   z.object({ action: z.literal("start"), scenario: scenarioIdSchema.default("ospf-01") }),
   z.object({ action: z.literal("resume"), id: z.string().uuid() }),
+  z.object({ action: z.literal("repair"), id: z.string().uuid(), change: repairActionSchema }),
   z.object({
     action: z.literal("command"),
     id: z.string().uuid(),
-    device: z.enum(["PC-A", "R1", "R2", "R3", "SW1", "PC-B"]),
+    device: z.enum(["PC-A", "R1", "R2", "R3", "SW1", "SW2", "PC-B"]),
     command: z.string().max(100),
     target: z.string().max(64),
     source: z.string().max(64).optional(),
@@ -66,6 +67,7 @@ export async function POST(request: Request) {
     const p = parsed.data;
     if (p.action === "practice-pack") return json({ pack: getScenario(p.scenario) });
     if (p.action === "start") return json({ attempt: await startAssessment(undefined, p.scenario) });
+    if (p.action === "repair") return json({ attempt: await assessmentAction(p.id, "repair", p.change) });
     if (p.action === "command")
       return json({
         attempt: await assessmentAction(p.id, "command", {
