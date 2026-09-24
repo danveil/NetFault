@@ -1,5 +1,9 @@
 # Architecture and boundaries
 
+## Milestone 3G update
+
+Schema v8 adds one [bounded outbound standard ACL model](acl-model.md). `acl.ts` evaluates source rules at the routed egress; existing source-aware traversal handles requests and replies. The same `repair-trial.ts` reducer accepts a strict sequence-change variant, while `acl-grading.ts` checks unchanged policy content, actual positive/negative controls and fresh server-recorded observations. Recovery status is distinct from score. LAB 001–008 state, Academy, service-worker implementation, dependencies and durable assessment storage remain unchanged. Offline Practice remains deliberately inspectable; Assessment stays server-owned and online. See [implementation record](milestone-3g.md).
+
 ## Milestone 3F update
 
 One schema-v7 EtherChannel graph uses `etherchannel.ts` to replace physical members with one derived forwarding edge. Old scenario modules and traversal behavior are preserved. `repair-trial.ts` replays bounded per-attempt group-mode changes; commands and grading see that same state. Assessment changes run inside the existing durable session reducer/CAS store, with no storage redesign. Optional repair events and observation versions retain journal compatibility. Public topology supports parallel physical edges and an equivalent text description. See [bounded model, diagnostics and privacy](etherchannel-model.md) and [verification](milestone-3f.md). Academy and deployment architecture are unchanged.

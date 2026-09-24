@@ -1,5 +1,9 @@
 # Scenario authoring contract
 
+## Milestone 3G update
+
+Nine labs are registered. `acl-01` revision 1/schema v8 is the only newly authorized case. Read [ACL model](acl-model.md): strict ordered standard source entries, /24 or any, one outbound binding per router and no trace/ARP claims. Author private positive and negative `policyChecks`, including explicit source controls; behavior tests must independently prove all addressing/routes healthy and only ACL order defective. A policy denial must be distinguished from a missing route. Keep canonical rule identity stable across sequence edits. Grade the actual learner trial, unchanged predicates/binding, initial evidence and latest-version verification; do not require a single memorized sequence result. Do not alter earlier pack/schema/journal contracts.
+
 ## Milestone 3F update
 
 Eight labs are registered; `etherchannel-01` is revision 1/schema v7. Only its bounded two-switch/two-host access-VLAN topology permits gateway-free PCs, parallel physical members and strict port-channel fields. Read [the model contract](etherchannel-model.md) before authoring changes. Validate explicit standalone-disable, no alternate path and locally resolvable members/groups. Unsupported remote VLAN differences are rejected; LACP does not negotiate VLAN identity. Tests must independently derive all mode combinations, partial membership, failed-member isolation, diagnostics and reciprocal forwarding. Public metadata remains neutral; private evidence/fault/teaching stays server-only. Initial evidence plus latest-version verification must support the learner's actual applied repair, not a canonical preview or selected answer alone. Preserve all seven old modules and revisions.

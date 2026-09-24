@@ -1,8 +1,12 @@
 # NetFault × supplied 2026/27 semester material
 
-Audit date: 23 September 2026. **Documentation only; no LAB 009 exists.** Baseline: commit `dda7c0b` (`lab 008`), clean working tree at intake. Milestone 3F acceptance, including physical iPhone testing, is **user-reported physical iPhone verification**, not a new test performed in this audit.
+Audit date: 23 September 2026. **Historical documentation-only baseline; LAB 009 did not exist at that audit.** Baseline: commit `dda7c0b` (`lab 008`), clean working tree at intake. Milestone 3F acceptance, including physical iPhone testing, is **user-reported physical iPhone verification**, not a new test performed in this audit.
 
-Recommendation: design one standard IPv4 ACL ordering investigation next. [The Milestone 3G plan](milestone-3g-plan.md) specifies its implementation gate, recovery model and future acceptance criteria. This recommendation does not authorize implementation.
+Original recommendation: one standard IPv4 ACL ordering investigation. This was separately authorized and implemented on 24 September 2026: [Milestone 3G record](milestone-3g.md), [bounded model](acl-model.md), [verification](verification.md).
+
+## Post-3G coverage delta — 24 September 2026
+
+The inventory, matrix and candidate comparison below retain the eight-lab audit baseline. LAB 009 now adds executable **partial** coverage of R6/P6 source-only standard ACL order, /24 wildcard/any matching, outbound attachment and sequence repair. R10/P10 troubleshooting gains a second applied-change loop, explicitly requiring positive and negative policy proof with fresh observations. No new Academy module or authentic device configuration practical is completed. ACL coverage is not comprehensive: inbound/extended/IPv6 ACLs, arbitrary wildcard/host cases, counters/logging and real deployment remain absent. Security, the entire ACL chapter and the semester syllabus must not be labeled complete. All other matrix gaps remain; no later candidate is authorized by this update.
 
 ## 1. Material inventory and provenance
 

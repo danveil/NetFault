@@ -43,6 +43,56 @@ function remote() {
 }
 
 describe("serverless assessment storage", () => {
+  it("preserves ACL trials and coherent observations across separate invocation stores", async () => {
+    const r = remote();
+    const a = await startAssessment(r.client(), "acl-01");
+    await Promise.all([
+      assessmentAction(
+        a.id,
+        "repair",
+        { kind: "acl-sequence", device: "R2", acl: "WORKAREA", sequence: 20, newSequence: 5 },
+        r.client(),
+      ),
+      assessmentAction(a.id, "command", { device: "R2", command: "show access-lists", target: "" }, r.client()),
+    ]);
+    const resumed = await assessmentAction(a.id, "resume", undefined, r.client());
+    expect(resumed.repairs).toHaveLength(1);
+    expect(resumed.history).toHaveLength(1);
+    expect(resumed.history[0].output).toContain(resumed.history[0].repairIndex ? "5 permit" : "20 permit");
+    const after = await assessmentAction(
+      a.id,
+      "command",
+      { device: "PC-A", command: "ping", target: "172.24.20.10" },
+      r.client(),
+    );
+    expect(after.history.at(-1)).toMatchObject({ repairIndex: 1 });
+    expect(after.history.at(-1)?.output).toContain("100 percent (5/5)");
+    const final = await assessmentAction(
+      a.id,
+      "submit",
+      {
+        cause: "acl-order",
+        devices: ["R2"],
+        fix: "acl-sequence",
+        evidence: [],
+        notes: "",
+        aclName: "WORKAREA",
+        interface: "Gi0/1",
+        observedSequence: 10,
+        reason: "first-match-policy",
+      },
+      r.client(),
+    );
+    expect(final.feedback).toMatchObject({ recovery: "recovered-unverified" });
+    expect(
+      await assessmentAction(
+        a.id,
+        "repair",
+        { kind: "acl-sequence", device: "R2", acl: "WORKAREA", sequence: 5, newSequence: 20 },
+        r.client(),
+      ),
+    ).toEqual(final);
+  });
   it("plays and grades through the actual SDK with an ETag-aware transport contract", async () => {
     const records = new Map<string, { body: string; etag: string }>();
     let revision = 0;

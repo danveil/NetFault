@@ -118,7 +118,7 @@ test("all cached packs survive offline and next-hop lab completes offline", asyn
         .getByRole("button", { name: "Open attempt" })
         .click();
       await expect(await run(page, "PC-A", "ipconfig")).toContainText(
-        lab.id === "etherchannel-01" ? "172.22.40.10" : "192.168.10.10",
+        lab.id === "acl-01" ? "172.24.10.10" : lab.id === "etherchannel-01" ? "172.22.40.10" : "192.168.10.10",
       );
       if (lab.id === "next-hop-01") {
         await collect(page);

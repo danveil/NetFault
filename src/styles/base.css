@@ -1172,13 +1172,15 @@ footer > span:last-child {
   border-radius: 4px;
   white-space: nowrap;
 }
-.topology.topology-bundle .react-flow__controls {
+.topology.topology-bundle .react-flow__controls,
+.topology.topology-policy .react-flow__controls {
   top: 12px !important;
   bottom: auto !important;
   flex-direction: row;
 }
 @media (min-width: 681px) {
-  .topology.topology-bundle .react-flow__controls {
+  .topology.topology-bundle .react-flow__controls,
+  .topology.topology-policy .react-flow__controls {
     top: auto !important;
     bottom: 12px !important;
     left: 12px !important;

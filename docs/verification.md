@@ -1,6 +1,27 @@
 # NetFault verification
 
-Current EtherChannel evidence is recorded in [Milestone 3F](milestone-3f.md). Historical records below are retained rather than relabeled as current test results.
+Current evidence is recorded below and in [Milestone 3G](milestone-3g.md). Historical records are retained rather than relabeled as current test results.
+
+## Milestone 3G — 24 September 2026
+
+Final application build includes LAB 009 and the scoped mobile topology-control overlap fix. Executed on Windows with Node 24.15, pinned pnpm 11.19.0 and local Edge/Chromium. No dependencies or hosting configuration were changed.
+
+| Check                                                       | Final result                                                                                    |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `pnpm lint`                                                 | Passed, zero errors/warnings                                                                    |
+| `pnpm typecheck`                                            | Passed                                                                                          |
+| `pnpm test`                                                 | **434 passed**, 18 files; zero failed/skipped; 4.55 seconds                                     |
+| `pnpm build`                                                | Passed; build `zVO8-nxN-Yi0LI9qCqgSt`; generated production worker, dynamic `/api/lab` retained |
+| `$env:CI='true'; $env:PW_PRODUCTION='1'; pnpm test:browser` | **131 passed**, zero failed/skipped, one complete final run in 7.4 minutes                      |
+| `git diff --check`                                          | Passed                                                                                          |
+
+The 15 LAB 009 browser cases cover five workflows on desktop 1440px, mobile 414px and narrow mobile 360px: applied wrong/valid trials with fresh policy verification and journal reopen; timed server-backed Assessment/resume with an equivalent repair; incorrect diagnosis without automatic solution reveal; stale evidence rejection; and complete cached offline Practice. Controls are at least 44px, no page overflow is asserted, and topology controls must not overlap any node. Final screenshots were inspected for the new mobile layout and ACL sequence readability; long terminal output scrolls inside its pane.
+
+Model tests independently check first match, implicit deny, source matching, attachment/direction, local-router origin exemption, route/policy separation, request/reply effects, safe equivalent repairs, negative-control preservation, incorrect and stale evidence, journal round trips and trial limits. A separate-store Blobs/CAS contract test checks concurrent ACL command/repair invocations and immutable finalization. Existing suites retain all eight earlier lab workflows, Academy, old records, API validation/cache boundaries and service-worker update behavior. Production scans enumerate private teaching/rubric text for all nine labs; a supplementary static scan found no `WORKAREA` or authored entry IDs in `.next/static`.
+
+Initial issues and resolution are documented in [the implementation record](milestone-3g.md): missing exhaustive test-map entry, two unused-variable warnings, a test-owned server cleanup stall/occupied-port startup error, and a mobile overlap found by screenshot review. The final results above are after those fixes; the full final browser run has no failing or skipped case. The earlier full 131-pass run was followed by a fresh build and full rerun for the visual fix.
+
+Limits: Cisco documentation and supplied semester material were reviewed, but no actual Cisco/Packet Tracer/CML execution, physical iPhone, Safari, VoiceOver or live Netlify deployment was performed. Practice packs remain intentionally inspectable, and Assessment requires internet. Netlify storage/deployment architecture is preserved, not newly deployed or cloud-certified. No commit, push or Netlify credit use. The [physical-device checklist](iphone-testing.md) remains pending for LAB 009.
 
 ## Milestone 3F — 23 September 2026
 
@@ -40,15 +61,15 @@ For the subsequent Academy foundation and IPv4 pilot, see the separate [Mileston
 
 Executed locally on Windows, 2026-09-21, starting from clean `9e4b96b`. The [phased execution record](milestone-3a.md) records baseline, readiness gate and each lab's gate. No commit, push, deployment, remote project change or paid service was performed. The old five scenario source files, Academy guide content, dependency lockfile, Netlify configuration, assessment API/reducer/store, browser storage format and service-worker implementation are unchanged.
 
-| Final check | Actual result |
-| --- | --- |
-| `pnpm lint` | Passed |
-| `pnpm typecheck` | Passed, strict TypeScript |
-| `pnpm test` | **266 passed, 13 files**, no failures/skips |
-| `pnpm build` | Passed; build `Y33CRbjf_mYfN4I6Mlcdl`; `/api/lab` remains dynamic; build-stamped worker generated |
-| `CI=true`, `PW_PRODUCTION=1`, `pnpm test:browser` | **62 passed**, 31 desktop + 31 at 414 × 896; no failures/skips, fresh production server |
-| LAB 006 targeted production browser gate | 6/6 passed after correcting new test navigation; same-build OSPF/privacy regressions also passed |
-| LAB 007 + LAB 004 targeted production browser gate | 14/14 passed |
+| Final check                                        | Actual result                                                                                     |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `pnpm lint`                                        | Passed                                                                                            |
+| `pnpm typecheck`                                   | Passed, strict TypeScript                                                                         |
+| `pnpm test`                                        | **266 passed, 13 files**, no failures/skips                                                       |
+| `pnpm build`                                       | Passed; build `Y33CRbjf_mYfN4I6Mlcdl`; `/api/lab` remains dynamic; build-stamped worker generated |
+| `CI=true`, `PW_PRODUCTION=1`, `pnpm test:browser`  | **62 passed**, 31 desktop + 31 at 414 × 896; no failures/skips, fresh production server           |
+| LAB 006 targeted production browser gate           | 6/6 passed after correcting new test navigation; same-build OSPF/privacy regressions also passed  |
+| LAB 007 + LAB 004 targeted production browser gate | 14/14 passed                                                                                      |
 
 ## Coverage and resolved failures
 
@@ -71,21 +92,22 @@ Networking teaching was checked against the linked Cisco references in [LAB 006]
 No new deployment tooling check was needed for these framework-neutral additions; Netlify/OpenNext/Node/pnpm/Blobs/cache settings are unchanged. The source remains prepared for a future authorized Netlify build, but this is not live deployment acceptance. Practice/source/local storage is inspectable; assessment is personal self-assessment, not a confidential exam. The Academy deliverable is an audit/plan only.
 
 ---
+
 # Milestone 2E independent audit verification
 
 Executed 2026-09-21 against clean baseline commit `ed95191`. This was an audit/planning task, with no production source or permanent test changes. Historical results below were independently rechecked rather than assumed current.
 
-| Check | Actual result |
-| --- | --- |
-| `pnpm lint` | Passed |
-| `pnpm typecheck` | Passed |
-| `pnpm test` | 200 passed in 9 files |
-| `pnpm build` | Passed; worker build `uM6-npiBSdd7FFv6shuiq`; dynamic `/api/lab` retained |
-| Fresh production `pnpm test:browser` (`CI=true`, `PW_PRODUCTION=1`) | 48 passed, no skips/failures: 24 desktop + 24 at 414 × 896 |
-| Eight disposable audit probes | 8 passed as assertions of observed behavior; not permanent regressions or proof the demonstrated behavior is correct |
-| Public production script inspection | Confirmed LAB 004 repair-target clue in `/_next/static/chunks/2y506hv4gjh8b.js` before practice/assessment start |
-| Development browser suite | Not rerun for this documentation-only audit |
-| Physical iPhone/Safari, controlled router lab, hosted Netlify | Not performed |
+| Check                                                               | Actual result                                                                                                        |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `pnpm lint`                                                         | Passed                                                                                                               |
+| `pnpm typecheck`                                                    | Passed                                                                                                               |
+| `pnpm test`                                                         | 200 passed in 9 files                                                                                                |
+| `pnpm build`                                                        | Passed; worker build `uM6-npiBSdd7FFv6shuiq`; dynamic `/api/lab` retained                                            |
+| Fresh production `pnpm test:browser` (`CI=true`, `PW_PRODUCTION=1`) | 48 passed, no skips/failures: 24 desktop + 24 at 414 × 896                                                           |
+| Eight disposable audit probes                                       | 8 passed as assertions of observed behavior; not permanent regressions or proof the demonstrated behavior is correct |
+| Public production script inspection                                 | Confirmed LAB 004 repair-target clue in `/_next/static/chunks/2y506hv4gjh8b.js` before practice/assessment start     |
+| Development browser suite                                           | Not rerun for this documentation-only audit                                                                          |
+| Physical iPhone/Safari, controlled router lab, hosted Netlify       | Not performed                                                                                                        |
 
 All five complete practice/assessment/repair/journal workflows and cached offline packs passed the existing production suite. The previous preview's command was verified before stopping it for a fresh build/server; the preview was restarted on localhost:3100 afterward. No actual cloud instance, project or account was modified.
 
@@ -103,18 +125,18 @@ Executed locally on Windows, 2026-09-21, Node 24.15.0, project pnpm 11.19.0 (con
 
 A fresh baseline before LAB 005 changes passed lint, strict type checking, all 157 existing unit/integration tests, a production build and all 40 production browser tests. Final code checks are below; these are executed results, not inferred from earlier milestones.
 
-| Check | Actual result |
-| --- | --- |
-| `pnpm lint` | Passed |
-| `pnpm typecheck` | Passed |
-| `pnpm test` | 200 passed in 9 files: 157 retained + 43 new LAB 005 tests |
-| Fresh development `pnpm test:browser` | 36 passed; 12 production-only tests intentionally skipped |
-| `pnpm build` | Passed; dynamic `/api/lab` retained; generated worker for build `qPXAreSL-E0dLbk15lP4V` |
-| Fresh production browser suite | 48 passed, 0 failed, 0 skipped: 24 desktop + 24 mobile |
-| Prettier check on changed application/test TypeScript | Passed |
-| `git diff --check` | Passed |
-| Physical iPhone / native Safari / external IOS lab | Not performed |
-| Live Netlify/CDN/Blobs deployment | Not performed; no hosting changes |
+| Check                                                 | Actual result                                                                           |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `pnpm lint`                                           | Passed                                                                                  |
+| `pnpm typecheck`                                      | Passed                                                                                  |
+| `pnpm test`                                           | 200 passed in 9 files: 157 retained + 43 new LAB 005 tests                              |
+| Fresh development `pnpm test:browser`                 | 36 passed; 12 production-only tests intentionally skipped                               |
+| `pnpm build`                                          | Passed; dynamic `/api/lab` retained; generated worker for build `qPXAreSL-E0dLbk15lP4V` |
+| Fresh production browser suite                        | 48 passed, 0 failed, 0 skipped: 24 desktop + 24 mobile                                  |
+| Prettier check on changed application/test TypeScript | Passed                                                                                  |
+| `git diff --check`                                    | Passed                                                                                  |
+| Physical iPhone / native Safari / external IOS lab    | Not performed                                                                           |
+| Live Netlify/CDN/Blobs deployment                     | Not performed; no hosting changes                                                       |
 
 Browser projects use installed Microsoft Edge/Chromium at 1440 × 1000 desktop and 414 × 896 mobile CSS pixels. Fresh servers are enforced with `CI=true`. The production run uses `PW_PRODUCTION=1` after `pnpm build`, so offline checks do not reuse a development server. Existing deployment-update tests remain included. The development run's twelve skips are intentional service-worker/update coverage assigned to production.
 

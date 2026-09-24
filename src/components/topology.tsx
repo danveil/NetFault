@@ -139,7 +139,7 @@ export default function Topology({
   return (
     <>
       <div
-        className={`${compact ? "topology compact" : "topology"}${"physicalLinks" in lab ? " topology-bundle" : ""}`}
+        className={`${compact ? "topology compact" : "topology"}${"physicalLinks" in lab ? " topology-bundle" : ""}${lab.id === "acl-01" ? " topology-policy" : ""}`}
         aria-label="Interactive network topology"
       >
         <ReactFlow

@@ -10,6 +10,7 @@ import {
   type Scenario,
 } from "./schema";
 import { etherChannelOutput, forwardingLinks, forwardingPorts, channelState, physicalPortUp } from "./etherchannel";
+import { evaluateAcl, aclOutput, aclSource, moveAclEntry } from "./acl";
 
 export type Neighbor = {
   device: string;
@@ -145,10 +146,24 @@ function lookup(s: Scenario, id: string, target: string) {
     })
     .sort((a, b) => Number(b.prefix.split("/")[1]) - Number(a.prefix.split("/")[1]))[0];
 }
-type Path = { ok: boolean; hops: string[]; reason: string };
+type Path = {
+  ok: boolean;
+  hops: string[];
+  reason: string;
+  policyDrop?: { device: string; interface: string; acl: string; sequence?: number; implicit: boolean };
+};
 type Resolution = { device: string; local: Interface; ip: string; peer?: { device: Device; remote: Interface } };
-export function forward(s: Scenario, start: string, target: string, observe?: (r: Resolution) => void): Path {
+export function forward(
+  s: Scenario,
+  start: string,
+  target: string,
+  observe?: (r: Resolution) => void,
+  packetSource?: string,
+): Path {
   let current = device(s, start);
+  const source =
+    packetSource ??
+    (current.interfaces.find((i) => i.name === lookup(s, start, target)?.interface) ?? current.interfaces[0])?.ip;
   const seen = new Set<string>();
   const hops: string[] = [];
   for (let ttl = 0; ttl < 16; ttl++) {
@@ -166,6 +181,25 @@ export function forward(s: Scenario, start: string, target: string, observe?: (r
       nextHop = route.via ?? target;
     }
     if (!out?.up) return { ok: false, hops, reason: `${current.id}: interface down` };
+    if (out.accessGroup && current.id !== start) {
+      if (out.accessGroup.direction !== "out") throw Error("Unsupported ACL direction");
+      const acl = current.acls?.find((a) => a.name === out!.accessGroup!.name);
+      if (!acl || !source) throw Error("Invalid ACL attachment or packet source");
+      const decision = evaluateAcl(acl, source);
+      if (!decision.permitted)
+        return {
+          ok: false,
+          hops,
+          reason: "Forwarded packet denied by interface policy",
+          policyDrop: {
+            device: current.id,
+            interface: out.name,
+            acl: acl.name,
+            sequence: decision.sequence,
+            implicit: decision.implicit,
+          },
+        };
+    }
     const peer = peers(s, current.id).find((p) => p.local.name === out.name && p.remote.up && p.remote.ip === nextHop);
     if (nextHop) observe?.({ device: current.id, local: out, ip: nextHop, peer });
     if (!peer) return { ok: false, hops, reason: `${current.id}: next-hop resolution failed` };
@@ -185,9 +219,12 @@ export function connectivity(s: Scenario, id: string, target: string, requestedS
   if (requestedSource && (d.kind !== "router" || !explicit))
     throw Error("Source must be an active interface or IPv4 address on this router.");
   const source = (explicit ?? d.interfaces.find((i) => i.name === route?.interface) ?? d.interfaces[0]).ip;
-  const outward = forward(s, id, target),
+  const outward = forward(s, id, target, undefined, source),
     destination = s.devices.find((d) => d.interfaces.some((i) => i.ip === target));
-  const returning = destination ? forward(s, destination.id, source) : undefined;
+  const returning =
+    destination && (outward.ok || !s.devices.some((d) => d.acls))
+      ? forward(s, destination.id, source, undefined, target)
+      : undefined;
   return { ok: outward.ok && !!returning?.ok, source, outward, returning };
 }
 export function runningConfig(s: Scenario, id: string) {
@@ -222,6 +259,7 @@ export function runningConfig(s: Scenario, id: string) {
       `interface ${i.name}`,
       ` ip address ${i.ip} ${dotted(mask(i.prefix))}`,
       i.up ? " no shutdown" : " shutdown",
+      ...(i.accessGroup ? [` ip access-group ${i.accessGroup.name} ${i.accessGroup.direction}`] : []),
       ...(i.ospf
         ? [
             ` ip ospf 1 area ${i.ospf.area}`,
@@ -235,6 +273,11 @@ export function runningConfig(s: Scenario, id: string) {
       "!",
     ]),
     ...(d.staticRoutes ?? []).map((r) => `ip route ${r.network} ${dotted(mask(r.prefix))} ${r.nextHop}`),
+    ...(d.acls?.flatMap((a) => [
+      `ip access-list standard ${a.name}`,
+      ...a.entries.map((e) => ` ${e.action} ${aclSource(e.source)}`),
+      "!",
+    ]) ?? []),
     ...(d.interfaces.some((i) => i.ospf)
       ? [
           `router ospf 1`,
@@ -318,6 +361,7 @@ export function execute(
     return `% Unsupported command on ${id}: ${raw}. Use the supported command buttons. This is a bounded simulator, not an IOS shell.`;
   if (source && cmd !== "ping") return "% Explicit source is supported only for router ping.";
   const channelOutput = etherChannelOutput(s, d, cmd);
+  if (cmd === "show access-lists") return aclOutput(d);
   if (channelOutput !== undefined) return channelOutput;
   if (cmd === "arp -a") {
     const state = arpState(s, id, history);
@@ -400,7 +444,11 @@ export function execute(
       return [
         `PING ${t} (source ${c.source})`,
         c.ok ? "!!!!!\nSuccess rate is 100 percent (5/5)." : ".....\nSuccess rate is 0 percent (0/5).",
-        c.ok ? "Echo replies returned." : "No echo replies returned. Inspect routes in both directions.",
+        c.ok
+          ? "Echo replies returned."
+          : s.schemaVersion === 8
+            ? "No echo replies returned. Compare addressing, routes and interface policy in both directions."
+            : "No echo replies returned. Inspect routes in both directions.",
       ].join("\n");
     // Only display hops whose ICMP responses can route back to the original source.
     const hops = c.outward.hops.map((ip, index) => {
@@ -525,7 +573,9 @@ export function execute(
 export function repaired(s: Scenario): Scenario {
   const next = structuredClone(s);
   const repair = s.repair;
-  if ("group" in repair) {
+  if ("acl" in repair) {
+    moveAclEntry(device(next, repair.device), repair.acl, repair.sequence, repair.newSequence);
+  } else if ("group" in repair) {
     device(next, repair.device).portChannels!.find((c) => c.id === repair.group)!.mode = repair.mode;
   } else if ("hello" in repair) {
     Object.assign(device(next, repair.device).interfaces.find((i) => i.name === repair.interface)!.ospf!, {

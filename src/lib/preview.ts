@@ -19,6 +19,7 @@ export function repairPreview(original: Scenario) {
         if (d.commands.includes(trace)) commands.push([d.id, trace, host.interfaces[0].ip]);
       }
   }
+  for (const p of original.policyChecks ?? []) if (p.source) commands.push([p.device, "ping", p.target, p.source]);
   const render = (s: Scenario) =>
     [
       commandSequence(s, commands),
@@ -28,6 +29,11 @@ export function repairPreview(original: Scenario) {
     ].join("\n\n");
   return [
     "REPAIRED-STATE PREVIEW — not part of your evidence",
+    ...(original.policyChecks
+      ? [
+          "Policy verification: permitted controls should succeed; excluded controls must remain denied after repair. Not every failed ping is a fault.",
+        ]
+      : []),
     "BEFORE REPAIR",
     render(original),
     "AFTER REPAIR",

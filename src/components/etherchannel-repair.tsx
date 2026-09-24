@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import type { Attempt, RepairAction } from "@/lib/schema";
+import { repairDescription } from "@/lib/repair-trial";
 export default function EtherChannelRepair({
   attempt,
   disabled,
@@ -52,7 +53,7 @@ export default function EtherChannelRepair({
         type="button"
         className="secondary"
         disabled={disabled || !device || !/^[1-9]\d{0,2}$/.test(group) || Number(group) > 128 || !mode}
-        onClick={() => onApply({ device, group: Number(group), mode: mode as RepairAction["mode"] })}
+        onClick={() => onApply({ device, group: Number(group), mode: mode as "active" | "passive" })}
       >
         Apply configuration change
       </button>
@@ -68,7 +69,7 @@ export default function EtherChannelRepair({
         <ol>
           {attempt.repairs.map((change, index) => (
             <li key={index}>
-              Version {index + 1}: {change.device}, channel-group {change.group}, mode {change.mode}
+              Version {index + 1}: {repairDescription(change)}
             </li>
           ))}
         </ol>

@@ -8,6 +8,7 @@ export const ipv4 = z
     "Valid dotted IPv4 required",
   );
 export const commandNames = [
+  "show access-lists",
   "show etherchannel summary",
   "show lacp internal",
   "show interfaces port-channel 1",
@@ -29,7 +30,34 @@ export const commandNames = [
   "ipconfig /all",
   "tracert",
 ] as const;
+export const aclSequence = z.number().int().min(1).max(999);
+export const standardAclSchema = z
+  .strictObject({
+    name: z.string().regex(/^[A-Za-z][A-Za-z0-9_-]{0,31}$/),
+    entries: z
+      .array(
+        z.strictObject({
+          id: z.string().min(1).max(32),
+          sequence: aclSequence,
+          action: z.enum(["permit", "deny"]),
+          source: z.union([z.literal("any"), z.strictObject({ network: ipv4, prefix: z.literal(24) })]),
+        }),
+      )
+      .min(1)
+      .max(2),
+  })
+  .superRefine((acl, ctx) => {
+    const fail = (message: string) => ctx.addIssue({ code: "custom", message });
+    if (new Set(acl.entries.map((e) => e.id)).size !== acl.entries.length) fail("Duplicate ACL entry identity");
+    if (acl.entries.some((e, n) => n > 0 && e.sequence <= acl.entries[n - 1].sequence))
+      fail("ACL entries must retain strictly increasing configured sequence order");
+    for (const e of acl.entries)
+      if (e.source !== "any" && network(e.source.network, e.source.prefix) !== `${e.source.network}/${e.source.prefix}`)
+        fail("ACL source must be a canonical /24 network");
+  });
+export type StandardAcl = z.infer<typeof standardAclSchema>;
 export const interfaceSchema = z.object({
+  accessGroup: z.strictObject({ name: z.string(), direction: z.literal("out") }).optional(),
   name: z.string(),
   ip: ipv4,
   prefix: z.number().int().min(1).max(30),
@@ -55,6 +83,7 @@ export const staticRouteSchema = z.object({
   nextHop: ipv4,
 });
 export const deviceSchema = z.object({
+  acls: z.array(standardAclSchema).min(1).max(1).optional(),
   portChannels: z
     .array(
       z.strictObject({
@@ -98,6 +127,8 @@ export const linkSchema = z.object({
   subnet: z.string(),
 });
 export const diagnosisSchema = z.object({
+  aclName: z.string().max(32).optional(),
+  observedSequence: aclSequence.optional(),
   observedNextHop: z.string().max(64).optional(),
   hello: z.number().int().min(1).max(65535).optional(),
   dead: z.number().int().min(1).max(65535).optional(),
@@ -109,6 +140,7 @@ export const diagnosisSchema = z.object({
   gateway: z.string().max(64).optional(),
   reason: z
     .enum([
+      "first-match-policy",
       "unspecified",
       "lacp-initiation",
       "physical-equals-logical",
@@ -125,6 +157,7 @@ export const diagnosisSchema = z.object({
     ])
     .optional(),
   cause: z.enum([
+    "acl-order",
     "lacp-negotiation",
     "unspecified",
     "area-mismatch",
@@ -139,6 +172,7 @@ export const diagnosisSchema = z.object({
   ]),
   devices: z.array(z.string()).max(5),
   fix: z.enum([
+    "acl-sequence",
     "lacp-mode",
     "unspecified",
     "r3-area0",
@@ -164,6 +198,7 @@ export const scenarioIdSchema = z.enum([
   "timer-01",
   "next-hop-01",
   "etherchannel-01",
+  "acl-01",
 ]);
 export type ScenarioId = z.infer<typeof scenarioIdSchema>;
 const lessonSchema = z.array(
@@ -179,17 +214,39 @@ export const scenarioSchema = z
       z.literal(5),
       z.literal(6),
       z.literal(7),
+      z.literal(8),
     ]),
     id: scenarioIdSchema,
     revision: z.literal(1),
     title: z.string(),
     incident: z.string(),
     design: z.string(),
+    policyChecks: z
+      .array(
+        z.strictObject({
+          device: z.string(),
+          target: ipv4,
+          source: z.string().optional(),
+          permitted: z.boolean(),
+          fresh: z.boolean(),
+        }),
+      )
+      .min(1)
+      .optional(),
     devices: z.array(deviceSchema),
     links: z.array(linkSchema),
     fault: z.object({ cause: diagnosisSchema.shape.cause, devices: z.array(z.string()), interface: z.string() }),
     acceptedFixes: z.array(diagnosisSchema.shape.fix),
     repair: z.union([
+      z.object({
+        device: z.string(),
+        interface: z.string(),
+        acl: z.string(),
+        entryId: z.string(),
+        sequence: aclSequence,
+        newSequence: aclSequence,
+        reason: z.literal("first-match-policy"),
+      }),
       z.object({
         device: z.string(),
         group: z.number().int().min(1).max(128),
@@ -230,6 +287,21 @@ export const scenarioSchema = z
   })
   .superRefine((s, ctx) => {
     const fail = (message: string) => ctx.addIssue({ code: "custom", message });
+    if (
+      s.schemaVersion === 8 &&
+      (!s.policyChecks?.some((p) => p.permitted) || !s.policyChecks.some((p) => !p.permitted))
+    )
+      fail("Policy recovery requires both permitted and excluded controls");
+    for (const p of s.policyChecks ?? []) {
+      const d = s.devices.find((d) => d.id === p.device);
+      if (
+        s.schemaVersion !== 8 ||
+        !d?.commands.includes("ping") ||
+        !s.devices.some((d) => d.interfaces.some((i) => i.ip === p.target)) ||
+        (p.source && (d.kind !== "router" || !d.interfaces.some((i) => i.ip === p.source)))
+      )
+        fail("Invalid policy verification probe");
+    }
     validateEtherChannelTopology(s, fail);
     const ids = s.devices.map((d) => d.id);
     if (new Set(ids).size !== ids.length) fail("Duplicate device IDs");
@@ -263,6 +335,14 @@ export const scenarioSchema = z
     if (s.schemaVersion === 1 && (s.devices.some((d) => d.kind === "switch") || "gateway" in s.repair))
       fail("Layer 2 ports and gateway repair require schema v2");
     for (const d of s.devices) {
+      const attached = d.interfaces.filter((i) => i.accessGroup);
+      if ((d.acls || attached.length) && (s.schemaVersion !== 8 || d.kind !== "router"))
+        fail("ACLs require a schema v8 router");
+      if (attached.length > 1) fail("Only one outbound ACL attachment per router is supported");
+      for (const i of attached)
+        if (!d.acls?.some((a) => a.name === i.accessGroup!.name)) fail("ACL attachment references absent list");
+      if (s.schemaVersion === 8 && d.commands.some((c) => ["traceroute", "tracert", "arp -a"].includes(c)))
+        fail("ACL scenarios do not support trace or ARP history commands");
       if (d.staticRoutes) {
         if (s.schemaVersion < 4 || d.kind !== "router") fail("Static routes require a router and schema v4");
         for (const r of d.staticRoutes) validateRoute(d, r);
@@ -384,7 +464,16 @@ export const scenarioSchema = z
     }
     const repair = s.repair;
     const repairedDevice = s.devices.find((d) => d.id === repair.device);
-    if ("group" in repair) {
+    if ("acl" in repair) {
+      const acl = repairedDevice?.acls?.find((a) => a.name === repair.acl);
+      if (
+        s.schemaVersion !== 8 ||
+        !acl?.entries.some((e) => e.id === repair.entryId) ||
+        acl.entries.some((e) => e.sequence === repair.newSequence && e.id !== repair.entryId) ||
+        repairedDevice?.interfaces.find((i) => i.name === repair.interface)?.accessGroup?.name !== repair.acl
+      )
+        fail("ACL repair requires an existing entry and outbound interface attachment");
+    } else if ("group" in repair) {
       if (s.schemaVersion !== 7 || !repairedDevice?.portChannels?.some((p) => p.id === repair.group))
         fail("LACP repair requires a supported port channel");
     } else if ("hello" in repair) {
@@ -484,6 +573,7 @@ export const observationSchema = z.object({
 });
 export type Observation = z.infer<typeof observationSchema>;
 export const feedbackSchema = z.object({
+  recovery: z.enum(["unresolved", "recovered-unverified", "verified"]).optional(),
   lesson: lessonSchema.optional(),
   score: z.number(),
   parts: z.array(z.object({ name: z.string(), earned: z.number(), possible: z.number(), message: z.string() })),
@@ -492,15 +582,25 @@ export const feedbackSchema = z.object({
   timedOut: z.boolean(),
 });
 export type Feedback = z.infer<typeof feedbackSchema>;
-export const repairActionSchema = z.strictObject({
+export const lacpRepairActionSchema = z.strictObject({
   device: z.string().min(1).max(64),
   group: z.number().int().min(1).max(128),
   mode: z.enum(["active", "passive"]),
 });
+export const aclRepairActionSchema = z.strictObject({
+  kind: z.literal("acl-sequence"),
+  device: z.string().min(1).max(64),
+  acl: z.string().regex(/^[A-Za-z][A-Za-z0-9_-]{0,31}$/),
+  sequence: aclSequence,
+  newSequence: aclSequence,
+});
+export const repairActionSchema = z.union([lacpRepairActionSchema, aclRepairActionSchema]);
 export type RepairAction = z.infer<typeof repairActionSchema>;
 export const attemptSchema = z.object({
   repairs: z
-    .array(repairActionSchema.extend({ at: z.number() }))
+    .array(
+      z.union([lacpRepairActionSchema.extend({ at: z.number() }), aclRepairActionSchema.extend({ at: z.number() })]),
+    )
     .max(10)
     .optional(),
   version: z.literal(1),

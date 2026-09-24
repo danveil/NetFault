@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { labs, commandsFor } from "../src/lib/catalog";
 import { getScenario } from "../src/server/scenarios";
-import { connectivity, repaired } from "../src/lib/engine";
+import { connectivity, repaired, execute } from "../src/lib/engine";
 import { grade } from "../src/lib/grading";
 import { observations, assertCase } from "./case-contract";
 import { timerScenario } from "../src/server/timer-scenario";
@@ -22,13 +22,14 @@ it.each(labs)(
       "timer-01": 6,
       "next-hop-01": 6,
       "etherchannel-01": 7,
+      "acl-01": 8,
     };
     expect(s.schemaVersion).toBe(expectedVersions[s.id]);
     expect(s.links.map((l) => l.subnet)).toEqual(lab.subnets);
     if ("physicalLinks" in lab) {
       expect(s.links.map((l) => [l.a.device, l.b.device])).toEqual(lab.physicalLinks.map((l) => [l.source, l.target]));
     } else
-      for (let n = 0; n < 4; n++)
+      for (let n = 0; n < lab.devices.length - 1; n++)
         expect([s.links[n].a.device, s.links[n].b.device].sort()).toEqual(
           [lab.devices[n].id, lab.devices[n + 1].id].sort(),
         );
@@ -38,6 +39,17 @@ it.each(labs)(
         .map((c): [string, string] => [d.id, c]),
     );
     const evidence = observations(s, commands);
+    if (s.policyChecks)
+      for (const p of s.policyChecks.filter((p) => p.permitted && !p.source))
+        evidence.push({
+          id: `probe-${p.device}`,
+          scenario: s.id,
+          device: p.device,
+          command: "ping",
+          target: p.target,
+          output: execute(s, p.device, "ping", p.target),
+          at: 1,
+        });
     const feedback = grade(
       s,
       { cause: "unspecified", devices: [], fix: "unspecified", evidence: evidence.map((o) => o.id), notes: "" },

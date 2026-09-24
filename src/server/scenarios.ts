@@ -8,6 +8,7 @@ import { passiveScenario } from "./passive-scenario";
 import { nextHopScenario } from "./next-hop-scenario";
 import { timerScenario } from "./timer-scenario";
 import { etherChannelScenario } from "./etherchannel-scenario";
+import { aclScenario } from "./acl-scenario";
 import { catalog, commandsFor } from "@/lib/catalog";
 export const scenarios: Record<ScenarioId, Scenario> = {
   "ospf-01": scenario,
@@ -18,6 +19,7 @@ export const scenarios: Record<ScenarioId, Scenario> = {
   "timer-01": timerScenario,
   "next-hop-01": nextHopScenario,
   "etherchannel-01": etherChannelScenario,
+  "acl-01": aclScenario,
 };
 export function validateRegistry(entries: Record<ScenarioId, Scenario>) {
   for (const id of scenarioIdSchema.options) {

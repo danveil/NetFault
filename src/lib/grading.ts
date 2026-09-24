@@ -2,6 +2,7 @@ import type { Diagnosis, Feedback, Observation, Scenario, RepairAction } from ".
 import { channelState } from "./etherchannel";
 import { connectivity } from "./engine";
 import { trialNetwork } from "./repair-trial";
+import { gradeAcl } from "./acl-grading";
 export function grade(
   s: Scenario,
   answer: Diagnosis,
@@ -9,6 +10,7 @@ export function grade(
   timedOut = false,
   repairs: RepairAction[] = [],
 ): Feedback {
+  if ("acl" in s.repair) return gradeAcl(s, answer, history, timedOut, repairs);
   const selected = history.filter(
     (o) => answer.evidence.includes(o.id) && (!o.scenario || o.scenario === s.id) && !o.output.startsWith("%"),
   );

@@ -24,7 +24,8 @@ import {
 } from "lucide-react";
 import Topology from "./topology";
 import EtherChannelRepair from "./etherchannel-repair";
-import { recordRepair, trialNetwork } from "@/lib/repair-trial";
+import AclRepair from "./acl-repair";
+import { recordRepair, trialNetwork, repairDescription } from "@/lib/repair-trial";
 import PwaUpdate from "./pwa-update";
 import {
   labs,
@@ -49,6 +50,9 @@ import {
   etherChannelCauses,
   etherChannelFixes,
   etherChannelReasons,
+  aclCauses,
+  aclFixes,
+  aclReasons,
 } from "@/lib/catalog";
 import { execute } from "@/lib/engine";
 import { repairPreview } from "@/lib/preview";
@@ -117,34 +121,40 @@ export default function NetFault() {
   const isPassive = lab.id === "passive-01";
   const isTimer = lab.id === "timer-01";
   const isEtherChannel = lab.id === "etherchannel-01";
+  const isAcl = lab.id === "acl-01";
+  const isTrial = isEtherChannel || isAcl;
   const protocolReasons = isTimer ? timerReasons : passiveReasons;
   const singleDeviceFault = lab.id !== "ospf-01" && !isEtherChannel;
-  const supportsPingSource = isRouting || isPassive || isTimer;
-  const hintCount = isRouting || isPassive || isTimer || isEtherChannel ? 4 : 3;
-  const causeChoices = isEtherChannel
-    ? etherChannelCauses
-    : isNextHop
-      ? nextHopCauses
-      : isPassive || isTimer
-        ? passiveCauses
-        : isRouting
-          ? returnCauses
-          : isVlan
-            ? vlanCauses
-            : causes;
-  const repairChoices = isEtherChannel
-    ? etherChannelFixes
-    : isNextHop
-      ? nextHopFixes
-      : isPassive || isTimer
-        ? passiveFixes
-        : isRouting
-          ? returnFixes
-          : isVlan
-            ? vlanFixes
-            : isGateway
-              ? gatewayFixes
-              : fixes;
+  const supportsPingSource = isRouting || isPassive || isTimer || isAcl;
+  const hintCount = isRouting || isPassive || isTimer || isTrial ? 4 : 3;
+  const causeChoices = isAcl
+    ? aclCauses
+    : isEtherChannel
+      ? etherChannelCauses
+      : isNextHop
+        ? nextHopCauses
+        : isPassive || isTimer
+          ? passiveCauses
+          : isRouting
+            ? returnCauses
+            : isVlan
+              ? vlanCauses
+              : causes;
+  const repairChoices = isAcl
+    ? aclFixes
+    : isEtherChannel
+      ? etherChannelFixes
+      : isNextHop
+        ? nextHopFixes
+        : isPassive || isTimer
+          ? passiveFixes
+          : isRouting
+            ? returnFixes
+            : isVlan
+              ? vlanFixes
+              : isGateway
+                ? gatewayFixes
+                : fixes;
   const inFlight = useRef(false),
     timeoutRequested = useRef(false);
   const latestAttempt = useRef<Attempt | undefined>(undefined);
@@ -509,7 +519,7 @@ export default function NetFault() {
           <span className="connection">
             <span className={online ? "status-dot" : "status-dot offline"} />
             {online ? "Workspace online" : "Offline"}
-            <span className="desktop-only"> · Milestone 3F</span>
+            <span className="desktop-only"> · Milestone 3G</span>
           </span>
         </header>
         <main id="main" tabIndex={-1}>
@@ -772,15 +782,17 @@ export default function NetFault() {
                     <p>{lab.design}</p>
                     <p>
                       Use commands to inspect each device. Save observations as evidence,{" "}
-                      {isPassive || isTimer
-                        ? "identify the router, interface and configuration fault, then explain the effect of your correction."
-                        : isRouting
-                          ? "identify the device, destination prefix and next hop, then explain how the repair restores communication."
-                          : isVlan
-                            ? "identify the device, interface and observed configuration, then propose the intended configuration."
-                            : isGateway
-                              ? "identify the device and incorrect setting, then propose an address and explain the repair."
-                              : "identify both affected adjacency endpoints, then propose a repair."}{" "}
+                      {isAcl
+                        ? "identify the policy location and first matching entry, apply an order change, then verify permitted and restricted traffic."
+                        : isPassive || isTimer
+                          ? "identify the router, interface and configuration fault, then explain the effect of your correction."
+                          : isRouting
+                            ? "identify the device, destination prefix and next hop, then explain how the repair restores communication."
+                            : isVlan
+                              ? "identify the device, interface and observed configuration, then propose the intended configuration."
+                              : isGateway
+                                ? "identify the device and incorrect setting, then propose an address and explain the repair."
+                                : "identify both affected adjacency endpoints, then propose a repair."}{" "}
                       Outputs are deterministic, condensed IOS-style or PC-style views; no live network traffic is sent.
                     </p>
                   </details>
@@ -916,7 +928,7 @@ export default function NetFault() {
                       <span className="tag">INSPECTOR</span>
                     </div>
                     <div className="command-area">
-                      {isEtherChannel && (
+                      {isTrial && (
                         <p className="muted">
                           Inspecting{" "}
                           {attempt.repairs?.length
@@ -928,7 +940,7 @@ export default function NetFault() {
                       {commands.some((c) => ["ping", "tracert", "traceroute"].includes(c)) && (
                         <>
                           <label htmlFor="destination">
-                            Destination IPv4 <span className="muted">for ping / trace</span>
+                            Destination IPv4 <span className="muted">{isAcl ? "for ping" : "for ping / trace"}</span>
                           </label>
                           <input
                             id="destination"
@@ -993,7 +1005,7 @@ export default function NetFault() {
                             {current.source ? ` source ${current.source}` : ""}
                           </div>
                           <pre>{current.output}</pre>
-                          {isEtherChannel && (
+                          {isTrial && (
                             <small>
                               Recorded from{" "}
                               {current.repairIndex
@@ -1063,7 +1075,7 @@ export default function NetFault() {
                             />
                             <span>
                               <strong>{o.device}</strong>{" "}
-                              {isEtherChannel && (
+                              {isTrial && (
                                 <span className="tag">{o.repairIndex ? `Version ${o.repairIndex}` : "Initial"}</span>
                               )}
                               <code>
@@ -1127,7 +1139,16 @@ export default function NetFault() {
                           </div>
                         ))}
                       </div>
-                      {isEtherChannel ? (
+                      {isAcl && (
+                        <p role="status">
+                          {attempt.feedback.recovery === "verified"
+                            ? "Policy recovery verified: permitted traffic works and the excluded control remains blocked."
+                            : attempt.feedback.recovery === "recovered-unverified"
+                              ? "Recovered configuration, but fresh policy verification is incomplete."
+                              : "Policy recovery not established."}
+                        </p>
+                      )}
+                      {isTrial ? (
                         <details className="solution" open={attempt.revealed}>
                           <summary>Explanation — reveal when ready</summary>
                           <p>{attempt.feedback.explanation}</p>
@@ -1139,7 +1160,7 @@ export default function NetFault() {
                         </>
                       )}
                       {attempt.feedback.lesson?.map((part) =>
-                        part.revealOnRequest || isEtherChannel ? (
+                        part.revealOnRequest || isTrial ? (
                           <details key={`${attempt.id}-${part.title}`} className="solution">
                             <summary>{part.title} — reveal when ready</summary>
                             <p>{part.text}</p>
@@ -1171,6 +1192,18 @@ export default function NetFault() {
                             <br />
                             <strong>Explanation:</strong>{" "}
                             {protocolReasons.find(([id]) => id === answer.reason)?.[1] ?? "Not submitted"}
+                          </p>
+                        )}
+                        {isAcl && (
+                          <p>
+                            <strong>Policy:</strong> {answer.aclName || "Not submitted"}, outbound{" "}
+                            {answer.interface || "Not submitted"}
+                            <br />
+                            <strong>Initial first-matching sequence:</strong>{" "}
+                            {answer.observedSequence ?? "Not submitted"}
+                            <br />
+                            <strong>Explanation:</strong>{" "}
+                            {aclReasons.find(([id]) => id === answer.reason)?.[1] ?? "Not submitted"}
                           </p>
                         )}
                         {isRouting && (
@@ -1214,14 +1247,14 @@ export default function NetFault() {
                         </p>
                       )}
                       {isNextHop && <p>Observed next hop: {answer.observedNextHop ?? "Not submitted"}</p>}
-                      {isEtherChannel && (
+                      {isTrial && (
                         <details className="solution">
                           <summary>Recorded configuration changes</summary>
                           {attempt.repairs?.length ? (
                             <ol>
                               {attempt.repairs.map((change, index) => (
                                 <li key={index}>
-                                  Version {index + 1}: {change.device}, channel-group {change.group}, mode {change.mode}
+                                  Version {index + 1}: {repairDescription(change)}
                                 </li>
                               ))}
                             </ol>
@@ -1230,7 +1263,7 @@ export default function NetFault() {
                           )}
                         </details>
                       )}
-                      <details className="solution" open={!isEtherChannel || attempt.revealed}>
+                      <details className="solution" open={!isTrial || attempt.revealed}>
                         <summary>Worked repair & verification</summary>
                         <pre>{attempt.feedback.solution}</pre>
                       </details>
@@ -1271,6 +1304,14 @@ export default function NetFault() {
                       </div>
                       {isEtherChannel && (
                         <EtherChannelRepair
+                          attempt={attempt}
+                          disabled={disabled}
+                          onApply={applyRepair}
+                          onInspect={() => setTab("inspect")}
+                        />
+                      )}
+                      {isAcl && (
+                        <AclRepair
                           attempt={attempt}
                           disabled={disabled}
                           onApply={applyRepair}
@@ -1325,6 +1366,62 @@ export default function NetFault() {
                             ))}
                         </div>
                       </fieldset>
+                      {isAcl && (
+                        <>
+                          <label htmlFor="acl-interface-answer">Affected outbound interface</label>
+                          <select
+                            id="acl-interface-answer"
+                            required
+                            value={answer.interface ?? ""}
+                            onChange={(e) => editAnswer({ interface: e.target.value })}
+                          >
+                            <option value="" disabled>
+                              Select the interface you observed
+                            </option>
+                            <option>Gi0/0</option>
+                            <option>Gi0/1</option>
+                          </select>
+                          <label htmlFor="acl-name-answer">Observed ACL name</label>
+                          <input
+                            id="acl-name-answer"
+                            required
+                            maxLength={32}
+                            autoCapitalize="none"
+                            autoComplete="off"
+                            value={answer.aclName ?? ""}
+                            onChange={(e) => editAnswer({ aclName: e.target.value })}
+                          />
+                          <label htmlFor="acl-sequence-answer">Initial first-matching sequence</label>
+                          <input
+                            id="acl-sequence-answer"
+                            type="number"
+                            inputMode="numeric"
+                            min={1}
+                            max={999}
+                            required
+                            value={answer.observedSequence ?? ""}
+                            onChange={(e) =>
+                              editAnswer({ observedSequence: e.target.value ? Number(e.target.value) : undefined })
+                            }
+                          />
+                          <label htmlFor="acl-reason-answer">Why does the correction work?</label>
+                          <select
+                            id="acl-reason-answer"
+                            required
+                            value={answer.reason ?? ""}
+                            onChange={(e) => editAnswer({ reason: e.target.value as Diagnosis["reason"] })}
+                          >
+                            <option value="" disabled>
+                              Select a policy explanation
+                            </option>
+                            {aclReasons.map(([id, label]) => (
+                              <option key={id} value={id}>
+                                {label}
+                              </option>
+                            ))}
+                          </select>
+                        </>
+                      )}
                       {isTimer && (
                         <>
                           <label htmlFor="timer-hello">Proposed Hello interval (seconds)</label>
@@ -1567,19 +1664,21 @@ export default function NetFault() {
                         <div>
                           <strong>04 / {answer.evidence.length} evidence items selected</strong>
                           <p>
-                            {isEtherChannel
-                              ? "Preserve initial host, physical, logical and negotiation evidence. After your change, select fresh logical status on both switches and host pings in both directions."
-                              : isPassive || isTimer
-                                ? "Combine the observed configuration with physical interface state, neighbor relationships and routing impact. A missing neighbor or failed ping alone cannot identify the cause."
-                                : isRouting
-                                  ? isNextHop
-                                    ? "Map the installed route to its adjacent router and compare onward forwarding and interface evidence. A failed ping alone cannot prove the cause."
-                                    : "Combine both routing tables with the source host's IP configuration. Failed ping alone cannot prove which route is missing."
-                                  : isVlan
-                                    ? "Combine host configuration with membership observations for both connected switch ports. A failed ping alone does not identify the cause."
-                                    : isGateway
-                                      ? "Include at least one observation of PC-A's configured next hop. Compare it with the router interface and local/remote probes."
-                                      : "Include both interface configurations and observations of the neighbor and routing impact."}
+                            {isAcl
+                              ? "Preserve initial host/failure, both routes and policy/attachment evidence. After your latest trial select both policy views, successful host pings in both directions and an explicitly sourced excluded control that remains denied."
+                              : isEtherChannel
+                                ? "Preserve initial host, physical, logical and negotiation evidence. After your change, select fresh logical status on both switches and host pings in both directions."
+                                : isPassive || isTimer
+                                  ? "Combine the observed configuration with physical interface state, neighbor relationships and routing impact. A missing neighbor or failed ping alone cannot identify the cause."
+                                  : isRouting
+                                    ? isNextHop
+                                      ? "Map the installed route to its adjacent router and compare onward forwarding and interface evidence. A failed ping alone cannot prove the cause."
+                                      : "Combine both routing tables with the source host's IP configuration. Failed ping alone cannot prove which route is missing."
+                                    : isVlan
+                                      ? "Combine host configuration with membership observations for both connected switch ports. A failed ping alone does not identify the cause."
+                                      : isGateway
+                                        ? "Include at least one observation of PC-A's configured next hop. Compare it with the router interface and local/remote probes."
+                                        : "Include both interface configurations and observations of the neighbor and routing impact."}
                           </p>
                           <button className="text-button" type="button" onClick={() => setTab("evidence")}>
                             Review evidence <ArrowRight size={15} />
@@ -1609,15 +1708,17 @@ export default function NetFault() {
                       />
                       <p className="muted">
                         Grading uses the selected cause,{" "}
-                        {isPassive || isTimer
-                          ? "router, interface, observed command evidence, targeted repair and protocol explanation"
-                          : isRouting
-                            ? "device, destination prefix, observed configuration, next hop, command evidence and forwarding explanation"
-                            : isVlan
-                              ? "device, interface, observed VLAN, command evidence and intended access-port configuration"
-                              : isGateway
-                                ? "device, command evidence, gateway address and forwarding explanation"
-                                : "endpoint pair, command evidence, and repair"}
+                        {isAcl
+                          ? "device/interface, observed ACL/sequence, initial evidence, applied policy-preserving repair and fresh permitted/denied controls"
+                          : isPassive || isTimer
+                            ? "router, interface, observed command evidence, targeted repair and protocol explanation"
+                            : isRouting
+                              ? "device, destination prefix, observed configuration, next hop, command evidence and forwarding explanation"
+                              : isVlan
+                                ? "device, interface, observed VLAN, command evidence and intended access-port configuration"
+                                : isGateway
+                                  ? "device, command evidence, gateway address and forwarding explanation"
+                                  : "endpoint pair, command evidence, and repair"}
                         . Free text is saved verbatim; it is not interpreted.
                       </p>
                       <button className="primary" disabled={disabled} type="submit">

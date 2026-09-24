@@ -1,5 +1,7 @@
 # Network correctness: OSPF lab 001
 
+Milestone 3G adds [LAB 009 standard ACL correctness](acl-model.md): source-only first-match outbound policy after route selection, independent reply evaluation and a policy-preserving repair. Its addressing, expected positive/negative flow matrix, router-local traffic boundary and unsupported features are documented there. The original eight authored scenarios remain unchanged; all are covered by the current [verification](verification.md).
+
 Milestone 3F adds a separate [bounded EtherChannel model](etherchannel-model.md). Physical members, negotiation, logical forwarding and end-to-end reachability derive from common state, with explicit standalone-disable and no alternate path. It does not change this OSPF scenario or the other six existing authored networks. Vendor/source review and automated model validation are documented separately from unperformed physical-device tests in [3F](milestone-3f.md).
 
 Milestone 3A adds [LAB 006 timer compatibility](timer-lab.md) and [LAB 007 incorrect installed static next hop](next-hop-lab.md), reusing the existing adjacency/routing/loop algorithms. The original five authored networks remain unchanged. Neighbor Dead Time now derives from configured Dead as a bounded representative snapshot. Historical milestone notes below retain their original scope.

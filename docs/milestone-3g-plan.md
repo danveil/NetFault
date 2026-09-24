@@ -1,6 +1,6 @@
 # Milestone 3G plan — LAB 009: The closed passage
 
-**PLANNED ONLY — no production implementation.** Authored 23 September 2026 against `dda7c0b`. Implementation needs a later user instruction. Preserve accepted LAB 001–008, Academy revisions, journals, Netlify storage and existing behavior. No dependency, commit, push or deployment is part of this plan.
+**Historical approved plan, now implemented by the separately authorized Milestone 3G on 24 September 2026.** Read [the implementation record](milestone-3g.md) and [actual verification](verification.md). The proposal below was authored 23 September 2026 against `dda7c0b`; future-tense gates are retained as planning history, not pending permission. Preserve accepted LAB 001–008, Academy revisions, journals, Netlify storage and existing behavior. No dependency, commit, push or deployment is part of this milestone.
 
 The [semester gap analysis](semester-2627-gap-analysis.md) records the actual `26.27_material.zip`, exact filenames, inspection limits, eight implemented labs and five candidates. Source references R6/P6 and R10/P10 below resolve there. This is an original scenario design inferred from the course, not a lecturer-authored LAB 009 or a completed university practical. Author-facing spoilers in this document must never become initial application assets.
 

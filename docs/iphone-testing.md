@@ -1,5 +1,13 @@
 # iPhone, HTTPS and manual QA
 
+## Milestone 3G physical-device acceptance — pending
+
+- [ ] On the updated trusted-HTTPS app, open LAB 009 and read the four-device diagram/text alternative. Inspect every device at normal and increased text size; scroll long ACL/config output without page overflow.
+- [ ] Record initial evidence, then use the ACL sequence controls one-handed. Check numeric keyboard, ACL-name capitalization, proposed-change text and explicit Apply action. Confirm a wrong order remains unresolved and old observations retain their version labels.
+- [ ] After a justified change, collect current policy/config plus permitted host pings and an explicitly sourced excluded control. Submit, distinguish verified recovery from score, request the worked explanation and reopen the saved journal with its changes.
+- [ ] Reload during a timed online assessment; retain server history/deadline and no hints. After caching production Practice online, use airplane mode to reload, change, verify, grade and reopen a saved attempt. Assessment must still require connectivity.
+- [ ] Check VoiceOver labels/focus, portrait/landscape, Safari toolbar clearance, zoom and touch targets on the physical iPhone 11. Current 414px/360px Chromium tests are not physical iPhone, Safari or VoiceOver validation. Prior user-reported acceptance of earlier milestones does not validate LAB 009.
+
 ## Milestone 3F physical-device acceptance — not performed
 
 - [ ] On the updated HTTPS production app, open LAB 008 through normal mode selection. Read the physical-link diagram and text alternative in portrait/landscape; select each device by both diagram and device buttons.
@@ -51,6 +59,7 @@ Target: iPhone 11, 414 × 896 CSS pixels, portrait. Automated Chromium viewport 
 - [ ] Start each required practice pack online and reload after worker installation. Enable airplane mode, reopen cached labs, complete both new labs and their repaired previews, then reconnect.
 - [ ] Complete assessments online; ensure hints/guide access stay unavailable during attempts and deadlines continue through refresh/outage. Offline assessment must not be advertised.
 - [ ] For eventual Netlify acceptance, turn the laptop off and verify public HTTPS use; no such deployment/device test was performed in this milestone.
+
 ## LAB 005 manual acceptance (not yet performed on physical iPhone)
 
 - [ ] On the authorized HTTPS release, accept Reload to update and select The Silent OSPF Interface. Confirm the five lab cards fit and LAB 001–004 remain available.

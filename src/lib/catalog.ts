@@ -269,7 +269,52 @@ export const etherChannelReasons = [
   ["same-address", "Aggregation assigns identical IP addresses to both hosts."],
   ["reverse-automatically", "A successful request creates new IP routes automatically."],
 ] as const;
-export const labs = [lab, gatewayLab, vlanLab, returnLab, passiveLab, timerLab, nextHopLab, etherChannelLab] as const;
+export const aclLab = {
+  id: "acl-01",
+  number: "009",
+  topic: "IPv4 policy investigation",
+  title: "The closed passage",
+  subtitle: "A routed path and a protected work area.",
+  target: "172.24.20.10",
+  incident:
+    "PC-A cannot reach PC-B in the protected work area. Local gateway checks succeed. Investigate the path and access policy, apply a justified change, then verify the result.",
+  design:
+    "PC-A–R1–R2–PC-B. Office LAN: 172.24.10.0/24; transit: 10.49.0.0/30; protected LAN: 172.24.20.0/24. Static routes are intended in both directions. Forwarded traffic into the protected LAN should be permitted from the office /24 and denied from other sources. Use both permitted and excluded source probes to verify policy. Ordinary outbound ACLs filter transit traffic, not traffic addressed to or originating at that same router. No OSPF, NAT or default routes are intended. Inspect configuration to locate the policy. This lab models standard source filtering, without counters or traceroute.",
+  devices: [
+    { id: "PC-A", kind: "pc", role: "Office workstation" },
+    { id: "R1", kind: "router", role: "Office gateway" },
+    { id: "R2", kind: "router", role: "Work area gateway" },
+    { id: "PC-B", kind: "pc", role: "Protected workstation" },
+  ],
+  subnets: ["172.24.10.0/24", "10.49.0.0/30", "172.24.20.0/24"],
+} as const;
+export const aclCauses = [...returnCauses, ["acl-order", "ACL entry order changes the intended policy"]] as const;
+export const aclFixes = [
+  ["static-route", "Change a static route"],
+  ["acl-sequence", "Change an existing ACL entry's sequence"],
+  ["gateway", "Change the host gateway"],
+  ["no-shutdown", "Enable an interface"],
+] as const;
+export const aclReasons = [
+  [
+    "first-match-policy",
+    "The first matching source rule permits intended traffic while the restriction remains effective for other sources.",
+  ],
+  ["reverse-automatically", "A successful request automatically permits every reply and creates its route."],
+  ["same-address", "Changing entry order makes the hosts members of the same subnet."],
+  ["dns-resolution", "The policy translates the destination name into an IP address."],
+] as const;
+export const labs = [
+  lab,
+  gatewayLab,
+  vlanLab,
+  returnLab,
+  passiveLab,
+  timerLab,
+  nextHopLab,
+  etherChannelLab,
+  aclLab,
+] as const;
 export type PublicLab = (typeof labs)[number];
 export function catalog(id: ScenarioId): PublicLab {
   return labs.find((l) => l.id === id)!;
@@ -277,6 +322,10 @@ export function catalog(id: ScenarioId): PublicLab {
 export function commandsFor(id: ScenarioId, deviceId: string): string[] {
   const d = catalog(id).devices.find((d) => d.id === deviceId);
   if (!d) return [];
+  if (id === "acl-01")
+    return d.kind === "router"
+      ? [...gatewayRouterCommands, "show access-lists"]
+      : ["ipconfig", "ipconfig /all", "ping"];
   if (id === "etherchannel-01")
     return d.kind === "switch"
       ? [...etherChannelCommands]

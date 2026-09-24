@@ -1,10 +1,12 @@
 # NetFault
 
+**Milestone 3G:** LAB 009, **The closed passage**, adds one standard IPv4 ACL investigation. Separate route availability from policy permission, inspect source-dependent results, apply an entry-order trial, and verify both restored access and retained restrictions. Open **Troubleshooting labs → LAB 009 → Practice or Assessment → Start investigation**. Saved history and cached offline Practice are supported; Assessment remains online. All eight earlier labs and Academy are preserved. Read the [ACL model](docs/acl-model.md), [implementation record](docs/milestone-3g.md) and [current verification](docs/verification.md).
+
 **Milestone 3F:** LAB 008, **Across the connection**, adds one playable EtherChannel investigation. Compare physical members with their logical connection, gather evidence, apply a bounded configuration trial, verify recovery and submit a reasoned diagnosis. Open **Troubleshooting labs → LAB 008 → Practice or Assessment → Start investigation**. Both modes save configuration history; cached Practice also works offline. The seven earlier labs and Academy remain intact. Read the [model boundaries](docs/etherchannel-model.md) and [verification record](docs/milestone-3f.md).
 
 **Milestone 3E:** one [OSPFv2 configuration-to-verification Academy lesson](docs/milestone-3e.md) now connects original interface tables to area-0 activation, passive LANs and complementary verification evidence. It adds two tap exercises, two local diagrams and an optional **UNEXECUTED** device practice brief. Open **Learn networking / Field guide → OSPFv2 — Configuration and verification → Explore module → Open lesson 1**. No new lab or networking engine was added.
 
-The [WIA2008 audit and roadmap](docs/wia2008-sources.md) includes 11 inspected historical ANT lecture decks and the official 2024/25 handbook entry. **Historical-materials-based roadmap — 2026/27 course requirements unconfirmed.** Original practical sheets and current assessment details remain unverified. OSPF coverage is partial; tap completion does not prove independent real-device configuration.
+The original [WIA2008 audit](docs/wia2008-sources.md) used historical ANT decks. The later [supplied 2026/27 archive audit](docs/semester-2627-gap-analysis.md) records the actual semester material, source/version conflicts and remaining gaps; old 2023 dates in its Introduction are not confirmed current assessment dates. LAB 009 covers a narrow ACL subset, not the whole security chapter or syllabus. Tap completion does not prove independent real-device configuration.
 
 A mobile-first, evidence-based network troubleshooting workspace for a Universiti Malaya student studying WIA2008 Advanced Network Technology. Independent learning aid; not an official UM or Cisco product.
 
@@ -52,7 +54,7 @@ For full PWA use, put the production server behind an HTTPS reverse proxy with a
 
 ## Play the lab
 
-1. Select any lab 001–008, choose Practice or Assessment, then Start investigation.
+1. Select any lab 001–009, choose Practice or Assessment, then Start investigation.
 2. Read the incident and expand the design brief. Tap topology nodes or use the accessible device buttons.
 3. Run the listed commands. Enter a numeric destination for ping/trace. Select useful output as evidence; revisit all outputs in the notebook.
 4. Submit cause, affected device(s), evidence and repair. Lab 001 asks for both adjacency endpoints; lab 002 asks for the faulted device, a gateway IPv4 address and a structured explanation of forwarding. Lab 003 asks for the device, interface, observed/intended VLANs and access-port correction. Lab 004 asks for the missing prefix, next hop and reply-routing explanation; lab 005 asks for the router, interface, correction and Hello/adjacency explanation. Notes are stored, **not interpreted or graded**.
@@ -61,6 +63,8 @@ For full PWA use, put the production server behind an HTTPS reverse proxy with a
 Practice is untimed with progressive hints (four in LAB 004/005; three in earlier labs) and a recorded solution reveal. It downloads the lab pack, which enables offline play after the production shell is cached. Assessment lasts 20 minutes, requires the server, and locks hints/guide/journal until it ends. Submit before the deadline: an expired attempt without an on-time final submission receives zero and final feedback. Draft choices are saved locally but do not count as a submitted assessment. Closing the app does not pause time.
 
 ## Commands implemented
+
+LAB 009 adds router `show access-lists` alongside interface, route, running-config and source-aware ping. PCs offer IP configuration and ping. ACL counters, inbound/extended filters and traceroute are not modeled in this lab. In Diagnose, move an observed entry to an unused sequence, preserving its source/action and attachment. Full recovery credit requires an applied policy-preserving state plus fresh selected configuration and positive/negative probes. [Exact boundaries](docs/acl-model.md).
 
 LAB 008 adds switch `show etherchannel summary`, `show lacp internal` and `show interfaces port-channel 1`, alongside status, VLAN and running-config inspections. PCs provide IP configuration, route print, ping and tracert. These are labeled educational steady-state outputs. In Diagnose, select a switch, enter its observed local group and choose a trial mode; then return to Inspect and select fresh verification outputs. Full recovery credit depends on the resulting network and observations. Detailed teaching and worked solutions open only on request. [Boundaries and sources](docs/etherchannel-model.md).
 
