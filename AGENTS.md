@@ -10,6 +10,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # NetFault engineering contract
 
+Milestone 3H is documentation-only: **PLANNED ONLY — NO STP ENGINE OR LAB 010 IMPLEMENTED**. Read [STP feasibility](docs/stp-feasibility.md) and [the proposed 3I scope](docs/milestone-3h-plan.md) before any future STP work. They recommend a single-VLAN steady-state root/role model and one bridge-priority design fault with working initial pings; they do not authorize implementation. Preserve LAB 001–009, published Academy, engine/schema/commands, UI, APIs, persistence, service worker and dependencies. No commit, push or deployment. For 3H validate source citations, local links and documentation-only diff; do not run application/browser suites. Current 26.27 STP material was inspected separately from the historical decks; do not repeat older “current material absent” statements as current facts, infer assessment weighting, or present source screenshots/hand calculations as device validation.
+
 Milestone 3G supersedes 3F's prohibition on the separately authorized LAB 009 only. Read `docs/acl-model.md` and `docs/milestone-3g.md` before changing policy behavior. Preserve LAB 001–008 authored modules/revisions, Academy and the existing Netlify Blobs/CAS architecture. No later lab, dependency, commit, push or deployment is authorized.
 
 - Schema v8 models named nonempty standard IPv4 ACLs: at most two ordered entries, one list/attachment per router, `any` or canonical /24 source only, outbound only. Validate unique ordered sequences and rule identities, attachment references and strict repair payloads. No inbound/extended/IPv6 ACLs, counters, host hashing or generic IOS parser. Unsupported direction must fail, never silently act outbound.

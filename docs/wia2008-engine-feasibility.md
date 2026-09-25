@@ -1,5 +1,11 @@
 # Engine capability and course feasibility audit
 
+## Milestone 3H current-state audit and planning delta
+
+**PLANNED ONLY — NO STP ENGINE OR LAB 010 IMPLEMENTED.** [STP feasibility](stp-feasibility.md) audits current `c5a9052` code separately from the historical table below. Current implementation includes LAB 008's bounded LACP/logical-edge model and LAB 009's [standard outbound ACL model](acl-model.md), applied trials and fresh recovery evidence; the old blanket exclusions for those features are historical. Access-VLAN traversal and a recursion guard do not implement STP, even when the UI draws redundant cables. There are no bridge IDs, STP elections/costs/roles or data-blocking decisions today.
+
+The proposed single-VLAN simple-graph steady-state model is feasible subject to model/forwarding tests, with no transient protocol or mixed STP/LACP support. [The 3I plan](milestone-3h-plan.md) lists exact module seams, schema/heading/device-validation/authoring assumptions, regression risks and acceptance gates. It is a substantive bounded extension, not a configuration-only lab. Nine existing scenarios and Academy remain unchanged; no new application tests were run in this documentation-only audit. The supplied current archive and historical sources are distinguished in the new audit; older “2026/27 unconfirmed” labels below describe the original snapshot, not absence of the now-inspected material.
+
 ## Milestone 3F capability delta
 
 The original 3D snapshot below is retained as historical evidence. **3F separately passed its feasibility gate and adds one bounded LACP model**, documented in [etherchannel-model.md](etherchannel-model.md), with [fresh verification](milestone-3f.md). Exactly two switches, two same-subnet hosts, two physical members, one access VLAN and explicit standalone-disable support deterministic negotiation, logical state and one forwarding edge. Group-mode trials persist per attempt with fresh verification evidence. Thus the old table's blanket EtherChannel/persistent-edit/chain-only exclusions no longer apply to this narrow subset. Old seven scenarios and Academy remain unchanged. STP, trunks, general IOS editing and arbitrary graphs remain unsupported. Access speed/duplex is a declared eligibility constraint for this subset, not an Ethernet autonegotiation simulator.

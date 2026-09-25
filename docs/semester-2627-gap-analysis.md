@@ -1,5 +1,9 @@
 # NetFault × supplied 2026/27 semester material
 
+## Post-3H planning delta — 24 September 2026
+
+**PLANNED ONLY — NO STP ENGINE OR LAB 010 IMPLEMENTED.** [The STP feasibility audit](stp-feasibility.md) freshly inspected current `1.STP.ppt`/`1.STPrv.txt`, both STP decks' native text, selected current/historical visuals and relevant supplied practical/management passages. It records exact citations, clipping/source qualifications, current L2 limitations and a candidate comparison. [The proposed 3I plan](milestone-3h-plan.md) selects one incorrect bridge-priority case, **The unexpected detour**, with coherent before/after trees and a narrow prerequisite primer. This adds planning evidence only: STP remains an implementation/learning gap; there are still nine playable labs and no new Academy content. Implementation needs separate authorization. The earlier audit and post-3G coverage below retain their dated provenance.
+
 Audit date: 23 September 2026. **Historical documentation-only baseline; LAB 009 did not exist at that audit.** Baseline: commit `dda7c0b` (`lab 008`), clean working tree at intake. Milestone 3F acceptance, including physical iPhone testing, is **user-reported physical iPhone verification**, not a new test performed in this audit.
 
 Original recommendation: one standard IPv4 ACL ordering investigation. This was separately authorized and implemented on 24 September 2026: [Milestone 3G record](milestone-3g.md), [bounded model](acl-model.md), [verification](verification.md).

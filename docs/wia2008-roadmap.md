@@ -1,5 +1,11 @@
 # NetFault completion roadmap
 
+## Current planning position — Milestone 3H, 24 September 2026
+
+**PLANNED ONLY — NO STP ENGINE OR LAB 010 IMPLEMENTED.** The [supplied 2026/27 archive](semester-2627-gap-analysis.md) supersedes the historical material-absence assumption below, without confirming current assessment weights/dates. LAB 009 has since delivered [one bounded ACL investigation](milestone-3g.md); neither the ACL chapter nor broader policy work is complete.
+
+The [STP source/engine audit](stp-feasibility.md) recommends exactly one next implementation proposal: **LAB 010 — The unexpected detour**, an incorrect bridge-priority design fault in a three-switch triangle. A minimal single-VLAN steady-state election/role/forwarding model and tiny non-spoiling primer must precede or accompany that case. [Milestone 3I scope](milestone-3h-plan.md) defines exact requirements and tests; separate authorization is required. This is planning progress only, not new coverage or permission to execute other roadmap branches. Port-priority ties, timers/RSTP, trunks, multiple VLAN instances, STP+EtherChannel and edge protection remain outside that proposal. The dated 3D–3F roadmap follows as history.
+
 **Historical-materials-based roadmap — 2026/27 course requirements unconfirmed.**
 
 This replaces the earlier current-materials intake gate and provisional IPv6-first choice. Historical evidence now supports progress. The [coverage matrix](wia2008-coverage.md) and [source inventory](wia2008-sources.md) define what was actually read and what is missing. No target number of labs establishes completion.
