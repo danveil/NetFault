@@ -1,5 +1,9 @@
 # NetFault completion roadmap
 
+## Milestone 3I delivered — 25 September 2026
+
+The separately authorized [LAB 010](milestone-3i.md) and narrow STP foundation are implemented with a small preparation card. This closes only the selected priority/design investigation, not the entire STP chapter: timer/convergence, full RSTP, multiple VLAN/trunk trees, same-sender port ties, guards and mixed aggregation remain separate backlog. All nine earlier labs and Academy are preserved. No next lab is automatically selected or authorized. The 3H next-step wording below is historical; [verification](verification.md) records actual current checks.
+
 ## Current planning position — Milestone 3H, 24 September 2026
 
 **PLANNED ONLY — NO STP ENGINE OR LAB 010 IMPLEMENTED.** The [supplied 2026/27 archive](semester-2627-gap-analysis.md) supersedes the historical material-absence assumption below, without confirming current assessment weights/dates. LAB 009 has since delivered [one bounded ACL investigation](milestone-3g.md); neither the ACL chapter nor broader policy work is complete.

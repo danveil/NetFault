@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { validateStp } from "./stp";
 import { validateEtherChannelTopology } from "./etherchannel";
 
 export const ipv4 = z
@@ -8,6 +9,7 @@ export const ipv4 = z
     "Valid dotted IPv4 required",
   );
 export const commandNames = [
+  "show spanning-tree vlan 10",
   "show access-lists",
   "show etherchannel summary",
   "show lacp internal",
@@ -82,7 +84,16 @@ export const staticRouteSchema = z.object({
   prefix: z.number().int().min(0).max(32),
   nextHop: ipv4,
 });
+export const bridgePriority = z.number().int().min(0).max(61440).multipleOf(4096);
 export const deviceSchema = z.object({
+  stp: z
+    .strictObject({
+      vlan: z.number().int().min(1).max(4094),
+      priority: bridgePriority,
+      mac: z.string(),
+      costMethod: z.literal("short"),
+    })
+    .optional(),
   acls: z.array(standardAclSchema).min(1).max(1).optional(),
   portChannels: z
     .array(
@@ -108,6 +119,13 @@ export const deviceSchema = z.object({
   ports: z
     .array(
       z.object({
+        stp: z
+          .strictObject({
+            number: z.number().int().min(1).max(4095),
+            cost: z.number().int().min(1).max(65535),
+            priority: z.literal(128),
+          })
+          .optional(),
         name: z.string(),
         vlan: z.number().int().min(1).max(4094),
         up: z.boolean(),
@@ -127,6 +145,7 @@ export const linkSchema = z.object({
   subnet: z.string(),
 });
 export const diagnosisSchema = z.object({
+  observedPriority: bridgePriority.optional(),
   aclName: z.string().max(32).optional(),
   observedSequence: aclSequence.optional(),
   observedNextHop: z.string().max(64).optional(),
@@ -140,6 +159,7 @@ export const diagnosisSchema = z.object({
   gateway: z.string().max(64).optional(),
   reason: z
     .enum([
+      "root-election",
       "first-match-policy",
       "unspecified",
       "lacp-initiation",
@@ -157,6 +177,7 @@ export const diagnosisSchema = z.object({
     ])
     .optional(),
   cause: z.enum([
+    "bridge-priority",
     "acl-order",
     "lacp-negotiation",
     "unspecified",
@@ -172,6 +193,7 @@ export const diagnosisSchema = z.object({
   ]),
   devices: z.array(z.string()).max(5),
   fix: z.enum([
+    "bridge-priority",
     "acl-sequence",
     "lacp-mode",
     "unspecified",
@@ -190,6 +212,7 @@ export const diagnosisSchema = z.object({
 });
 export type Diagnosis = z.infer<typeof diagnosisSchema>;
 export const scenarioIdSchema = z.enum([
+  "stp-01",
   "ospf-01",
   "gateway-01",
   "vlan-01",
@@ -215,12 +238,16 @@ export const scenarioSchema = z
       z.literal(6),
       z.literal(7),
       z.literal(8),
+      z.literal(9),
     ]),
     id: scenarioIdSchema,
     revision: z.literal(1),
     title: z.string(),
     incident: z.string(),
     design: z.string(),
+    stpDesign: z
+      .strictObject({ root: z.string(), vlan: z.number().int(), edges: z.array(z.string()).min(1) })
+      .optional(),
     policyChecks: z
       .array(
         z.strictObject({
@@ -238,6 +265,12 @@ export const scenarioSchema = z
     fault: z.object({ cause: diagnosisSchema.shape.cause, devices: z.array(z.string()), interface: z.string() }),
     acceptedFixes: z.array(diagnosisSchema.shape.fix),
     repair: z.union([
+      z.strictObject({
+        device: z.string(),
+        priority: bridgePriority,
+        vlan: z.number().int().min(1).max(4094),
+        reason: z.literal("root-election"),
+      }),
       z.object({
         device: z.string(),
         interface: z.string(),
@@ -303,6 +336,15 @@ export const scenarioSchema = z
         fail("Invalid policy verification probe");
     }
     validateEtherChannelTopology(s, fail);
+    validateStp(s, fail);
+    if (
+      s.schemaVersion === 9
+        ? !s.stpDesign ||
+          !s.devices.some((d) => d.stp && d.id === s.stpDesign!.root && d.stp.vlan === s.stpDesign!.vlan) ||
+          s.stpDesign.edges.some((id) => !s.links.some((l) => l.id === id))
+        : !!s.stpDesign
+    )
+      fail("Invalid STP design contract");
     const ids = s.devices.map((d) => d.id);
     if (new Set(ids).size !== ids.length) fail("Duplicate device IDs");
     const ips = s.devices.flatMap((d) => d.interfaces.map((i) => i.ip));
@@ -331,7 +373,8 @@ export const scenarioSchema = z
       )
         fail("Static next hop must be a directly linked on-subnet router; recursive routes are not modeled");
     };
-    if (s.schemaVersion !== 3 && "vlan" in s.repair) fail("Access VLAN repair requires schema v3");
+    if (s.schemaVersion !== 3 && "vlan" in s.repair && !("priority" in s.repair))
+      fail("Access VLAN repair requires schema v3");
     if (s.schemaVersion === 1 && (s.devices.some((d) => d.kind === "switch") || "gateway" in s.repair))
       fail("Layer 2 ports and gateway repair require schema v2");
     for (const d of s.devices) {
@@ -352,6 +395,7 @@ export const scenarioSchema = z
       const allowed =
         d.kind === "switch"
           ? [
+              "show spanning-tree vlan 10",
               "show vlan brief",
               "show interfaces status",
               "show running-config",
@@ -366,6 +410,7 @@ export const scenarioSchema = z
                 (c) =>
                   !c.endsWith(" switchport") &&
                   ![
+                    "show spanning-tree vlan 10",
                     "show etherchannel summary",
                     "show lacp internal",
                     "show interfaces port-channel 1",
@@ -397,7 +442,7 @@ export const scenarioSchema = z
       }
       if (
         d.kind === "pc" &&
-        !(s.schemaVersion === 7 && !d.gateway) &&
+        !((s.schemaVersion === 7 || s.schemaVersion === 9) && !d.gateway) &&
         (!d.gateway || !d.interfaces.some((i) => sameSubnet(i.ip, d.gateway!, i.prefix)))
       )
         fail("PC gateway must be on-link");
@@ -433,7 +478,7 @@ export const scenarioSchema = z
     for (const d of s.devices)
       if (
         d.kind === "pc" &&
-        !(s.schemaVersion === 7 && !d.gateway) &&
+        !((s.schemaVersion === 7 || s.schemaVersion === 9) && !d.gateway) &&
         !s.devices.some((r) => r.kind === "router" && r.interfaces.some((i) => i.ip === d.gateway)) &&
         !(
           s.schemaVersion === 2 &&
@@ -455,6 +500,7 @@ export const scenarioSchema = z
         extra ||
         !s.fault.devices.includes(id) ||
         !(
+          (s.schemaVersion === 9 && d?.stp && name === `VLAN${d.stp.vlan}`) ||
           d?.interfaces.some((i) => i.name === name) ||
           d?.ports?.some((p) => p.name === name) ||
           d?.portChannels?.some((p) => `Port-channel${p.id}` === name)
@@ -464,7 +510,10 @@ export const scenarioSchema = z
     }
     const repair = s.repair;
     const repairedDevice = s.devices.find((d) => d.id === repair.device);
-    if ("acl" in repair) {
+    if ("priority" in repair) {
+      if (s.schemaVersion !== 9 || repairedDevice?.stp?.vlan !== repair.vlan)
+        fail("STP repair requires an existing bridge instance");
+    } else if ("acl" in repair) {
       const acl = repairedDevice?.acls?.find((a) => a.name === repair.acl);
       if (
         s.schemaVersion !== 8 ||
@@ -594,12 +643,22 @@ export const aclRepairActionSchema = z.strictObject({
   sequence: aclSequence,
   newSequence: aclSequence,
 });
-export const repairActionSchema = z.union([lacpRepairActionSchema, aclRepairActionSchema]);
+export const stpRepairActionSchema = z.strictObject({
+  kind: z.literal("stp-priority"),
+  device: z.string().min(1).max(64),
+  vlan: z.number().int().min(1).max(4094),
+  priority: bridgePriority,
+});
+export const repairActionSchema = z.union([lacpRepairActionSchema, aclRepairActionSchema, stpRepairActionSchema]);
 export type RepairAction = z.infer<typeof repairActionSchema>;
 export const attemptSchema = z.object({
   repairs: z
     .array(
-      z.union([lacpRepairActionSchema.extend({ at: z.number() }), aclRepairActionSchema.extend({ at: z.number() })]),
+      z.union([
+        lacpRepairActionSchema.extend({ at: z.number() }),
+        aclRepairActionSchema.extend({ at: z.number() }),
+        stpRepairActionSchema.extend({ at: z.number() }),
+      ]),
     )
     .max(10)
     .optional(),

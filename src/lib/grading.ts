@@ -2,6 +2,7 @@ import type { Diagnosis, Feedback, Observation, Scenario, RepairAction } from ".
 import { channelState } from "./etherchannel";
 import { connectivity } from "./engine";
 import { trialNetwork } from "./repair-trial";
+import { gradeStp } from "./stp-grading";
 import { gradeAcl } from "./acl-grading";
 export function grade(
   s: Scenario,
@@ -10,6 +11,7 @@ export function grade(
   timedOut = false,
   repairs: RepairAction[] = [],
 ): Feedback {
+  if ("priority" in s.repair) return gradeStp(s, answer, history, timedOut, repairs);
   if ("acl" in s.repair) return gradeAcl(s, answer, history, timedOut, repairs);
   const selected = history.filter(
     (o) => answer.evidence.includes(o.id) && (!o.scenario || o.scenario === s.id) && !o.output.startsWith("%"),

@@ -10,6 +10,7 @@ import {
   type Scenario,
 } from "./schema";
 import { etherChannelOutput, forwardingLinks, forwardingPorts, channelState, physicalPortUp } from "./etherchannel";
+import { stpLinks, stpOutput } from "./stp";
 import { evaluateAcl, aclOutput, aclSource, moveAclEntry } from "./acl";
 
 export type Neighbor = {
@@ -28,7 +29,7 @@ export function device(s: Scenario, id: string): Device {
   return d;
 }
 function peers(s: Scenario, id: string) {
-  const links = forwardingLinks(s);
+  const links = s.schemaVersion === 9 ? stpLinks(s) : forwardingLinks(s);
   const result: { local: Interface; remote: Interface; device: Device }[] = [];
   for (const local of device(s, id).interfaces) {
     const visited = new Set<string>();
@@ -232,9 +233,17 @@ export function runningConfig(s: Scenario, id: string) {
   if (d.kind === "switch")
     return [
       `hostname ${d.id}`,
+      ...(d.stp
+        ? [
+            "! Bounded PVST-style settled-state model",
+            "spanning-tree pathcost method short",
+            `spanning-tree vlan ${d.stp.vlan} priority ${d.stp.priority}`,
+          ]
+        : []),
       ...d.vlans!.flatMap((v) => [`vlan ${v.id}`, ` name ${v.name}`, ` state ${v.active ? "active" : "suspend"}`, "!"]),
       ...d.ports!.flatMap((p) => [
         `interface ${p.name}`,
+        ...(p.stp ? [` spanning-tree cost ${p.stp.cost}`] : []),
         ...(d.portChannels
           ?.filter((c) => c.members.includes(p.name))
           .map((c) => ` channel-group ${c.id} mode ${c.mode}`) ?? []),
@@ -361,6 +370,7 @@ export function execute(
     return `% Unsupported command on ${id}: ${raw}. Use the supported command buttons. This is a bounded simulator, not an IOS shell.`;
   if (source && cmd !== "ping") return "% Explicit source is supported only for router ping.";
   const channelOutput = etherChannelOutput(s, d, cmd);
+  if (cmd === "show spanning-tree vlan 10") return stpOutput(s, d);
   if (cmd === "show access-lists") return aclOutput(d);
   if (channelOutput !== undefined) return channelOutput;
   if (cmd === "arp -a") {
@@ -573,7 +583,9 @@ export function execute(
 export function repaired(s: Scenario): Scenario {
   const next = structuredClone(s);
   const repair = s.repair;
-  if ("acl" in repair) {
+  if ("priority" in repair) {
+    device(next, repair.device).stp!.priority = repair.priority;
+  } else if ("acl" in repair) {
     moveAclEntry(device(next, repair.device), repair.acl, repair.sequence, repair.newSequence);
   } else if ("group" in repair) {
     device(next, repair.device).portChannels!.find((c) => c.id === repair.group)!.mode = repair.mode;

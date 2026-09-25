@@ -1,2 +1,38 @@
 @import url("../styles/base.css");
 @import url("../styles/academy.css");
+
+/* STP's physical triangle is independent of its observed forwarding state. */
+.topology-stp {
+  height: 390px;
+}
+.stp-primer {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #536a80;
+  border-radius: 12px;
+}
+.stp-primer summary {
+  cursor: pointer;
+  min-height: 44px;
+}
+.stp-primer svg {
+  width: 100%;
+  max-height: 200px;
+}
+.stp-primer figure {
+  margin: 1rem 0;
+}
+.stp-primer label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+}
+.stp-primer input {
+  width: auto;
+}
+@media (max-width: 680px) {
+  .topology-stp {
+    height: 610px;
+  }
+}

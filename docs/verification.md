@@ -1,6 +1,27 @@
 # NetFault verification
 
-Current evidence is recorded below and in [Milestone 3G](milestone-3g.md). Historical records are retained rather than relabeled as current test results.
+Current evidence is recorded below and in [Milestone 3I](milestone-3i.md). Historical records are retained rather than relabeled as current test results.
+
+## Milestone 3I — 25 September 2026
+
+Windows, Node 24.15.0, pinned pnpm 11.19.0, installed Edge/Chromium. Final application build includes exactly one new STP lab and the scoped triangle layout. The complete browser suite runs against `next start`, with `CI=true` preventing reuse of a development server.
+
+| Check | Final result |
+| --- | --- |
+| `pnpm lint` | Passed, zero errors/warnings |
+| `pnpm typecheck` | Passed |
+| `pnpm test` | **474 passed**, 20 files, zero failed/skipped, 4.30 seconds |
+| `pnpm build` | Passed; build `daUyMj-NGaY12h0oG4V1r`, generated production worker and dynamic assessment API retained |
+| `$env:CI='true'; $env:PW_PRODUCTION='1'; pnpm test:browser` | **146 passed**, zero failed/skipped, one complete final run in 7.0 minutes |
+| `git diff --check` | Passed |
+
+Seven model-level tests preceded scenario integration. They assert independent initial/repaired role matrices, receiving-port costs, sender-BID ties, order independence, recomputation, forwarding integration and 17,496 finite cost/availability/root-priority combinations. Thirty-one scenario tests cover addressing, initial successful connectivity, all eight equivalent priority repairs, wrong/tied outcomes, actual versus fresh-verified recovery, forged/stale evidence, no-ops/limits, malformed schemas, hints, journal persistence, server-owned attempts and concurrent replay/finalization.
+
+The 15 new browser cases exercise five workflows on desktop 1440px, 414px and 360px: Practice with wrong/correct applied changes, fresh observations, explicit solution reveal, before/after tree preview and reopened journal; timed Assessment with resume; stale verification rejection; complete cached offline Practice; and the small optional tap-based primer. They assert 44px controls, no page overflow and no topology-control/node overlap. Final-build investigation screenshots were visually inspected at all three widths; the desktop triangle, neutral cables and mobile STP role rows are readable, with long bridge IDs scrolling inside the console. Existing suites cover all nine earlier labs, Academy revisions, all-ten-pack offline retention, worker updates, no-store API boundaries and production private-content scans.
+
+The first full browser run produced **142 passed, four failed, zero skipped**. Both existing next-hop/timer offline tests iterated the new pack but expected an old PC address (each failed at desktop and 414px). Adding the explicit STP address retained every older assertion; application forwarding/persistence was not changed to satisfy the tests. Other initial development issues and the changed-file inventory are recorded in [3I](milestone-3i.md).
+
+No physical iPhone, Safari, VoiceOver, Cisco/Packet Tracer/CML or live Netlify test was performed. Source/documentation review is not device execution; the finite graph matrix is not proof of full STP compliance. Practice content remains inspectable and Assessment requires internet. Dependencies, Netlify configuration, assessment storage architecture, worker architecture, the nine earlier scenario modules and published Academy content are unchanged. No commit, push, deployment or deployment-credit use.
 
 ## Milestone 3G — 24 September 2026
 

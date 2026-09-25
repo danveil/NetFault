@@ -1,4 +1,5 @@
 import { commandSequence, packetJourney, repaired } from "./engine";
+import { stpPath } from "./stp";
 import type { Scenario } from "./schema";
 
 // No lab IDs, fault locations or authored repair narration belong in this public module.
@@ -23,6 +24,9 @@ export function repairPreview(original: Scenario) {
   const render = (s: Scenario) =>
     [
       commandSequence(s, commands),
+      ...(s.stpDesign && hosts.length === 2
+        ? [`Simulator Layer 2 path (not IP traceroute): ${stpPath(s, hosts[0].id, hosts[1].id).join(" → ")}`]
+        : []),
       ...hosts.flatMap((a) =>
         hosts.filter((b) => b.id !== a.id).map((b) => packetJourney(s, a.id, b.interfaces[0].ip)),
       ),

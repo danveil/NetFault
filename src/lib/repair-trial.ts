@@ -4,7 +4,7 @@ import { moveAclEntry } from "./acl";
 // Replay learner-owned practice changes or server-owned assessment changes, never a hidden canonical repair.
 export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): Scenario {
   if (!repairs.length) return original;
-  if (original.schemaVersion !== 7 && original.schemaVersion !== 8)
+  if (original.schemaVersion !== 7 && original.schemaVersion !== 8 && original.schemaVersion !== 9)
     throw Error("Configuration trials are not supported by this scenario");
   const result = structuredClone(original);
   for (const raw of repairs) {
@@ -12,6 +12,13 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
     const request = { ...raw } as RepairAction & { at?: number };
     delete request.at;
     const change = repairActionSchema.parse(request);
+    if ("kind" in change && change.kind === "stp-priority") {
+      const bridge = result.devices.find((d) => d.id === change.device)?.stp;
+      if (original.schemaVersion !== 9 || !bridge || bridge.vlan !== change.vlan)
+        throw Error("Select an existing STP bridge and VLAN");
+      bridge.priority = change.priority;
+      continue;
+    }
     if ("kind" in change) {
       if (original.schemaVersion !== 8) throw Error("ACL changes are not supported by this scenario");
       moveAclEntry(
@@ -32,6 +39,8 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
   return result;
 }
 export function repairDescription(change: RepairAction) {
+  if ("kind" in change && change.kind === "stp-priority")
+    return `${change.device}, VLAN ${change.vlan}, bridge priority → ${change.priority}`;
   return "kind" in change
     ? `${change.device}, ACL ${change.acl}, sequence ${change.sequence} → ${change.newSequence}`
     : `${change.device}, channel-group ${change.group}, mode ${change.mode}`;

@@ -1,5 +1,9 @@
 # NetFault × supplied 2026/27 semester material
 
+## Post-3I coverage delta — 25 September 2026
+
+[LAB 010](milestone-3i.md) now supplies partial executable STP root/BID/path/role reasoning and an applied priority-correction loop, grounded in P1/R1. It tests a design violation while host connectivity still succeeds. A small public preparation card and private seven-part case lesson accompany it; no Academy module/revision changed. Ten labs are playable. Protocol timing, full RSTP, multiple VLANs/trunks, port-priority ties and edge guards remain gaps; no university practical or real-device competence is claimed. The 3H planning-only and earlier coverage snapshots below are historical.
+
 ## Post-3H planning delta — 24 September 2026
 
 **PLANNED ONLY — NO STP ENGINE OR LAB 010 IMPLEMENTED.** [The STP feasibility audit](stp-feasibility.md) freshly inspected current `1.STP.ppt`/`1.STPrv.txt`, both STP decks' native text, selected current/historical visuals and relevant supplied practical/management passages. It records exact citations, clipping/source qualifications, current L2 limitations and a candidate comparison. [The proposed 3I plan](milestone-3h-plan.md) selects one incorrect bridge-priority case, **The unexpected detour**, with coherent before/after trees and a narrow prerequisite primer. This adds planning evidence only: STP remains an implementation/learning gap; there are still nine playable labs and no new Academy content. Implementation needs separate authorization. The earlier audit and post-3G coverage below retain their dated provenance.

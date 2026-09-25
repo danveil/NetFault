@@ -304,6 +304,50 @@ export const aclReasons = [
   ["same-address", "Changing entry order makes the hosts members of the same subnet."],
   ["dns-resolution", "The policy translates the destination name into an IP address."],
 ] as const;
+export const stpLab = {
+  id: "stp-01",
+  number: "010",
+  topic: "Layer 2 design investigation",
+  title: "The unexpected detour",
+  subtitle: "Connectivity and an approved switching design.",
+  target: "172.26.10.20",
+  heading: "Connectivity works. Does the design?",
+  incident:
+    "PC-A and PC-B can still communicate after maintenance, but the settled switching path no longer matches the approved design. Investigate the physical and logical topology, make a justified correction, and verify the intended tree while retaining all cables.",
+  design:
+    "One access VLAN 10; 172.26.10.0/24. All cables and ports are intended up at 1 Gb/s/full duplex with short path costs of 4. No router, default gateway or aggregation. SW1 is the distribution switch and must be root with a strictly lower configured bridge priority than SW2 and SW3, without relying on a MAC tie. Host traffic should use SW1–SW3 directly; SW2–SW3 provides redundancy. Only settled STP selection is modeled: no BPDU packets, timers, convergence, trunks, PortFast, guards or full RSTP.",
+  devices: [
+    { id: "PC-A", kind: "pc", role: "Workstation" },
+    { id: "SW1", kind: "switch", role: "Distribution" },
+    { id: "SW2", kind: "switch", role: "Access" },
+    { id: "SW3", kind: "switch", role: "Access" },
+    { id: "PC-B", kind: "pc", role: "Workstation" },
+  ],
+  subnets: Array(5).fill("172.26.10.0/24") as string[],
+  physicalLinks: [
+    { source: "PC-A", target: "SW1", label: "Ethernet0 — Gi0/3", offset: 0 },
+    { source: "SW1", target: "SW2", label: "Gi0/1 — Gi0/1", offset: 0 },
+    { source: "SW1", target: "SW3", label: "Gi0/2 — Gi0/1", offset: 0 },
+    { source: "SW2", target: "SW3", label: "Gi0/2 — Gi0/2", offset: 0 },
+    { source: "SW3", target: "PC-B", label: "Gi0/3 — Ethernet0", offset: 0 },
+  ],
+} as const;
+export const stpCauses = [
+  ["bridge-priority", "Bridge priority does not meet the design"],
+  ["interface-down", "A physical interface is down"],
+  ["access-vlan", "Access VLAN membership differs"],
+  ["wrong-gateway", "The host gateway is incorrect"],
+] as const;
+export const stpFixes = [
+  ["bridge-priority", "Change a bridge priority"],
+  ["no-shutdown", "Enable an interface"],
+  ["access-vlan", "Change access VLAN membership"],
+] as const;
+export const stpReasons = [
+  ["root-election", "A lower bridge ID selects the root and recomputes the port roles."],
+  ["physical-equals-logical", "Every physically connected port must forward data."],
+  ["same-address", "Priority changes make the hosts share an IP address."],
+] as const;
 export const labs = [
   lab,
   gatewayLab,
@@ -314,6 +358,7 @@ export const labs = [
   nextHopLab,
   etherChannelLab,
   aclLab,
+  stpLab,
 ] as const;
 export type PublicLab = (typeof labs)[number];
 export function catalog(id: ScenarioId): PublicLab {
@@ -322,6 +367,10 @@ export function catalog(id: ScenarioId): PublicLab {
 export function commandsFor(id: ScenarioId, deviceId: string): string[] {
   const d = catalog(id).devices.find((d) => d.id === deviceId);
   if (!d) return [];
+  if (id === "stp-01")
+    return d.kind === "switch"
+      ? ["show interfaces status", "show vlan brief", "show running-config", "show spanning-tree vlan 10"]
+      : ["ipconfig", "ping"];
   if (id === "acl-01")
     return d.kind === "router"
       ? [...gatewayRouterCommands, "show access-lists"]

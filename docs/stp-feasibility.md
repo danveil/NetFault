@@ -1,5 +1,7 @@
 # STP feasibility audit — Milestone 3H
 
+**3I implementation update — 25 September 2026:** the separately authorized bounded model and LAB 010 are now implemented; see [implementation details and limits](milestone-3i.md) and [verification](verification.md). The original 3H planning audit below is retained as history; its no-implementation label describes 3H, not the current application. This does not mean full STP support.
+
 **PLANNED ONLY — NO STP ENGINE OR LAB 010 IMPLEMENTED**
 
 24 September 2026; inspected repository baseline `c5a9052`, clean at intake. This is an author-facing engineering audit, with proposed answers. It is not application content or authorization to implement. LAB 001–009, Academy, assessment storage and deployment remain unchanged. The detailed proposed next milestone is [Milestone 3I scope](milestone-3h-plan.md).

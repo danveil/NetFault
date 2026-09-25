@@ -79,21 +79,38 @@ export default function Topology({
     () => window.matchMedia("(max-width:680px)").matches,
     () => false,
   );
-  const positions = mobile
-    ? [
-        [0, 0],
-        [235, 0],
-        [235, 180],
-        [0, 180],
-        [0, 360],
-      ]
-    : [
-        [0, 0],
-        [225, 0],
-        [450, 0],
-        [450, 195],
-        [225, 195],
-      ];
+  const stp = lab.id === "stp-01";
+  const positions = stp
+    ? mobile
+      ? [
+          [0, 0],
+          [0, 155],
+          [230, 270],
+          [0, 385],
+          [0, 540],
+        ]
+      : [
+          [0, 0],
+          [0, 170],
+          [210, 340],
+          [420, 170],
+          [420, 0],
+        ]
+    : mobile
+      ? [
+          [0, 0],
+          [235, 0],
+          [235, 180],
+          [0, 180],
+          [0, 360],
+        ]
+      : [
+          [0, 0],
+          [225, 0],
+          [450, 0],
+          [450, 195],
+          [225, 195],
+        ];
   const incoming = mobile
     ? [Position.Left, Position.Left, Position.Top, Position.Right, Position.Top]
     : [Position.Left, Position.Left, Position.Left, Position.Top, Position.Right];
@@ -109,8 +126,10 @@ export default function Topology({
       kind: d.kind,
       role: d.role,
       active: selected === d.id,
-      incoming: incoming[i],
-      outgoing: outgoing[i],
+      incoming:
+        stp && !mobile ? [Position.Top, Position.Top, Position.Top, Position.Left, Position.Bottom][i] : incoming[i],
+      outgoing:
+        stp && !mobile ? [Position.Bottom, Position.Right, Position.Right, Position.Top, Position.Top][i] : outgoing[i],
     },
     ariaLabel: `Inspect ${d.id}`,
   }));
@@ -139,7 +158,7 @@ export default function Topology({
   return (
     <>
       <div
-        className={`${compact ? "topology compact" : "topology"}${"physicalLinks" in lab ? " topology-bundle" : ""}${lab.id === "acl-01" ? " topology-policy" : ""}`}
+        className={`${compact ? "topology compact" : "topology"}${stp ? " topology-stp" : "physicalLinks" in lab ? " topology-bundle" : ""}${lab.id === "acl-01" ? " topology-policy" : ""}`}
         aria-label="Interactive network topology"
       >
         <ReactFlow
@@ -164,7 +183,14 @@ export default function Topology({
           <Controls position="bottom-right" showInteractive={false} />
         </ReactFlow>
       </div>
-      {"physicalLinks" in lab && (
+      {stp && (
+        <p className="topology-text">
+          Physical cabling: PC-A Ethernet0 — SW1 Gi0/3; SW1 Gi0/1 — SW2 Gi0/1; SW1 Gi0/2 — SW3 Gi0/1; SW2 Gi0/2 — SW3
+          Gi0/2; SW3 Gi0/3 — PC-B Ethernet0. All switch links use access VLAN 10. Lines show cables, not forwarding
+          state. Inspect each switch for the current tree.
+        </p>
+      )}
+      {!stp && "physicalLinks" in lab && (
         <p className="topology-text">
           PC-A — SW1 ⇄ SW2 — PC-B. Two physical member links: Gi1/0/1 and Gi1/0/2 on both switches. Lines show cabling,
           not operational bundle status. Inspect each switch for logical state.

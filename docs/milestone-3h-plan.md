@@ -1,5 +1,7 @@
 # Milestone 3H — STP audit and proposed Milestone 3I scope
 
+**Historical approved plan, implemented under separate Milestone 3I authorization on 25 September 2026.** See [3I implementation](milestone-3i.md) and [verification](verification.md). The future-tense scope, gates and documentation-only 3H results below retain their original provenance; they are not an outstanding implementation prohibition after that authorization. No later lab or broader STP feature is authorized.
+
 **PLANNED ONLY — NO STP ENGINE OR LAB 010 IMPLEMENTED**
 
 24 September 2026. Documentation-only audit against `c5a9052`. The [feasibility audit](stp-feasibility.md) contains source provenance, course claims, current capabilities, candidate comparison and model boundaries. This document specifies one possible next implementation milestone; **3I requires separate authorization**. Author-facing answers here must not ship as public lab metadata.

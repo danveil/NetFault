@@ -1,5 +1,9 @@
 # Engine capability and course feasibility audit
 
+## Milestone 3I capability delta
+
+[The implemented STP subset](milestone-3i.md) adds one qualified simple switched graph, deterministic bridge-ID/root/receiving-cost/role derivation, actual forwarding constrained by both endpoint states, a priority trial and fresh evidence grading. Its single-VLAN PVST-style snapshot is not full STP/RSTP. LAB 008 retains its independent bounded LACP path; mixed STP/channel configurations are rejected. Older schema versions, scenario data, Academy and Netlify storage architecture remain unchanged. The 3H feasibility proposal and historical 3D exclusions below now describe earlier states, not an absence of the implemented subset.
+
 ## Milestone 3H current-state audit and planning delta
 
 **PLANNED ONLY — NO STP ENGINE OR LAB 010 IMPLEMENTED.** [STP feasibility](stp-feasibility.md) audits current `c5a9052` code separately from the historical table below. Current implementation includes LAB 008's bounded LACP/logical-edge model and LAB 009's [standard outbound ACL model](acl-model.md), applied trials and fresh recovery evidence; the old blanket exclusions for those features are historical. Access-VLAN traversal and a recursion guard do not implement STP, even when the UI draws redundant cables. There are no bridge IDs, STP elections/costs/roles or data-blocking decisions today.

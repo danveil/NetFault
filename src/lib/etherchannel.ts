@@ -20,7 +20,7 @@ export function validateEtherChannelTopology(s: Model, fail: (message: string) =
     if (
       channels.length ||
       s.devices.some((d) => d.portChannels !== undefined) ||
-      s.links.some((l) => l.up !== undefined) ||
+      (s.schemaVersion !== 9 && s.links.some((l) => l.up !== undefined)) ||
       s.devices.some((d) => d.commands.some((c) => commands.includes(c)))
     )
       fail("EtherChannel fields and diagnostics require schema v7");

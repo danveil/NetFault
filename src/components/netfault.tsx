@@ -25,6 +25,9 @@ import {
 import Topology from "./topology";
 import EtherChannelRepair from "./etherchannel-repair";
 import AclRepair from "./acl-repair";
+import StpRepair, { StpDiagnosis } from "./stp-repair";
+import StpPrimer from "./stp-primer";
+import { stpCauses, stpFixes, stpReasons } from "@/lib/catalog";
 import { recordRepair, trialNetwork, repairDescription } from "@/lib/repair-trial";
 import PwaUpdate from "./pwa-update";
 import {
@@ -122,39 +125,44 @@ export default function NetFault() {
   const isTimer = lab.id === "timer-01";
   const isEtherChannel = lab.id === "etherchannel-01";
   const isAcl = lab.id === "acl-01";
-  const isTrial = isEtherChannel || isAcl;
+  const isStp = lab.id === "stp-01";
+  const isTrial = isEtherChannel || isAcl || isStp;
   const protocolReasons = isTimer ? timerReasons : passiveReasons;
   const singleDeviceFault = lab.id !== "ospf-01" && !isEtherChannel;
   const supportsPingSource = isRouting || isPassive || isTimer || isAcl;
   const hintCount = isRouting || isPassive || isTimer || isTrial ? 4 : 3;
-  const causeChoices = isAcl
-    ? aclCauses
-    : isEtherChannel
-      ? etherChannelCauses
-      : isNextHop
-        ? nextHopCauses
-        : isPassive || isTimer
-          ? passiveCauses
-          : isRouting
-            ? returnCauses
-            : isVlan
-              ? vlanCauses
-              : causes;
-  const repairChoices = isAcl
-    ? aclFixes
-    : isEtherChannel
-      ? etherChannelFixes
-      : isNextHop
-        ? nextHopFixes
-        : isPassive || isTimer
-          ? passiveFixes
-          : isRouting
-            ? returnFixes
-            : isVlan
-              ? vlanFixes
-              : isGateway
-                ? gatewayFixes
-                : fixes;
+  const causeChoices = isStp
+    ? stpCauses
+    : isAcl
+      ? aclCauses
+      : isEtherChannel
+        ? etherChannelCauses
+        : isNextHop
+          ? nextHopCauses
+          : isPassive || isTimer
+            ? passiveCauses
+            : isRouting
+              ? returnCauses
+              : isVlan
+                ? vlanCauses
+                : causes;
+  const repairChoices = isStp
+    ? stpFixes
+    : isAcl
+      ? aclFixes
+      : isEtherChannel
+        ? etherChannelFixes
+        : isNextHop
+          ? nextHopFixes
+          : isPassive || isTimer
+            ? passiveFixes
+            : isRouting
+              ? returnFixes
+              : isVlan
+                ? vlanFixes
+                : isGateway
+                  ? gatewayFixes
+                  : fixes;
   const inFlight = useRef(false),
     timeoutRequested = useRef(false);
   const latestAttempt = useRef<Attempt | undefined>(undefined);
@@ -424,6 +432,7 @@ export default function NetFault() {
             timerPractice: localStorage.getItem("netfault.practice.timer-01.v1"),
             passivePractice: localStorage.getItem("netfault.practice.passive-01.v1"),
             etherChannelPractice: localStorage.getItem("netfault.practice.etherchannel-01.v1"),
+            stpPractice: localStorage.getItem("netfault.practice.stp-01.v1"),
           }
         : { version: 1, exportedAt: new Date().toISOString(), attempts: journal };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -519,7 +528,7 @@ export default function NetFault() {
           <span className="connection">
             <span className={online ? "status-dot" : "status-dot offline"} />
             {online ? "Workspace online" : "Offline"}
-            <span className="desktop-only"> · Milestone 3G</span>
+            <span className="desktop-only"> · Milestone 3I</span>
           </span>
         </header>
         <main id="main" tabIndex={-1}>
@@ -619,11 +628,21 @@ export default function NetFault() {
                     <span className="muted">LAB {lab.number}</span>
                   </div>
                   <h2>{lab.title}</h2>
-                  <p>{lab.subtitle} Trace the path between two campus LANs and explain why traffic is not arriving.</p>
-                  <div className="mini-path" aria-label={lab.devices.map((d) => d.id).join(" to ")}>
+                  <p>
+                    {lab.subtitle}{" "}
+                    {isStp
+                      ? "Compare the observed switching tree with the approved design while connectivity remains available."
+                      : "Trace the path between two campus LANs and explain why traffic is not arriving."}
+                  </p>
+                  <div
+                    className="mini-path"
+                    aria-label={
+                      isStp ? "Devices in the redundant switched LAN" : lab.devices.map((d) => d.id).join(" to ")
+                    }
+                  >
                     {lab.devices.map((d, i) => (
                       <span key={d.id}>
-                        {i > 0 && <i />}
+                        {i > 0 && !isStp && <i />}
                         {d.kind === "pc" ? (
                           <Monitor size={23} />
                         ) : d.kind === "switch" ? (
@@ -688,6 +707,7 @@ export default function NetFault() {
                   </small>
                 </div>
               </section>
+              {isStp && !locked && <StpPrimer />}
               <details className="offline-details">
                 <summary>Offline practice & assessment limits</summary>
                 <p>
@@ -775,24 +795,27 @@ export default function NetFault() {
                 </div>
                 <div>
                   <div className="eyebrow">INCIDENT REPORT</div>
-                  <h2>PC-A cannot reach PC-B.</h2>
+                  <h2>{"heading" in lab ? lab.heading : "PC-A cannot reach PC-B."}</h2>
+                  {isStp && !locked && <StpPrimer />}
                   <p>{lab.incident}</p>
                   <details>
                     <summary>Network design & investigation brief</summary>
                     <p>{lab.design}</p>
                     <p>
                       Use commands to inspect each device. Save observations as evidence,{" "}
-                      {isAcl
-                        ? "identify the policy location and first matching entry, apply an order change, then verify permitted and restricted traffic."
-                        : isPassive || isTimer
-                          ? "identify the router, interface and configuration fault, then explain the effect of your correction."
-                          : isRouting
-                            ? "identify the device, destination prefix and next hop, then explain how the repair restores communication."
-                            : isVlan
-                              ? "identify the device, interface and observed configuration, then propose the intended configuration."
-                              : isGateway
-                                ? "identify the device and incorrect setting, then propose an address and explain the repair."
-                                : "identify both affected adjacency endpoints, then propose a repair."}{" "}
+                      {isStp
+                        ? "compare the observed tree with the approved design, apply a justified priority change, and verify fresh roles plus connectivity."
+                        : isAcl
+                          ? "identify the policy location and first matching entry, apply an order change, then verify permitted and restricted traffic."
+                          : isPassive || isTimer
+                            ? "identify the router, interface and configuration fault, then explain the effect of your correction."
+                            : isRouting
+                              ? "identify the device, destination prefix and next hop, then explain how the repair restores communication."
+                              : isVlan
+                                ? "identify the device, interface and observed configuration, then propose the intended configuration."
+                                : isGateway
+                                  ? "identify the device and incorrect setting, then propose an address and explain the repair."
+                                  : "identify both affected adjacency endpoints, then propose a repair."}{" "}
                       Outputs are deterministic, condensed IOS-style or PC-style views; no live network traffic is sent.
                     </p>
                   </details>
@@ -940,7 +963,8 @@ export default function NetFault() {
                       {commands.some((c) => ["ping", "tracert", "traceroute"].includes(c)) && (
                         <>
                           <label htmlFor="destination">
-                            Destination IPv4 <span className="muted">{isAcl ? "for ping" : "for ping / trace"}</span>
+                            Destination IPv4{" "}
+                            <span className="muted">{isAcl || isStp ? "for ping" : "for ping / trace"}</span>
                           </label>
                           <input
                             id="destination"
@@ -1148,6 +1172,15 @@ export default function NetFault() {
                               : "Policy recovery not established."}
                         </p>
                       )}
+                      {isStp && (
+                        <p className="recovery-status">
+                          {attempt.feedback.recovery === "verified"
+                            ? "Design recovery verified: intended root, roles and retained connectivity established."
+                            : attempt.feedback.recovery === "recovered-unverified"
+                              ? "Design restored; fresh verification is incomplete."
+                              : "Design recovery not established."}
+                        </p>
+                      )}
                       {isTrial ? (
                         <details className="solution" open={attempt.revealed}>
                           <summary>Explanation — reveal when ready</summary>
@@ -1247,6 +1280,13 @@ export default function NetFault() {
                         </p>
                       )}
                       {isNextHop && <p>Observed next hop: {answer.observedNextHop ?? "Not submitted"}</p>}
+                      {isStp && (
+                        <p>
+                          Initial observed base priority: {answer.observedPriority ?? "Not submitted"}; VLAN{" "}
+                          {answer.observedVlan ?? "Not submitted"}.{" "}
+                          {stpReasons.find(([id]) => id === answer.reason)?.[1]}
+                        </p>
+                      )}
                       {isTrial && (
                         <details className="solution">
                           <summary>Recorded configuration changes</summary>
@@ -1317,6 +1357,17 @@ export default function NetFault() {
                           onApply={applyRepair}
                           onInspect={() => setTab("inspect")}
                         />
+                      )}
+                      {isStp && (
+                        <>
+                          <StpRepair
+                            attempt={attempt}
+                            disabled={disabled}
+                            onApply={applyRepair}
+                            onInspect={() => setTab("inspect")}
+                          />
+                          <StpDiagnosis answer={answer} onChange={editAnswer} />
+                        </>
                       )}
                       <label htmlFor="cause">01 / Root cause</label>
                       <select
@@ -1664,21 +1715,23 @@ export default function NetFault() {
                         <div>
                           <strong>04 / {answer.evidence.length} evidence items selected</strong>
                           <p>
-                            {isAcl
-                              ? "Preserve initial host/failure, both routes and policy/attachment evidence. After your latest trial select both policy views, successful host pings in both directions and an explicitly sourced excluded control that remains denied."
-                              : isEtherChannel
-                                ? "Preserve initial host, physical, logical and negotiation evidence. After your change, select fresh logical status on both switches and host pings in both directions."
-                                : isPassive || isTimer
-                                  ? "Combine the observed configuration with physical interface state, neighbor relationships and routing impact. A missing neighbor or failed ping alone cannot identify the cause."
-                                  : isRouting
-                                    ? isNextHop
-                                      ? "Map the installed route to its adjacent router and compare onward forwarding and interface evidence. A failed ping alone cannot prove the cause."
-                                      : "Combine both routing tables with the source host's IP configuration. Failed ping alone cannot prove which route is missing."
-                                    : isVlan
-                                      ? "Combine host configuration with membership observations for both connected switch ports. A failed ping alone does not identify the cause."
-                                      : isGateway
-                                        ? "Include at least one observation of PC-A's configured next hop. Compare it with the router interface and local/remote probes."
-                                        : "Include both interface configurations and observations of the neighbor and routing impact."}
+                            {isStp
+                              ? "Preserve initial configuration and role observations. After a trial, verify the intended root and tree with fresh switch views and reciprocal host pings. A successful ping alone cannot prove the design."
+                              : isAcl
+                                ? "Preserve initial host/failure, both routes and policy/attachment evidence. After your latest trial select both policy views, successful host pings in both directions and an explicitly sourced excluded control that remains denied."
+                                : isEtherChannel
+                                  ? "Preserve initial host, physical, logical and negotiation evidence. After your change, select fresh logical status on both switches and host pings in both directions."
+                                  : isPassive || isTimer
+                                    ? "Combine the observed configuration with physical interface state, neighbor relationships and routing impact. A missing neighbor or failed ping alone cannot identify the cause."
+                                    : isRouting
+                                      ? isNextHop
+                                        ? "Map the installed route to its adjacent router and compare onward forwarding and interface evidence. A failed ping alone cannot prove the cause."
+                                        : "Combine both routing tables with the source host's IP configuration. Failed ping alone cannot prove which route is missing."
+                                      : isVlan
+                                        ? "Combine host configuration with membership observations for both connected switch ports. A failed ping alone does not identify the cause."
+                                        : isGateway
+                                          ? "Include at least one observation of PC-A's configured next hop. Compare it with the router interface and local/remote probes."
+                                          : "Include both interface configurations and observations of the neighbor and routing impact."}
                           </p>
                           <button className="text-button" type="button" onClick={() => setTab("evidence")}>
                             Review evidence <ArrowRight size={15} />
@@ -1708,17 +1761,19 @@ export default function NetFault() {
                       />
                       <p className="muted">
                         Grading uses the selected cause,{" "}
-                        {isAcl
-                          ? "device/interface, observed ACL/sequence, initial evidence, applied policy-preserving repair and fresh permitted/denied controls"
-                          : isPassive || isTimer
-                            ? "router, interface, observed command evidence, targeted repair and protocol explanation"
-                            : isRouting
-                              ? "device, destination prefix, observed configuration, next hop, command evidence and forwarding explanation"
-                              : isVlan
-                                ? "device, interface, observed VLAN, command evidence and intended access-port configuration"
-                                : isGateway
-                                  ? "device, command evidence, gateway address and forwarding explanation"
-                                  : "endpoint pair, command evidence, and repair"}
+                        {isStp
+                          ? "bridge/VLAN, initial priority evidence, applied design correction and fresh tree verification"
+                          : isAcl
+                            ? "device/interface, observed ACL/sequence, initial evidence, applied policy-preserving repair and fresh permitted/denied controls"
+                            : isPassive || isTimer
+                              ? "router, interface, observed command evidence, targeted repair and protocol explanation"
+                              : isRouting
+                                ? "device, destination prefix, observed configuration, next hop, command evidence and forwarding explanation"
+                                : isVlan
+                                  ? "device, interface, observed VLAN, command evidence and intended access-port configuration"
+                                  : isGateway
+                                    ? "device, command evidence, gateway address and forwarding explanation"
+                                    : "endpoint pair, command evidence, and repair"}
                         . Free text is saved verbatim; it is not interpreted.
                       </p>
                       <button className="primary" disabled={disabled} type="submit">

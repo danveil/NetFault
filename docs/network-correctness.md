@@ -1,5 +1,7 @@
 # Network correctness: OSPF lab 001
 
+Milestone 3I adds [LAB 010 bounded STP correctness](milestone-3i.md): deterministic root/receiving-cost/port-role selection on one access-VLAN simple graph, with both-endpoint data filtering in shared Layer 2 traversal. Initial and repaired host pings both succeed; the root/tree must meet the explicit design and be freshly verified after a priority change. This adds no timer, BPDU, storm, trunk or full RSTP simulation. All nine previous authored scenarios, including the OSPF network below, are unchanged.
+
 Milestone 3G adds [LAB 009 standard ACL correctness](acl-model.md): source-only first-match outbound policy after route selection, independent reply evaluation and a policy-preserving repair. Its addressing, expected positive/negative flow matrix, router-local traffic boundary and unsupported features are documented there. The original eight authored scenarios remain unchanged; all are covered by the current [verification](verification.md).
 
 Milestone 3F adds a separate [bounded EtherChannel model](etherchannel-model.md). Physical members, negotiation, logical forwarding and end-to-end reachability derive from common state, with explicit standalone-disable and no alternate path. It does not change this OSPF scenario or the other six existing authored networks. Vendor/source review and automated model validation are documented separately from unperformed physical-device tests in [3F](milestone-3f.md).
