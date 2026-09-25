@@ -1,5 +1,9 @@
 # NetFault × supplied 2026/27 semester material
 
+## Post-3J planning delta — 25 September 2026
+
+**PLANNED ONLY — NO FHRP ENGINE OR LAB 011 IMPLEMENTED.** The [focused FHRP audit](fhrp-feasibility.md) freshly inspected R3/P3, including all native text and eleven diagram/command slides. Current material explicitly teaches HSRP priorities/default, preemption/incumbency, virtual IP/MAC/ARP, Active/Standby, timers and verification; tracking configuration was not established. The [3K proposal](milestone-3j-plan.md) selects **The shared exit**, one priority design fault with working connectivity. Fixed preemption-on and unequal priorities permit a useful settled model without failure/restart history; virtual ownership must affect forwarding and preserve ordinary Standby return routing. This refines the earlier blanket event-cost assumption for this narrow case only. Ten labs remain playable; FHRP coverage is still absent and broader failover, VRRP/GLBP and tracking remain gaps. No implementation is authorized by this planning update.
+
 ## Post-3I coverage delta — 25 September 2026
 
 [LAB 010](milestone-3i.md) now supplies partial executable STP root/BID/path/role reasoning and an applied priority-correction loop, grounded in P1/R1. It tests a design violation while host connectivity still succeeds. A small public preparation card and private seven-part case lesson accompany it; no Academy module/revision changed. Ten labs are playable. Protocol timing, full RSTP, multiple VLANs/trunks, port-priority ties and edge guards remain gaps; no university practical or real-device competence is claimed. The 3H planning-only and earlier coverage snapshots below are historical.

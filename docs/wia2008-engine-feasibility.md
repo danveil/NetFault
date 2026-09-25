@@ -1,5 +1,9 @@
 # Engine capability and course feasibility audit
 
+## Milestone 3J FHRP planning delta
+
+**PLANNED ONLY — NO FHRP ENGINE OR LAB 011 IMPLEMENTED.** At `b072a12`, a host gateway and same-VLAN peers are supported, but validation, next-hop resolution, local delivery and reply ownership still recognize physical interface addresses only. The [new audit](fhrp-feasibility.md) separates configuration, derived roles, forwarding and observations, and identifies the actual resolver/ARP/replay/UI seams. A bounded preempt-on, unequal-priority HSRPv2 pair is feasible without a protocol clock, but virtual-owner forwarding is substantive new work, not a catalog entry or role label. [The proposed 3K scope](milestone-3j-plan.md) specifies one group/VIP, stable virtual MAC, intact static/return routing, fresh evidence and exactly one case. Equal-priority/nonpreemptive history, arbitrary failures, tracking and combined STP/FHRP remain excluded. Application capability is unchanged by 3J.
+
 ## Milestone 3I capability delta
 
 [The implemented STP subset](milestone-3i.md) adds one qualified simple switched graph, deterministic bridge-ID/root/receiving-cost/role derivation, actual forwarding constrained by both endpoint states, a priority trial and fresh evidence grading. Its single-VLAN PVST-style snapshot is not full STP/RSTP. LAB 008 retains its independent bounded LACP path; mixed STP/channel configurations are rejected. Older schema versions, scenario data, Academy and Netlify storage architecture remain unchanged. The 3H feasibility proposal and historical 3D exclusions below now describe earlier states, not an absence of the implemented subset.

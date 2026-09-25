@@ -1,5 +1,9 @@
 # NetFault completion roadmap
 
+## Current planning position — Milestone 3J, 25 September 2026
+
+**PLANNED ONLY — NO FHRP ENGINE OR LAB 011 IMPLEMENTED.** [The source-grounded FHRP audit](fhrp-feasibility.md) recommends exactly one next proposal: **LAB 011 — The shared exit**, an incorrect HSRP priority while a correct virtual gateway and remote communication still work. [Milestone 3K specification](milestone-3j-plan.md) defines fixed preemption-on/unequal priorities, one IPv4 group, derived virtual ownership, routing/ARP integration, applied repair and fresh verification, plus a tiny unrelated primer. No full Academy module or failure-history framework is needed for that limited objective. Missing-preempt/reappearance, tested failover, tracking, multiple groups, GLBP/VRRP and IPv6 remain later gaps. FHRP is not marked covered; ten labs and existing Academy remain unchanged. Separate 3K authorization is required; no other roadmap branch is selected or executed.
+
 ## Milestone 3I delivered — 25 September 2026
 
 The separately authorized [LAB 010](milestone-3i.md) and narrow STP foundation are implemented with a small preparation card. This closes only the selected priority/design investigation, not the entire STP chapter: timer/convergence, full RSTP, multiple VLAN/trunk trees, same-sender port ties, guards and mixed aggregation remain separate backlog. All nine earlier labs and Academy are preserved. No next lab is automatically selected or authorized. The 3H next-step wording below is historical; [verification](verification.md) records actual current checks.
