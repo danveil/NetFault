@@ -1,5 +1,7 @@
 # FHRP/HSRP feasibility audit — Milestone 3J
 
+**3K update (26 September 2026):** the separately authorized [bounded implementation](milestone-3k.md) now implements LAB 011 and the [HSRP model](hsrp-model.md). The following is the dated 3J planning/audit record; its planned-only statements describe the end of 3J, not current application capability.
+
 **PLANNED ONLY — NO FHRP ENGINE OR LAB 011 IMPLEMENTED**
 
 25 September 2026. Read-only implementation audit at clean baseline `b072a12` (`lab 010`). All ten labs, Academy and application files remain unchanged. The 474 unit / 146 production browser passes in [3I verification](verification.md) are historical results, not tests rerun in 3J. The proposed implementation contract is [Milestone 3K scope](milestone-3j-plan.md); it requires separate authorization.

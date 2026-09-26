@@ -36,3 +36,23 @@
     height: 610px;
   }
 }
+
+.topology-hsrp {
+  height: 440px;
+}
+.hsrp-concept {
+  display: grid;
+  gap: 12px;
+  text-align: center;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+@media (max-width: 680px) {
+  .topology-hsrp {
+    height: 690px;
+  }
+  .topology-hsrp.compact {
+    height: 590px;
+  }
+}

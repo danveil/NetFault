@@ -348,6 +348,55 @@ export const stpReasons = [
   ["physical-equals-logical", "Every physically connected port must forward data."],
   ["same-address", "Priority changes make the hosts share an IP address."],
 ] as const;
+export const hsrpLab = {
+  id: "hsrp-01",
+  number: "011",
+  topic: "First-hop design investigation",
+  title: "The shared exit",
+  subtitle: "A shared gateway and an approved service design.",
+  target: "172.28.20.10",
+  heading: "Connectivity works. Check the gateway design.",
+  incident:
+    "The workstations can communicate after maintenance. Audit the shared gateway against the approved service design, apply a justified correction if needed, and verify the result with fresh observations.",
+  design:
+    "PC-A uses shared gateway 172.28.10.1 on access VLAN 10. R1 Gi0/0 is 172.28.10.2 and R2 Gi0/0 is 172.28.10.3. Both participate in HSRPv2 group 11 with preemption enabled. The campus design assigns R1 as preferred Active because its uplink is the designated primary service path; it must have strictly higher priority than R2. R2's existing configuration is the approved fallback baseline and must remain unchanged. Preserve the virtual gateway, all addressing, routes, VLANs and cables. R1–R3 uses 10.0.13.0/30; R2–R3 uses 10.0.23.0/30; PC-B uses 172.28.20.0/24. Static routing is independent; R3's fixed return route goes through R1. This checks settled roles with all devices up, not failure resilience or failover timing.",
+  devices: [
+    { id: "PC-A", kind: "pc", role: "Client workstation" },
+    { id: "SW1", kind: "switch", role: "Shared access LAN" },
+    { id: "R1", kind: "router", role: "Primary service path" },
+    { id: "R2", kind: "router", role: "Fallback service path" },
+    { id: "R3", kind: "router", role: "Remote gateway" },
+    { id: "PC-B", kind: "pc", role: "Remote workstation" },
+  ],
+  subnets: ["172.28.10.0/24", "172.28.10.0/24", "172.28.10.0/24", "10.0.13.0/30", "10.0.23.0/30", "172.28.20.0/24"],
+  physicalLinks: [
+    { source: "PC-A", target: "SW1", label: "Ethernet0 — Gi0/1", offset: 0 },
+    { source: "SW1", target: "R1", label: "Gi0/2 — Gi0/0", offset: 0 },
+    { source: "SW1", target: "R2", label: "Gi0/3 — Gi0/0", offset: 0 },
+    { source: "R1", target: "R3", label: "Gi0/1 — Gi0/0", offset: 0 },
+    { source: "R2", target: "R3", label: "Gi0/1 — Gi0/1", offset: 0 },
+    { source: "R3", target: "PC-B", label: "Gi0/2 — Ethernet0", offset: 0 },
+  ],
+} as const;
+export const hsrpCauses = [
+  ...returnCauses,
+  ["hsrp-priority", "HSRP priority does not meet the intended design"],
+] as const;
+export const hsrpFixes = [
+  ["hsrp-priority", "Change a participating router's HSRP priority"],
+  ["gateway", "Change the host gateway"],
+  ["static-route", "Change a static route"],
+  ["no-shutdown", "Enable an interface"],
+] as const;
+export const hsrpReasons = [
+  [
+    "virtual-owner",
+    "With preemption enabled, strictly higher priority selects the preferred virtual-gateway forwarder; upstream and return routes remain independent.",
+  ],
+  ["reverse-automatically", "HSRP creates all upstream and return routes automatically."],
+  ["same-address", "Priority replaces each router's physical address with the client's address."],
+] as const;
+
 export const labs = [
   lab,
   gatewayLab,
@@ -359,6 +408,7 @@ export const labs = [
   etherChannelLab,
   aclLab,
   stpLab,
+  hsrpLab,
 ] as const;
 export type PublicLab = (typeof labs)[number];
 export function catalog(id: ScenarioId): PublicLab {
@@ -367,6 +417,14 @@ export function catalog(id: ScenarioId): PublicLab {
 export function commandsFor(id: ScenarioId, deviceId: string): string[] {
   const d = catalog(id).devices.find((d) => d.id === deviceId);
   if (!d) return [];
+  if (id === "hsrp-01")
+    return d.kind === "router"
+      ? [...gatewayRouterCommands, "traceroute", ...(deviceId === "R3" ? [] : ["show standby brief"])]
+      : d.kind === "switch"
+        ? [...switchCommands, "show running-config"]
+        : deviceId === "PC-A"
+          ? [...gatewayPcCommands, "arp -a"]
+          : ["ipconfig", "ping"];
   if (id === "stp-01")
     return d.kind === "switch"
       ? ["show interfaces status", "show vlan brief", "show running-config", "show spanning-tree vlan 10"]

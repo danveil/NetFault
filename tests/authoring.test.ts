@@ -24,6 +24,7 @@ it.each(labs)(
       "etherchannel-01": 7,
       "acl-01": 8,
       "stp-01": 9,
+      "hsrp-01": 10,
     };
     expect(s.schemaVersion).toBe(expectedVersions[s.id]);
     expect(s.links.map((l) => l.subnet)).toEqual(lab.subnets);
@@ -57,7 +58,7 @@ it.each(labs)(
       evidence,
     );
     expect(feedback.parts.find((p) => p.name === "Supporting evidence")?.earned).toBe(30);
-    expect(connectivity(s, "PC-A", lab.target).ok).toBe(s.schemaVersion === 9);
+    expect(connectivity(s, "PC-A", lab.target).ok).toBe(s.schemaVersion === 9 || s.schemaVersion === 10);
     expect(connectivity(repaired(s), "PC-A", lab.target).ok).toBe(true);
     expect(connectivity(repaired(s), "PC-B", s.devices.find((d) => d.id === "PC-A")!.interfaces[0].ip).ok).toBe(true);
   },

@@ -80,37 +80,56 @@ export default function Topology({
     () => false,
   );
   const stp = lab.id === "stp-01";
-  const positions = stp
+  const hsrp = lab.id === "hsrp-01";
+  const positions = hsrp
     ? mobile
       ? [
-          [0, 0],
-          [0, 155],
-          [230, 270],
-          [0, 385],
-          [0, 540],
+          [115, 0],
+          [115, 160],
+          [0, 345],
+          [230, 345],
+          [115, 550],
+          [115, 720],
         ]
       : [
-          [0, 0],
-          [0, 170],
-          [210, 340],
-          [420, 170],
-          [420, 0],
+          [0, 145],
+          [220, 145],
+          [440, 0],
+          [440, 290],
+          [680, 145],
+          [900, 145],
         ]
-    : mobile
-      ? [
-          [0, 0],
-          [235, 0],
-          [235, 180],
-          [0, 180],
-          [0, 360],
-        ]
-      : [
-          [0, 0],
-          [225, 0],
-          [450, 0],
-          [450, 195],
-          [225, 195],
-        ];
+    : stp
+      ? mobile
+        ? [
+            [0, 0],
+            [0, 155],
+            [230, 270],
+            [0, 385],
+            [0, 540],
+          ]
+        : [
+            [0, 0],
+            [0, 170],
+            [210, 340],
+            [420, 170],
+            [420, 0],
+          ]
+      : mobile
+        ? [
+            [0, 0],
+            [235, 0],
+            [235, 180],
+            [0, 180],
+            [0, 360],
+          ]
+        : [
+            [0, 0],
+            [225, 0],
+            [450, 0],
+            [450, 195],
+            [225, 195],
+          ];
   const incoming = mobile
     ? [Position.Left, Position.Left, Position.Top, Position.Right, Position.Top]
     : [Position.Left, Position.Left, Position.Left, Position.Top, Position.Right];
@@ -126,10 +145,20 @@ export default function Topology({
       kind: d.kind,
       role: d.role,
       active: selected === d.id,
-      incoming:
-        stp && !mobile ? [Position.Top, Position.Top, Position.Top, Position.Left, Position.Bottom][i] : incoming[i],
-      outgoing:
-        stp && !mobile ? [Position.Bottom, Position.Right, Position.Right, Position.Top, Position.Top][i] : outgoing[i],
+      incoming: hsrp
+        ? mobile
+          ? Position.Top
+          : Position.Left
+        : stp && !mobile
+          ? [Position.Top, Position.Top, Position.Top, Position.Left, Position.Bottom][i]
+          : incoming[i],
+      outgoing: hsrp
+        ? mobile
+          ? Position.Bottom
+          : Position.Right
+        : stp && !mobile
+          ? [Position.Bottom, Position.Right, Position.Right, Position.Top, Position.Top][i]
+          : outgoing[i],
     },
     ariaLabel: `Inspect ${d.id}`,
   }));
@@ -158,7 +187,7 @@ export default function Topology({
   return (
     <>
       <div
-        className={`${compact ? "topology compact" : "topology"}${stp ? " topology-stp" : "physicalLinks" in lab ? " topology-bundle" : ""}${lab.id === "acl-01" ? " topology-policy" : ""}`}
+        className={`${compact ? "topology compact" : "topology"}${hsrp ? " topology-hsrp" : stp ? " topology-stp" : "physicalLinks" in lab ? " topology-bundle" : ""}${lab.id === "acl-01" ? " topology-policy" : ""}`}
         aria-label="Interactive network topology"
       >
         <ReactFlow
@@ -190,7 +219,15 @@ export default function Topology({
           state. Inspect each switch for the current tree.
         </p>
       )}
-      {!stp && "physicalLinks" in lab && (
+      {hsrp && (
+        <p className="topology-text">
+          PC-A — SW1 connects both R1 and R2 on VLAN 10. Each router has its own routed uplink to R3, then PC-B. Shared
+          gateway: 172.28.10.1 (logical identity, not an extra device). Physical member addresses: R1 172.28.10.2; R2
+          172.28.10.3. Lines show cables, not Active/Standby roles. Tap a device or use the device selector to
+          investigate.
+        </p>
+      )}
+      {!stp && !hsrp && "physicalLinks" in lab && (
         <p className="topology-text">
           PC-A — SW1 ⇄ SW2 — PC-B. Two physical member links: Gi1/0/1 and Gi1/0/2 on both switches. Lines show cabling,
           not operational bundle status. Inspect each switch for logical state.

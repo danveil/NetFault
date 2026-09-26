@@ -42,7 +42,7 @@ export function gradeStp(
   timedOut: boolean,
   repairs: RepairAction[],
 ): Feedback {
-  if (!("priority" in s.repair)) throw Error("Expected STP repair");
+  if (!("priority" in s.repair) || "kind" in s.repair) throw Error("Expected STP repair");
   const actual = trialNetwork(s, repairs),
     selected = history.filter(
       (o) => answer.evidence.includes(o.id) && o.scenario === s.id && !o.output.startsWith("%"),

@@ -61,7 +61,15 @@ export async function assessmentAction(
         scenario: a.scenario,
         ...c,
         ...(a.repairs?.length ? { repairIndex: a.repairs.length } : {}),
-        output: execute(trialNetwork(scenario, a.repairs), c.device, c.command, c.target, a.history, c.source),
+        output: execute(
+          trialNetwork(scenario, a.repairs),
+          c.device,
+          c.command,
+          c.target,
+          a.history,
+          c.source,
+          a.repairs?.length ?? 0,
+        ),
         at: now,
       });
     }

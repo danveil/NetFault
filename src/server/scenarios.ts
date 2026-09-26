@@ -1,4 +1,5 @@
 import "server-only";
+import { hsrpScenario } from "./hsrp-scenario";
 import { stpScenario } from "./stp-scenario";
 import { scenarioIdSchema, type Scenario, type ScenarioId } from "@/lib/schema";
 import { scenario } from "./scenario";
@@ -22,6 +23,7 @@ export const scenarios: Record<ScenarioId, Scenario> = {
   "etherchannel-01": etherChannelScenario,
   "acl-01": aclScenario,
   "stp-01": stpScenario,
+  "hsrp-01": hsrpScenario,
 };
 export function validateRegistry(entries: Record<ScenarioId, Scenario>) {
   for (const id of scenarioIdSchema.options) {

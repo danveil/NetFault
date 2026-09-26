@@ -1,5 +1,7 @@
 # Engine capability and course feasibility audit
 
+**Milestone 3K update:** [LAB 011 and bounded HSRPv2](milestone-3k.md) provide partial priority/virtual-gateway investigation with explicit preemption and independent routing. The [model](hsrp-model.md) supports one group/two members and settled unequal-priority roles, actual virtual forwarding and fresh design verification. General preemption/incumbency, timers, failure history, tracking, VRRP/GLBP and IPv6 remain deferred. This does not establish full FHRP coverage or failover competence; prior audit statements below retain their dates.
+
 ## Milestone 3J FHRP planning delta
 
 **PLANNED ONLY — NO FHRP ENGINE OR LAB 011 IMPLEMENTED.** At `b072a12`, a host gateway and same-VLAN peers are supported, but validation, next-hop resolution, local delivery and reply ownership still recognize physical interface addresses only. The [new audit](fhrp-feasibility.md) separates configuration, derived roles, forwarding and observations, and identifies the actual resolver/ARP/replay/UI seams. A bounded preempt-on, unequal-priority HSRPv2 pair is feasible without a protocol clock, but virtual-owner forwarding is substantive new work, not a catalog entry or role label. [The proposed 3K scope](milestone-3j-plan.md) specifies one group/VIP, stable virtual MAC, intact static/return routing, fresh evidence and exactly one case. Equal-priority/nonpreemptive history, arbitrary failures, tracking and combined STP/FHRP remain excluded. Application capability is unchanged by 3J.

@@ -1,5 +1,7 @@
 # NetFault completion roadmap
 
+**Milestone 3K update:** [LAB 011 and bounded HSRPv2](milestone-3k.md) provide partial priority/virtual-gateway investigation with explicit preemption and independent routing. The [model](hsrp-model.md) supports one group/two members and settled unequal-priority roles, actual virtual forwarding and fresh design verification. General preemption/incumbency, timers, failure history, tracking, VRRP/GLBP and IPv6 remain deferred. This does not establish full FHRP coverage or failover competence; prior audit statements below retain their dates.
+
 ## Current planning position — Milestone 3J, 25 September 2026
 
 **PLANNED ONLY — NO FHRP ENGINE OR LAB 011 IMPLEMENTED.** [The source-grounded FHRP audit](fhrp-feasibility.md) recommends exactly one next proposal: **LAB 011 — The shared exit**, an incorrect HSRP priority while a correct virtual gateway and remote communication still work. [Milestone 3K specification](milestone-3j-plan.md) defines fixed preemption-on/unequal priorities, one IPv4 group, derived virtual ownership, routing/ARP integration, applied repair and fresh verification, plus a tiny unrelated primer. No full Academy module or failure-history framework is needed for that limited objective. Missing-preempt/reappearance, tested failover, tracking, multiple groups, GLBP/VRRP and IPv6 remain later gaps. FHRP is not marked covered; ten labs and existing Academy remain unchanged. Separate 3K authorization is required; no other roadmap branch is selected or executed.

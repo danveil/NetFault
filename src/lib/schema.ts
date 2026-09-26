@@ -1,3 +1,4 @@
+import { validateHsrp } from "./hsrp";
 import { z } from "zod";
 import { validateStp } from "./stp";
 import { validateEtherChannelTopology } from "./etherchannel";
@@ -9,6 +10,7 @@ export const ipv4 = z
     "Valid dotted IPv4 required",
   );
 export const commandNames = [
+  "show standby brief",
   "show spanning-tree vlan 10",
   "show access-lists",
   "show etherchannel summary",
@@ -58,7 +60,18 @@ export const standardAclSchema = z
         fail("ACL source must be a canonical /24 network");
   });
 export type StandardAcl = z.infer<typeof standardAclSchema>;
+export const hsrpPrioritySchema = z.number().int().min(0).max(255);
+export const hsrpGroupSchema = z.number().int().min(0).max(4095);
 export const interfaceSchema = z.object({
+  hsrp: z
+    .strictObject({
+      version: z.literal(2),
+      group: hsrpGroupSchema,
+      virtualIp: ipv4,
+      priority: hsrpPrioritySchema.optional(),
+      preempt: z.literal(true),
+    })
+    .optional(),
   accessGroup: z.strictObject({ name: z.string(), direction: z.literal("out") }).optional(),
   name: z.string(),
   ip: ipv4,
@@ -145,6 +158,8 @@ export const linkSchema = z.object({
   subnet: z.string(),
 });
 export const diagnosisSchema = z.object({
+  observedHsrpPriority: hsrpPrioritySchema.optional(),
+  observedGroup: hsrpGroupSchema.optional(),
   observedPriority: bridgePriority.optional(),
   aclName: z.string().max(32).optional(),
   observedSequence: aclSequence.optional(),
@@ -159,6 +174,7 @@ export const diagnosisSchema = z.object({
   gateway: z.string().max(64).optional(),
   reason: z
     .enum([
+      "virtual-owner",
       "root-election",
       "first-match-policy",
       "unspecified",
@@ -177,6 +193,7 @@ export const diagnosisSchema = z.object({
     ])
     .optional(),
   cause: z.enum([
+    "hsrp-priority",
     "bridge-priority",
     "acl-order",
     "lacp-negotiation",
@@ -191,8 +208,9 @@ export const diagnosisSchema = z.object({
     "incorrect-static-next-hop",
     "passive-interface",
   ]),
-  devices: z.array(z.string()).max(5),
+  devices: z.array(z.string()).max(6),
   fix: z.enum([
+    "hsrp-priority",
     "bridge-priority",
     "acl-sequence",
     "lacp-mode",
@@ -212,6 +230,7 @@ export const diagnosisSchema = z.object({
 });
 export type Diagnosis = z.infer<typeof diagnosisSchema>;
 export const scenarioIdSchema = z.enum([
+  "hsrp-01",
   "stp-01",
   "ospf-01",
   "gateway-01",
@@ -239,6 +258,7 @@ export const scenarioSchema = z
       z.literal(7),
       z.literal(8),
       z.literal(9),
+      z.literal(10),
     ]),
     id: scenarioIdSchema,
     revision: z.literal(1),
@@ -265,6 +285,14 @@ export const scenarioSchema = z
     fault: z.object({ cause: diagnosisSchema.shape.cause, devices: z.array(z.string()), interface: z.string() }),
     acceptedFixes: z.array(diagnosisSchema.shape.fix),
     repair: z.union([
+      z.strictObject({
+        kind: z.literal("hsrp-priority"),
+        device: z.string(),
+        interface: z.string(),
+        group: hsrpGroupSchema,
+        priority: hsrpPrioritySchema,
+        reason: z.literal("virtual-owner"),
+      }),
       z.strictObject({
         device: z.string(),
         priority: bridgePriority,
@@ -337,6 +365,7 @@ export const scenarioSchema = z
     }
     validateEtherChannelTopology(s, fail);
     validateStp(s, fail);
+    validateHsrp(s, fail);
     if (
       s.schemaVersion === 9
         ? !s.stpDesign ||
@@ -479,7 +508,11 @@ export const scenarioSchema = z
       if (
         d.kind === "pc" &&
         !((s.schemaVersion === 7 || s.schemaVersion === 9) && !d.gateway) &&
-        !s.devices.some((r) => r.kind === "router" && r.interfaces.some((i) => i.ip === d.gateway)) &&
+        !s.devices.some(
+          (r) =>
+            r.kind === "router" &&
+            r.interfaces.some((i) => i.ip === d.gateway || (s.schemaVersion === 10 && i.hsrp?.virtualIp === d.gateway)),
+        ) &&
         !(
           s.schemaVersion === 2 &&
           s.fault.cause === "wrong-gateway" &&
@@ -510,7 +543,10 @@ export const scenarioSchema = z
     }
     const repair = s.repair;
     const repairedDevice = s.devices.find((d) => d.id === repair.device);
-    if ("priority" in repair) {
+    if ("kind" in repair && repair.kind === "hsrp-priority") {
+      const member = repairedDevice?.interfaces.find((i) => i.name === repair.interface)?.hsrp;
+      if (s.schemaVersion !== 10 || member?.group !== repair.group) fail("HSRP repair requires an existing member");
+    } else if ("priority" in repair && "vlan" in repair) {
       if (s.schemaVersion !== 9 || repairedDevice?.stp?.vlan !== repair.vlan)
         fail("STP repair requires an existing bridge instance");
     } else if ("acl" in repair) {
@@ -649,7 +685,19 @@ export const stpRepairActionSchema = z.strictObject({
   vlan: z.number().int().min(1).max(4094),
   priority: bridgePriority,
 });
-export const repairActionSchema = z.union([lacpRepairActionSchema, aclRepairActionSchema, stpRepairActionSchema]);
+export const hsrpRepairActionSchema = z.strictObject({
+  kind: z.literal("hsrp-priority"),
+  device: z.string().min(1).max(64),
+  interface: z.string().min(1).max(64),
+  group: hsrpGroupSchema,
+  priority: hsrpPrioritySchema,
+});
+export const repairActionSchema = z.union([
+  hsrpRepairActionSchema,
+  lacpRepairActionSchema,
+  aclRepairActionSchema,
+  stpRepairActionSchema,
+]);
 export type RepairAction = z.infer<typeof repairActionSchema>;
 export const attemptSchema = z.object({
   repairs: z
@@ -658,6 +706,7 @@ export const attemptSchema = z.object({
         lacpRepairActionSchema.extend({ at: z.number() }),
         aclRepairActionSchema.extend({ at: z.number() }),
         stpRepairActionSchema.extend({ at: z.number() }),
+        hsrpRepairActionSchema.extend({ at: z.number() }),
       ]),
     )
     .max(10)

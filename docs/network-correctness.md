@@ -1,5 +1,7 @@
 # Network correctness: OSPF lab 001
 
+**Milestone 3K update:** [LAB 011 and bounded HSRPv2](milestone-3k.md) provide partial priority/virtual-gateway investigation with explicit preemption and independent routing. The [model](hsrp-model.md) supports one group/two members and settled unequal-priority roles, actual virtual forwarding and fresh design verification. General preemption/incumbency, timers, failure history, tracking, VRRP/GLBP and IPv6 remain deferred. This does not establish full FHRP coverage or failover competence; prior audit statements below retain their dates.
+
 Milestone 3I adds [LAB 010 bounded STP correctness](milestone-3i.md): deterministic root/receiving-cost/port-role selection on one access-VLAN simple graph, with both-endpoint data filtering in shared Layer 2 traversal. Initial and repaired host pings both succeed; the root/tree must meet the explicit design and be freshly verified after a priority change. This adds no timer, BPDU, storm, trunk or full RSTP simulation. All nine previous authored scenarios, including the OSPF network below, are unchanged.
 
 Milestone 3G adds [LAB 009 standard ACL correctness](acl-model.md): source-only first-match outbound policy after route selection, independent reply evaluation and a policy-preserving repair. Its addressing, expected positive/negative flow matrix, router-local traffic boundary and unsupported features are documented there. The original eight authored scenarios remain unchanged; all are covered by the current [verification](verification.md).

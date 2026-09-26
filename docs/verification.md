@@ -1,6 +1,30 @@
 # NetFault verification
 
-Current evidence is recorded below and in [Milestone 3I](milestone-3i.md). Historical records are retained rather than relabeled as current test results.
+## Milestone 3K — 26 September 2026
+
+Current HSRP implementation: [3K record](milestone-3k.md), [bounded model](hsrp-model.md). Windows, Node 24.15.0, pinned pnpm 11.19.0; installed Edge/Chromium. Prior milestone counts below remain historical.
+
+| Check | Final result |
+| --- | --- |
+| pnpm lint | Passed; zero errors/warnings |
+| pnpm typecheck | Passed |
+| pnpm test | 558 passed, 22 files; zero failed/skipped; 4.38 seconds |
+| pnpm build | Passed; final build WQCgv1iDj4hpgR1OM5wLi; generated worker, dynamic assessment API retained |
+| Final production HSRP/deployment/privacy browser run | 21 passed; zero failed/flaky/skipped; 97.25 seconds. Includes 15 HSRP workflows across desktop, 414px and 360px |
+| Full production browser suite | 161 passed; zero failed/skipped; 10.3 minutes |
+| git diff --check | Passed |
+| Changed Markdown links/anchors | 212 checked; zero errors |
+
+The complete suite ran on build `gijl90jNZfyQGW568sc_g`. The only subsequent application edit corrected the desktop header from Milestone 3I to 3K. Lint/build and the 21 focused production checks above passed on the final build. Both browser runs used `CI=true` and `PW_PRODUCTION=1`. Investigation screenshots at desktop, 414px and 360px and the narrow repaired preview were visually inspected; touch targets, overflow and topology-control overlap also have automated assertions.
+
+The 44 independent model tests use different router/host names, addresses, group and priorities. They cover deterministic priority/default selection, order independence, strict unsupported configuration, virtual MAC boundaries, static eligibility, actual first-hop forwarding, physical Standby routing, upstream/return-route counterexamples and remote VIP delivery. The 38 new case tests cover all-address reachability, sole-fault normalization, command consistency, equivalent and wrong repairs, ARP epochs, authentic/fresh evidence, bypass rejection, hints/teaching, pack/journal round trips, independent server-module reload and concurrent versioned commands/repairs.
+
+The new browser workflows cover full Practice, resumed timed Assessment, stale verification rejection, offline Practice and the unrelated tap primer at all three widths. Existing catalog-driven tests include LAB 011 in all-pack retention and production-private-content checks. API storage and cache safeguards remain unchanged. Initial development corrections are documented in [3K](milestone-3k.md).
+
+No physical iPhone, Safari, VoiceOver, Cisco IOS/Packet Tracer/CML or live Netlify validation was performed. No dependencies, commits, pushes or deployments were added. This verifies a settled priority/virtual-gateway investigation, not failover timing or full FHRP coverage.
+
+
+Current evidence is recorded above and in [Milestone 3K](milestone-3k.md). Historical records below are retained rather than relabeled as current test results.
 
 ## Milestone 3I — 25 September 2026
 

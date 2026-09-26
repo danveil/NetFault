@@ -10,6 +10,7 @@ import {
   type Scenario,
 } from "./schema";
 import { etherChannelOutput, forwardingLinks, forwardingPorts, channelState, physicalPortUp } from "./etherchannel";
+import { virtualOwner, virtualMac, standbyOutput } from "./hsrp";
 import { stpLinks, stpOutput } from "./stp";
 import { evaluateAcl, aclOutput, aclSource, moveAclEntry } from "./acl";
 
@@ -153,7 +154,13 @@ type Path = {
   reason: string;
   policyDrop?: { device: string; interface: string; acl: string; sequence?: number; implicit: boolean };
 };
-type Resolution = { device: string; local: Interface; ip: string; peer?: { device: Device; remote: Interface } };
+type Resolution = {
+  mac?: string;
+  device: string;
+  local: Interface;
+  ip: string;
+  peer?: { device: Device; remote: Interface };
+};
 export function forward(
   s: Scenario,
   start: string,
@@ -168,7 +175,8 @@ export function forward(
   const seen = new Set<string>();
   const hops: string[] = [];
   for (let ttl = 0; ttl < 16; ttl++) {
-    if (current.interfaces.some((i) => i.up && i.ip === target)) return { ok: true, hops, reason: "Delivered" };
+    if (current.interfaces.some((i) => i.up && i.ip === target) || virtualOwner(s, target)?.device.id === current.id)
+      return { ok: true, hops, reason: "Delivered" };
     if (seen.has(current.id)) return { ok: false, hops, reason: "Routing loop" };
     seen.add(current.id);
     let out: Interface | undefined, nextHop: string | undefined;
@@ -201,8 +209,21 @@ export function forward(
           },
         };
     }
-    const peer = peers(s, current.id).find((p) => p.local.name === out.name && p.remote.up && p.remote.ip === nextHop);
-    if (nextHop) observe?.({ device: current.id, local: out, ip: nextHop, peer });
+    const owner = nextHop ? virtualOwner(s, nextHop) : undefined;
+    const peer = peers(s, current.id).find(
+      (p) =>
+        p.local.name === out.name &&
+        p.remote.up &&
+        (owner ? p.device.id === owner.device.id && p.remote.name === owner.interface.name : p.remote.ip === nextHop),
+    );
+    if (nextHop)
+      observe?.({
+        device: current.id,
+        local: out,
+        ip: nextHop,
+        peer,
+        ...(owner ? { mac: virtualMac(owner.interface.hsrp!.group) } : {}),
+      });
     if (!peer) return { ok: false, hops, reason: `${current.id}: next-hop resolution failed` };
     hops.push(peer.remote.ip);
     current = peer.device;
@@ -221,7 +242,7 @@ export function connectivity(s: Scenario, id: string, target: string, requestedS
     throw Error("Source must be an active interface or IPv4 address on this router.");
   const source = (explicit ?? d.interfaces.find((i) => i.name === route?.interface) ?? d.interfaces[0]).ip;
   const outward = forward(s, id, target, undefined, source),
-    destination = s.devices.find((d) => d.interfaces.some((i) => i.ip === target));
+    destination = s.devices.find((d) => d.interfaces.some((i) => i.ip === target)) ?? virtualOwner(s, target)?.device;
   const returning =
     destination && (outward.ok || !s.devices.some((d) => d.acls))
       ? forward(s, destination.id, source, undefined, target)
@@ -268,6 +289,14 @@ export function runningConfig(s: Scenario, id: string) {
       `interface ${i.name}`,
       ` ip address ${i.ip} ${dotted(mask(i.prefix))}`,
       i.up ? " no shutdown" : " shutdown",
+      ...(i.hsrp
+        ? [
+            " standby version 2",
+            ` standby ${i.hsrp.group} ip ${i.hsrp.virtualIp}`,
+            ...(i.hsrp.priority !== undefined ? [` standby ${i.hsrp.group} priority ${i.hsrp.priority}`] : []),
+            ` standby ${i.hsrp.group} preempt`,
+          ]
+        : []),
       ...(i.accessGroup ? [` ip access-group ${i.accessGroup.name} ${i.accessGroup.direction}`] : []),
       ...(i.ospf
         ? [
@@ -303,7 +332,8 @@ export function arpState(s: Scenario, id: string, history: Observation[]) {
   const record = (r: Resolution) => {
     if (r.device === id) {
       last = { ip: r.ip, resolved: !!r.peer };
-      if (r.peer) entries.set(`${r.local.name}:${r.ip}`, { ip: r.ip, mac: r.peer.remote.mac, interface: r.local.name });
+      if (r.peer)
+        entries.set(`${r.local.name}:${r.ip}`, { ip: r.ip, mac: r.mac ?? r.peer.remote.mac, interface: r.local.name });
     }
     // A successful ARP exchange also lets its addressed peer learn the sender.
     if (r.peer?.device.id === id)
@@ -333,7 +363,8 @@ export function arpState(s: Scenario, id: string, history: Observation[]) {
     }
     const result = forward(s, o.device, target, record);
     if (result.ok) {
-      const destination = s.devices.find((d) => d.interfaces.some((i) => i.ip === target));
+      const destination =
+        s.devices.find((d) => d.interfaces.some((i) => i.ip === target)) ?? virtualOwner(s, target)?.device;
       if (destination) forward(s, destination.id, probeSource, record);
     }
   }
@@ -363,6 +394,7 @@ export function execute(
   target = "",
   history: Observation[] = [],
   source = "",
+  repairIndex = 0,
 ): string {
   const d = device(s, id),
     cmd = raw.trim().toLowerCase().replace(/\s+/g, " ");
@@ -370,11 +402,16 @@ export function execute(
     return `% Unsupported command on ${id}: ${raw}. Use the supported command buttons. This is a bounded simulator, not an IOS shell.`;
   if (source && cmd !== "ping") return "% Explicit source is supported only for router ping.";
   const channelOutput = etherChannelOutput(s, d, cmd);
+  if (cmd === "show standby brief") return standbyOutput(s, id);
   if (cmd === "show spanning-tree vlan 10") return stpOutput(s, d);
   if (cmd === "show access-lists") return aclOutput(d);
   if (channelOutput !== undefined) return channelOutput;
   if (cmd === "arp -a") {
-    const state = arpState(s, id, history);
+    const state = arpState(
+      s,
+      id,
+      s.schemaVersion === 10 ? history.filter((o) => (o.repairIndex ?? 0) === repairIndex) : history,
+    );
     return [
       ...(state.entries.length
         ? d.interfaces.flatMap((i) => {
@@ -392,7 +429,9 @@ export function execute(
       state.last
         ? `Simulator observation: last next-hop resolution for ${state.last.ip} ${state.last.resolved ? "succeeded" : "failed; no resolved MAC entry was created"}.`
         : "Simulator observation: no locally initiated next-hop resolution yet.",
-      "Simplified Windows-style cache: learned entries only; failed attempts are not dynamic entries. Entries persist for this attempt; no aging/background traffic. New attempts and repair previews start empty.",
+      s.schemaVersion === 10
+        ? "Bounded current-configuration ARP observations; each actual configuration edit starts a new empty observation epoch. Probe again. No aging, gratuitous ARP or real cache flushing is simulated."
+        : "Simplified Windows-style cache: learned entries only; failed attempts are not dynamic entries. Entries persist for this attempt; no aging/background traffic. New attempts and repair previews start empty.",
     ].join("\n");
   }
   if (cmd.endsWith(" switchport")) {
@@ -583,7 +622,9 @@ export function execute(
 export function repaired(s: Scenario): Scenario {
   const next = structuredClone(s);
   const repair = s.repair;
-  if ("priority" in repair) {
+  if ("kind" in repair && repair.kind === "hsrp-priority") {
+    device(next, repair.device).interfaces.find((i) => i.name === repair.interface)!.hsrp!.priority = repair.priority;
+  } else if ("priority" in repair) {
     device(next, repair.device).stp!.priority = repair.priority;
   } else if ("acl" in repair) {
     moveAclEntry(device(next, repair.device), repair.acl, repair.sequence, repair.newSequence);

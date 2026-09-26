@@ -1,5 +1,7 @@
 # Milestone 3J — proposed Milestone 3K implementation specification
 
+**3K update (26 September 2026):** the separately authorized [bounded implementation](milestone-3k.md) now implements LAB 011 and the [HSRP model](hsrp-model.md). The following is the dated 3J planning/audit record; its planned-only statements describe the end of 3J, not current application capability.
+
 **PLANNED ONLY — NO FHRP ENGINE OR LAB 011 IMPLEMENTED**
 
 25 September 2026; planning baseline `b072a12`. [The feasibility audit](fhrp-feasibility.md) records the exact current-semester sources, visual review, code findings and candidate comparison. This document is an author-facing, implementation-ready contract containing proposed answers. **3K requires separate authorization.** It is not a public lab resource and adds no executable coverage.

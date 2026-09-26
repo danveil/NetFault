@@ -64,7 +64,11 @@ it.each(labs.map((l) => [l.id] as const))("public catalog/preview boundary and o
       "design",
       "devices",
       "subnets",
-      ...(id === "etherchannel-01" ? ["physicalLinks"] : id === "stp-01" ? ["physicalLinks", "heading"] : []),
+      ...(id === "etherchannel-01"
+        ? ["physicalLinks"]
+        : id === "stp-01" || id === "hsrp-01"
+          ? ["physicalLinks", "heading"]
+          : []),
     ].sort(),
   );
   for (const d of publicLab.devices) expect(Object.keys(d).sort()).toEqual(["id", "kind", "role"]);
