@@ -1,5 +1,11 @@
 # NetFault × supplied 2026/27 semester material
 
+## Post-3K gap refresh — Milestone 3L, 26 September 2026
+
+**PLANNED ONLY — NO LAB 012 OR NEW ENGINE CAPABILITY IMPLEMENTED.** The [fresh source/feasibility audit](lab012-feasibility.md#2-refreshed-substantial-gap-inventory) compares the actual archive/revision notes, switch-security practical, candidate command screenshots and ExtraLab exercises with all eleven delivered cases. Its current inventory separates concepts, configuration, verification/troubleshooting and executable coverage. Remaining substantial gaps include port security and broader LAN admission/trust controls, NAT/PAT, WAN/GRE/IPsec, management/maintenance, QoS, automation/virtualization, IPv6, general security and the unmodeled parts of switching/routing/redundancy. Original device configuration competence remains external; no percentages or chapter-completion claims are assigned.
+
+The strongest next proposal is **LAB 012 — The quiet desk**, one wrong static secure MAC under explicit protect/full-static-slot policy. L24–26 and the supplied switch practical support admission/configuration comparison; dynamic learning and errdisable/recovery remain excluded. NAT and GRE are well supported alternatives but require larger address-context or underlay/overlay extensions. [Proposed 3M](milestone-3l-plan.md) defines the bounded real-forwarding model and fresh policy-preserving proof. Port security is still **not implemented or covered**; no application or Academy changes occurred in 3L. Prior dated audit tables below remain historical snapshots.
+
 **Milestone 3K update:** [LAB 011 and bounded HSRPv2](milestone-3k.md) provide partial priority/virtual-gateway investigation with explicit preemption and independent routing. The [model](hsrp-model.md) supports one group/two members and settled unequal-priority roles, actual virtual forwarding and fresh design verification. General preemption/incumbency, timers, failure history, tracking, VRRP/GLBP and IPv6 remain deferred. This does not establish full FHRP coverage or failover competence; prior audit statements below retain their dates.
 
 ## Post-3J planning delta — 25 September 2026

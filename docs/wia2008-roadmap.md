@@ -1,8 +1,14 @@
 # NetFault completion roadmap
 
+## Current planning position — Milestone 3L, 26 September 2026
+
+**PLANNED ONLY — NO LAB 012 OR NEW ENGINE CAPABILITY IMPLEMENTED.** Exactly one next proposal: **LAB 012 — The quiet desk**, a wrong static secure MAC with explicit protect mode and a fully occupied one-address limit. The [source-grounded comparison](lab012-feasibility.md) selects a new endpoint-admission mental model over static NAT, GRE and management/IPv6/QoS/automation challengers. The [implementation-ready 3M specification](milestone-3l-plan.md) defines actual forwarding/resolution effects, structured replacement, fresh evidence and retained protection, a tiny unrelated primer and an UNEXECUTED authentic companion brief. Eleven labs/Academy remain accepted and unchanged; separate 3M authorization is required.
+
+This recommendation adds no coverage. NAT/PAT and GRE remain strong later candidates; broader LAN trust/authentication, WAN/IPsec, management, QoS, automation, IPv6 and the unmodeled parts of current protocol families remain substantial gaps. Use the [refreshed inventory](lab012-feasibility.md#2-refreshed-substantial-gap-inventory) for current distinctions rather than interpreting older absent-feature tables as today's implementation. No later branch is automatically selected or executed.
+
 **Milestone 3K update:** [LAB 011 and bounded HSRPv2](milestone-3k.md) provide partial priority/virtual-gateway investigation with explicit preemption and independent routing. The [model](hsrp-model.md) supports one group/two members and settled unequal-priority roles, actual virtual forwarding and fresh design verification. General preemption/incumbency, timers, failure history, tracking, VRRP/GLBP and IPv6 remain deferred. This does not establish full FHRP coverage or failover competence; prior audit statements below retain their dates.
 
-## Current planning position — Milestone 3J, 25 September 2026
+## Historical planning position — Milestone 3J, 25 September 2026
 
 **PLANNED ONLY — NO FHRP ENGINE OR LAB 011 IMPLEMENTED.** [The source-grounded FHRP audit](fhrp-feasibility.md) recommends exactly one next proposal: **LAB 011 — The shared exit**, an incorrect HSRP priority while a correct virtual gateway and remote communication still work. [Milestone 3K specification](milestone-3j-plan.md) defines fixed preemption-on/unequal priorities, one IPv4 group, derived virtual ownership, routing/ARP integration, applied repair and fresh verification, plus a tiny unrelated primer. No full Academy module or failure-history framework is needed for that limited objective. Missing-preempt/reappearance, tested failover, tracking, multiple groups, GLBP/VRRP and IPv6 remain later gaps. FHRP is not marked covered; ten labs and existing Academy remain unchanged. Separate 3K authorization is required; no other roadmap branch is selected or executed.
 
@@ -10,7 +16,7 @@
 
 The separately authorized [LAB 010](milestone-3i.md) and narrow STP foundation are implemented with a small preparation card. This closes only the selected priority/design investigation, not the entire STP chapter: timer/convergence, full RSTP, multiple VLAN/trunk trees, same-sender port ties, guards and mixed aggregation remain separate backlog. All nine earlier labs and Academy are preserved. No next lab is automatically selected or authorized. The 3H next-step wording below is historical; [verification](verification.md) records actual current checks.
 
-## Current planning position — Milestone 3H, 24 September 2026
+## Historical planning position — Milestone 3H, 24 September 2026
 
 **PLANNED ONLY — NO STP ENGINE OR LAB 010 IMPLEMENTED.** The [supplied 2026/27 archive](semester-2627-gap-analysis.md) supersedes the historical material-absence assumption below, without confirming current assessment weights/dates. LAB 009 has since delivered [one bounded ACL investigation](milestone-3g.md); neither the ACL chapter nor broader policy work is complete.
 
