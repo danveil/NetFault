@@ -1,3 +1,4 @@
+import { natSource, natDestination, natOutput } from "./nat";
 import {
   dotted,
   ipv4,
@@ -149,7 +150,11 @@ function lookup(s: Scenario, id: string, target: string) {
     })
     .sort((a, b) => Number(b.prefix.split("/")[1]) - Number(a.prefix.split("/")[1]))[0];
 }
+export type Translation = { device: string; field: "source" | "destination"; before: string; after: string };
 type Path = {
+  packet?: { source: string; destination: string };
+  delivered?: { device: string; interface: string; source: string; destination: string };
+  translations?: Translation[];
   admissionDrop?: AdmissionDrop;
   ok: boolean;
   hops: string[];
@@ -171,34 +176,69 @@ export function forward(
   packetSource?: string,
 ): Path {
   let current = device(s, start);
-  const source =
+  let source =
     packetSource ??
     (current.interfaces.find((i) => i.name === lookup(s, start, target)?.interface) ?? current.interfaces[0])?.ip;
+  const translating = s.devices.some((d) => d.nat);
+  let ingress: string | undefined;
+  const translations: Translation[] = [];
+  const finish = (p: Path): Path =>
+    translating
+      ? {
+          ...p,
+          packet: { source: source!, destination: target },
+          translations,
+          ...(p.ok
+            ? {
+                delivered: {
+                  device: current.id,
+                  interface: current.interfaces.find((i) => i.ip === target)!.name,
+                  source: source!,
+                  destination: target,
+                },
+              }
+            : {}),
+        }
+      : p;
   const seen = new Set<string>();
   const hops: string[] = [];
   for (let ttl = 0; ttl < 16; ttl++) {
+    const destination = natDestination(current, ingress, target);
+    const inward = destination !== target;
+    if (inward) {
+      translations.push({ device: current.id, field: "destination", before: target, after: destination });
+      target = destination;
+    }
     if (current.interfaces.some((i) => i.up && i.ip === target) || virtualOwner(s, target)?.device.id === current.id)
-      return { ok: true, hops, reason: "Delivered" };
-    if (seen.has(current.id)) return { ok: false, hops, reason: "Routing loop" };
-    seen.add(current.id);
+      return finish({ ok: true, hops, reason: "Delivered" });
+    const key = translating ? `${current.id}:${ingress}:${source}:${target}` : current.id;
+    if (seen.has(key)) return finish({ ok: false, hops, reason: "Routing loop" });
+    seen.add(key);
     let out: Interface | undefined, nextHop: string | undefined;
     if (current.kind === "pc") {
       out = current.interfaces[0];
       nextHop = sameSubnet(out.ip, target, out.prefix) ? target : current.gateway;
     } else {
       const route = lookup(s, current.id, target);
-      if (!route) return { ok: false, hops, reason: `${current.id}: no route to destination` };
+      if (!route) return finish({ ok: false, hops, reason: `${current.id}: no route to destination` });
       out = current.interfaces.find((i) => i.name === route.interface);
       nextHop = route.via ?? target;
     }
-    if (!out?.up) return { ok: false, hops, reason: `${current.id}: interface down` };
+    if (!out?.up) return finish({ ok: false, hops, reason: `${current.id}: interface down` });
+    if (inward && out.name !== current.nat?.inside)
+      return finish({ ok: false, hops, reason: "Translated destination has no inside egress" });
+    const translated = natSource(current, ingress, out.name, source!);
+    if (translated !== source) {
+      translations.push({ device: current.id, field: "source", before: source!, after: translated });
+      source = translated;
+    }
     if (out.accessGroup && current.id !== start) {
       if (out.accessGroup.direction !== "out") throw Error("Unsupported ACL direction");
       const acl = current.acls?.find((a) => a.name === out!.accessGroup!.name);
       if (!acl || !source) throw Error("Invalid ACL attachment or packet source");
       const decision = evaluateAcl(acl, source);
       if (!decision.permitted)
-        return {
+        return finish({
           ok: false,
           hops,
           reason: "Forwarded packet denied by interface policy",
@@ -209,7 +249,7 @@ export function forward(
             sequence: decision.sequence,
             implicit: decision.implicit,
           },
-        };
+        });
     }
     const owner = nextHop ? virtualOwner(s, nextHop) : undefined;
     const peer = peers(s, current.id).find(
@@ -218,7 +258,7 @@ export function forward(
         p.remote.up &&
         (owner ? p.device.id === owner.device.id && p.remote.name === owner.interface.name : p.remote.ip === nextHop),
     );
-    if (peer && s.schemaVersion === 11) {
+    if (peer && (s.schemaVersion === 11 || translating)) {
       const local = { device: current.id, interface: out.name },
         remote = { device: peer.device.id, interface: peer.remote.name };
       for (const phase of ["request", "response", "data"] as const) {
@@ -228,12 +268,12 @@ export function forward(
             : ethernetDelivery(s, local, remote, out.mac);
         if (!result.ok) {
           if (nextHop) observe?.({ device: current.id, local: out, ip: nextHop });
-          return {
+          return finish({
             ok: false,
             hops,
             reason: "Next-hop Ethernet exchange failed",
             ...(result.drop ? { admissionDrop: { ...result.drop, phase } } : {}),
-          };
+          });
         }
       }
     }
@@ -245,11 +285,12 @@ export function forward(
         peer,
         ...(owner ? { mac: virtualMac(owner.interface.hsrp!.group) } : {}),
       });
-    if (!peer) return { ok: false, hops, reason: `${current.id}: next-hop resolution failed` };
+    if (!peer) return finish({ ok: false, hops, reason: `${current.id}: next-hop resolution failed` });
     hops.push(peer.remote.ip);
+    ingress = peer.remote.name;
     current = peer.device;
   }
-  return { ok: false, hops, reason: "Hop limit exceeded" };
+  return finish({ ok: false, hops, reason: "Hop limit exceeded" });
 }
 export function connectivity(s: Scenario, id: string, target: string, requestedSource = "") {
   const d = device(s, id),
@@ -262,8 +303,21 @@ export function connectivity(s: Scenario, id: string, target: string, requestedS
   if (requestedSource && (d.kind !== "router" || !explicit))
     throw Error("Source must be an active interface or IPv4 address on this router.");
   const source = (explicit ?? d.interfaces.find((i) => i.name === route?.interface) ?? d.interfaces[0]).ip;
-  const outward = forward(s, id, target, undefined, source),
-    destination = s.devices.find((d) => d.interfaces.some((i) => i.ip === target)) ?? virtualOwner(s, target)?.device;
+  if (s.devices.some((d) => d.nat) && d.kind !== "pc") throw Error("Router-originated NAT probes are unsupported");
+  const outward = forward(s, id, target, undefined, source);
+  if (s.devices.some((d) => d.nat)) {
+    const end = outward.delivered;
+    const returning = end ? forward(s, end.device, end.source, undefined, end.destination) : undefined;
+    const reply = returning?.delivered;
+    return {
+      ok: outward.ok && !!reply && reply.device === id && reply.destination === source && reply.source === target,
+      source,
+      outward,
+      returning,
+    };
+  }
+  const destination =
+    s.devices.find((d) => d.interfaces.some((i) => i.ip === target)) ?? virtualOwner(s, target)?.device;
   const returning =
     destination && (outward.ok || (s.schemaVersion !== 11 && !s.devices.some((d) => d.acls)))
       ? forward(s, destination.id, source, undefined, target)
@@ -317,6 +371,7 @@ export function runningConfig(s: Scenario, id: string) {
     ...d.interfaces.flatMap((i) => [
       `interface ${i.name}`,
       ` ip address ${i.ip} ${dotted(mask(i.prefix))}`,
+      ...(d.nat?.inside === i.name ? [" ip nat inside"] : d.nat?.outside === i.name ? [" ip nat outside"] : []),
       i.up ? " no shutdown" : " shutdown",
       ...(i.hsrp
         ? [
@@ -339,6 +394,9 @@ export function runningConfig(s: Scenario, id: string) {
         : []),
       "!",
     ]),
+    ...(d.nat?.mappings ?? []).map(
+      (m) => `! Mapping ${m.id}\nip nat inside source static ${m.insideLocal} ${m.insideGlobal}`,
+    ),
     ...(d.staticRoutes ?? []).map((r) => `ip route ${r.network} ${dotted(mask(r.prefix))} ${r.nextHop}`),
     ...(d.acls?.flatMap((a) => [
       `ip access-list standard ${a.name}`,
@@ -584,6 +642,7 @@ export function execute(
           `${i.name.padEnd(15)} ${i.ip.padEnd(17)} YES manual ${i.up ? "up      up" : "administratively down down"}`,
       ),
     ].join("\n");
+  if (cmd === "show ip nat translations") return natOutput(d);
   if (cmd === "show running-config") return runningConfig(s, id);
   if (cmd === "show ip ospf neighbor")
     return [
@@ -657,7 +716,9 @@ export function execute(
 export function repaired(s: Scenario): Scenario {
   const next = structuredClone(s);
   const repair = s.repair;
-  if ("kind" in repair && repair.kind === "port-security-mac") {
+  if ("kind" in repair && repair.kind === "nat-static-local")
+    device(next, repair.device).nat!.mappings.find((m) => m.id === repair.mappingId)!.insideLocal = repair.insideLocal;
+  else if ("kind" in repair && repair.kind === "port-security-mac") {
     device(next, repair.device).ports!.find((p) => p.name === repair.interface)!.portSecurity!.staticMac = repair.mac;
   } else if ("kind" in repair && repair.kind === "hsrp-priority") {
     device(next, repair.device).interfaces.find((i) => i.name === repair.interface)!.hsrp!.priority = repair.priority;
@@ -702,8 +763,16 @@ export function packetJourney(s: Scenario, id: string, target: string) {
   return [
     `Request ${c.source} -> ${target}: ${c.outward.hops.join(" -> ")}; ${c.outward.reason}`,
     c.outward.ok && c.returning
-      ? `Reply ${target} -> ${c.source}: ${c.returning.hops.join(" -> ")}; ${c.returning.reason}`
+      ? `Reply ${c.outward.delivered?.destination ?? target} -> ${c.outward.delivered?.source ?? c.source}: ${c.returning.hops.join(" -> ")}; ${c.returning.reason}`
       : "No reply generated: request was not delivered.",
+    ...(c.outward.translations || c.returning?.translations
+      ? [
+          "Simulator address transformations (not packet capture):",
+          ...[...(c.outward.translations ?? []), ...(c.returning?.translations ?? [])].map(
+            (t) => `${t.device} ${t.field}: ${t.before} -> ${t.after}`,
+          ),
+        ]
+      : []),
     `Bidirectional communication: ${c.ok ? "successful" : "failed"}`,
   ].join("\n");
 }

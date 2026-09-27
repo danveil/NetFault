@@ -13,13 +13,14 @@ export function repairPreview(original: Scenario) {
       commands.push([d.id, "ping", d.gateway]);
       if (d.commands.includes("arp -a")) commands.push([d.id, "arp -a"]);
     }
-    if (d.commands.includes("ping"))
+    if (!original.verificationTargets && d.commands.includes("ping"))
       for (const host of hosts.filter((h) => h.id !== d.id)) {
         commands.push([d.id, "ping", host.interfaces[0].ip]);
         const trace = d.kind === "pc" ? "tracert" : "traceroute";
         if (d.commands.includes(trace)) commands.push([d.id, trace, host.interfaces[0].ip]);
       }
   }
+  for (const p of original.verificationTargets ?? []) commands.push([p.device, "ping", p.target]);
   for (const p of original.policyChecks ?? []) if (p.source) commands.push([p.device, "ping", p.target, p.source]);
   const render = (s: Scenario) =>
     [
@@ -27,9 +28,11 @@ export function repairPreview(original: Scenario) {
       ...(s.stpDesign && hosts.length === 2
         ? [`Simulator Layer 2 path (not IP traceroute): ${stpPath(s, hosts[0].id, hosts[1].id).join(" → ")}`]
         : []),
-      ...hosts.flatMap((a) =>
-        hosts.filter((b) => b.id !== a.id).map((b) => packetJourney(s, a.id, b.interfaces[0].ip)),
-      ),
+      ...(s.verificationTargets
+        ? s.verificationTargets.map((p) => packetJourney(s, p.device, p.target))
+        : hosts.flatMap((a) =>
+            hosts.filter((b) => b.id !== a.id).map((b) => packetJourney(s, a.id, b.interfaces[0].ip)),
+          )),
     ].join("\n\n");
   return [
     "REPAIRED-STATE PREVIEW — not part of your evidence",

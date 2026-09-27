@@ -1,5 +1,26 @@
 # NetFault verification
 
+## Milestone 3O — 27 September 2026
+
+Current scope: [implementation](milestone-3o.md), [bounded NAT model](nat-model.md), [UNEXECUTED companion](nat-device-companion.md). Windows, Node 24.15.0, pnpm 11.19.0; installed Edge/Chromium. Final production build `g-Nekzy8ZgnxIZzsA2jLJ` retains dynamic `/api/lab` and generates the existing offline worker.
+
+- `pnpm test`: **710 passed in 27 files**, zero failed/skipped; 6.66 seconds. This includes 29 independent NAT model tests and 38 NAT scenario/repair/grading/persistence/server tests, plus all earlier protocol, Academy, storage and service-worker tests.
+- `pnpm build`: passed. No adapter, dependency, lockfile, environment or hosted configuration changes.
+- `pnpm lint` and `pnpm typecheck`: passed.
+- Full production browser rerun: **191 passed across 18 spec files**, zero failed/skipped/flaky; 751.459 seconds (12.5 minutes), on build `x-K7-REVFLXgoUrk2dbFi`. This includes desktop 1440px, 414px and 360px projects.
+- Final build `g-Nekzy8ZgnxIZzsA2jLJ`: passed after the display-only addition of the approved collapsible read-only global-address card. **17/17 focused final-build browser tests passed across 2 spec files**, zero failed/skipped/flaky; 75.254 seconds. This reruns all 15 NAT workflows at desktop/414px/360px plus both production privacy scans, including recorded global text and no editable global control. Final lint/typecheck also pass. The complete 191-test run preceded only this display addition; it was not repeated on the later build.
+- Focused browser checks: earlier 414px run **5 passed**; strengthened 360px run on the earlier build **5 passed**, zero failures/skips/flaky; 25.3 seconds. Full suites repeat these checks across 1440px, 414px and 360px.
+- Intermediate complete browser run: **189 passed, 2 failed**, zero skipped/flaky; 658.653 seconds. Both failures were desktop/mobile timer all-packs expected-address assumptions, not incorrect application addressing. Earlier next-hop all-packs coverage had the same assumption. Both now explicitly expect PC-A .40.10 for NAT, retaining every older expected address. No tests were removed or skipped to address failures.
+- Mobile checks require a visible repair form and nonempty controls at least 44 CSS pixels high, focus movement, page-width containment, actual initial/repaired mapping text and screenshots. Final-build 414px original/corrected translation cards and repair controls were visually inspected; desktop and 360px investigation/topology views and primer screenshots were also reviewed. Long terminal prose scrolls within the console; local/global labels and addresses remain directly readable.
+- Local Markdown checker: **14 files, 328 local references, including 21 line references; zero errors**. New model/companion/implementation and changed source formatting checks passed. `git diff --check` passed. Historical external links were not bulk retested.
+
+Model verification covers both initiation directions without prior state, source/destination transformation order, exact delivered endpoint and reply identity, ordinary nonmatch forwarding, independent route/return/L2/gateway failure, canonical schema bounds and permanent table/configuration. Scenario tests cover sole fault, valid wrong/minimal trials, bypass rejection, preserved NIC/global/routes, original and fresh evidence, forged/stale/foreign observations, no-ops/limits, hints/teaching/preview, pack/journal round trips, reloaded server sessions, duplicate concurrent changes, deadline and immutable grade. Existing Windows retry and controlled remote CAS tests remain unchanged; no live cloud store result is inferred.
+
+Browser workflows cover all thirteen labs and Academy, complete NAT Practice and timed Assessment/resume, wrong repair and incomplete verification, repaired preview, saved/reopened progress, cached offline completion, primer requested reasoning, privacy scans, no-store responses and worker updates. Practice remains inspectable and requires initial successful online caching; Assessment remains online/server-owned.
+
+No physical iPhone, Safari, VoiceOver, Packet Tracer, Cisco device or live Netlify testing was performed. See [manual device checklist](milestone-3o.md#open-and-manually-verify). No commit, push, deployment or Netlify credits were used.
+
+
 ## Milestone 3M — 26–27 September 2026
 
 Current implementation: [3M record](milestone-3m.md), [port-security model](port-security-model.md), [UNEXECUTED companion](port-security-device-companion.md). Windows, Node 24.15.0, pinned pnpm 11.19.0; installed Edge/Chromium. All results below were executed for this milestone; older records retain their historical dates.

@@ -1,3 +1,4 @@
+import { gradeNat } from "./nat-grading";
 import type { Diagnosis, Feedback, Observation, Scenario, RepairAction } from "./schema";
 import { channelState } from "./etherchannel";
 import { connectivity } from "./engine";
@@ -13,6 +14,8 @@ export function grade(
   timedOut = false,
   repairs: RepairAction[] = [],
 ): Feedback {
+  if ("kind" in s.repair && s.repair.kind === "nat-static-local")
+    return gradeNat(s, answer, history, timedOut, repairs);
   if ("kind" in s.repair && s.repair.kind === "port-security-mac")
     return gradePortSecurity(s, answer, history, timedOut, repairs);
   if ("kind" in s.repair && s.repair.kind === "hsrp-priority") return gradeHsrp(s, answer, history, timedOut, repairs);

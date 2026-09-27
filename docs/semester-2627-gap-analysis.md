@@ -1,5 +1,17 @@
 # NetFault × supplied 2026/27 semester material
 
+## Milestone 3O implementation delta — 27 September 2026
+
+[LAB 013 — Beyond the gate](milestone-3o.md) now implements one reusable bounded permanent static NAT pair, explicit inside/outside roles, outward source translation after routing and inward destination translation before routing. Replies use actual delivered endpoint/address identity; routes and directed L2 delivery remain independent. One wrong inside-local slot explains both service failures. Minimal applied correction plus authentic original and fresh bidirectional evidence is required. There are now thirteen playable cases; earlier authored scenarios and Academy revisions are unchanged.
+
+Coverage is **partial static NAT investigation**, not full NAT/PAT competence. An unrelated tiny primer supports identity/routing reasoning; the original [device companion](nat-device-companion.md) is UNEXECUTED. Dynamic NAT, PAT, pools, transport/timer state, policy NAT and mixed protocols remain gaps. See [model bounds](nat-model.md) and [executed checks](verification.md). Historical planning records below describe their own earlier baseline and are superseded only for this explicit scope.
+
+## Milestone 3N NAT planning delta — 27 September 2026
+
+**PLANNED ONLY — NO NAT ENGINE OR LAB 013 IMPLEMENTED.** The [fresh NAT audit](nat-feasibility.md#1-source-provenance-and-inspection) hash-verifies actual `7.NAT.ppt`, `7.NATrv.txt` and `ExtraLab.pptx` against the supplied archive, reviews NAT text and selected images, and separates conceptual/configuration/verification evidence. N7 explicitly depicts request/reply address changes; N14/N20 show outside static access; N24 supplies a clipped PAT verification screenshot. ExtraLab Week 7 is an integrated dynamic NAT task, not the proposed static case. Source label conflicts and missing removal/statistics evidence are recorded rather than copied into the model.
+
+Recommendation: one wrong inside-local static mapping, **Beyond the gate**, with [implementation-ready 3O scope](milestone-3n-plan.md). Static bidirectional translation needs packet/return context but no persistent allocation state; dynamic NAT and PAT remain later foundations. NAT/PAT is still **unimplemented and uncovered**, all twelve accepted labs/Academy remain unchanged, and this planning PASS does not establish practical completion. Earlier dated positions below remain historical.
+
 **Milestone 3M update:** [LAB 012 — The quiet desk](milestone-3m.md) adds one static, maximum-one, protect-mode access-edge investigation with real ingress admission/resolution and applied repair verification. See the [bounded model](port-security-model.md). Sticky/dynamic learning, aging, counters, restrict/shutdown/recovery, trunks and broader LAN security remain uncovered. The optional original [switch companion](port-security-device-companion.md) is UNEXECUTED. Earlier planning tables below are historical; no NAT, GRE, later lab or Academy expansion was added.
 
 ## Post-3K gap refresh — Milestone 3L, 26 September 2026

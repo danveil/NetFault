@@ -1,5 +1,10 @@
 # NetFault
 
+**Milestone 3O:** Thirteen playable labs now include **LAB 013 — Beyond the gate**, a bounded permanent static NAT investigation with real translation in both directions. Inspect addressing, routes and configuration, apply a local-member mapping trial, then select fresh two-way evidence. Open **Troubleshooting labs → LAB 013 → Practice or Assessment → Start investigation**. See [implementation](docs/milestone-3o.md), [model and boundaries](docs/nat-model.md), [verification](docs/verification.md) and the original [UNEXECUTED device companion](docs/nat-device-companion.md). An unrelated touch-first primer is available before Practice. All twelve earlier cases and Academy revisions are preserved. Dynamic NAT/PAT remains uncovered. No deployment is included.
+
+
+**Historical Milestone 3N: PLANNED ONLY — NO NAT ENGINE OR LAB 013 IMPLEMENTED.** The [current-source NAT audit](docs/nat-feasibility.md) recommends one static one-to-one investigation, **Beyond the gate**, with an incorrect inside-local mapping. The [proposed 3O specification](docs/milestone-3n-plan.md) defines actual bidirectional translation, independent routing, a minimal repair and fresh verification. Verdict PASS is feasibility only; implementation requires separate authorization. The twelve playable labs and Academy remain unchanged. NAT/PAT remains uncovered; no application suites or deployment were run for this documentation-only milestone.
+
 **Milestone 3M:** LAB 012, **The quiet desk**, is the current bounded access-edge investigation. Inspect recorded evidence, apply a static secure-MAC replacement and verify fresh service with protection retained. Open **Troubleshooting labs → LAB 012 → Practice or Assessment → Start investigation**. Twelve labs are registered; all earlier scenario revisions and Academy content remain intact. See [implementation](docs/milestone-3m.md), [model](docs/port-security-model.md), [verification](docs/verification.md) and the original [UNEXECUTED switch companion](docs/port-security-device-companion.md). This does not complete LAN-security coverage. The 3L paragraph below is a historical planning record superseded by this separately authorized implementation.
 
 **Historical Milestone 3L: PLANNED ONLY — NO LAB 012 OR NEW ENGINE CAPABILITY IMPLEMENTED.** The [current-source feasibility audit](docs/lab012-feasibility.md) recommends **The quiet desk**, one wrong static secure-MAC registration in explicit protect mode. The [proposed 3M scope](docs/milestone-3l-plan.md) defines real ingress admission/resolution, an applied repair and fresh verification; it requires separate authorization. Eleven playable labs and Academy remain unchanged. NAT, GRE and the other compared topics remain gaps, not newly covered features.
@@ -66,7 +71,7 @@ For full PWA use, put the production server behind an HTTPS reverse proxy with a
 
 ## Play the lab
 
-1. Select any lab 001–011, choose Practice or Assessment, then Start investigation.
+1. Select any lab 001–013, choose Practice or Assessment, then Start investigation.
 2. Read the incident and expand the design brief. Tap topology nodes or use the accessible device buttons.
 3. Run the listed commands. Enter a numeric destination for ping/trace. Select useful output as evidence; revisit all outputs in the notebook.
 4. Submit cause, affected device(s), evidence and repair. Lab 001 asks for both adjacency endpoints; lab 002 asks for the faulted device, a gateway IPv4 address and a structured explanation of forwarding. Lab 003 asks for the device, interface, observed/intended VLANs and access-port correction. Lab 004 asks for the missing prefix, next hop and reply-routing explanation; lab 005 asks for the router, interface, correction and Hello/adjacency explanation. Notes are stored, **not interpreted or graded**.

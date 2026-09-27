@@ -1,3 +1,4 @@
+import { validateNat } from "./nat";
 import { validateHsrp } from "./hsrp";
 import { normalizeMac, validatePortSecurity } from "./port-security";
 import { z } from "zod";
@@ -11,6 +12,7 @@ export const ipv4 = z
     "Valid dotted IPv4 required",
   );
 export const commandNames = [
+  "show ip nat translations",
   "show port-security",
   "show port-security address",
   "show port-security interface fastethernet0/1",
@@ -113,7 +115,20 @@ export const staticRouteSchema = z.object({
   nextHop: ipv4,
 });
 export const bridgePriority = z.number().int().min(0).max(61440).multipleOf(4096);
+export const natSchema = z.strictObject({
+  mode: z.literal("static-one-to-one"),
+  inside: z.string(),
+  outside: z.string(),
+  mappings: z.array(z.strictObject({ id: z.string().min(1).max(32), insideLocal: ipv4, insideGlobal: ipv4 })).length(1),
+});
+export const natRepairActionSchema = z.strictObject({
+  kind: z.literal("nat-static-local"),
+  device: z.string().min(1).max(64),
+  mappingId: z.string().min(1).max(32),
+  insideLocal: z.string().trim().pipe(ipv4),
+});
 export const deviceSchema = z.object({
+  nat: natSchema.optional(),
   stp: z
     .strictObject({
       vlan: z.number().int().min(1).max(4094),
@@ -176,6 +191,10 @@ export const linkSchema = z.object({
   subnet: z.string(),
 });
 export const diagnosisSchema = z.object({
+  mappingId: z.string().max(32).optional(),
+  observedLocal: z.string().trim().pipe(ipv4).optional(),
+  observedGlobal: z.string().trim().pipe(ipv4).optional(),
+  insideLocal: z.string().trim().pipe(ipv4).optional(),
   observedSecureMac: secureMacSchema.optional(),
   observedHsrpPriority: hsrpPrioritySchema.optional(),
   observedGroup: hsrpGroupSchema.optional(),
@@ -193,6 +212,7 @@ export const diagnosisSchema = z.object({
   gateway: z.string().max(64).optional(),
   reason: z
     .enum([
+      "static-translation",
       "source-admission",
       "virtual-owner",
       "root-election",
@@ -213,6 +233,7 @@ export const diagnosisSchema = z.object({
     ])
     .optional(),
   cause: z.enum([
+    "nat-local",
     "secure-mac",
     "hsrp-priority",
     "bridge-priority",
@@ -231,6 +252,7 @@ export const diagnosisSchema = z.object({
   ]),
   devices: z.array(z.string()).max(6),
   fix: z.enum([
+    "nat-local",
     "secure-mac",
     "hsrp-priority",
     "bridge-priority",
@@ -252,6 +274,7 @@ export const diagnosisSchema = z.object({
 });
 export type Diagnosis = z.infer<typeof diagnosisSchema>;
 export const scenarioIdSchema = z.enum([
+  "nat-static-01",
   "port-security-01",
   "hsrp-01",
   "stp-01",
@@ -283,12 +306,14 @@ export const scenarioSchema = z
       z.literal(9),
       z.literal(10),
       z.literal(11),
+      z.literal(12),
     ]),
     id: scenarioIdSchema,
     revision: z.literal(1),
     title: z.string(),
     incident: z.string(),
     design: z.string(),
+    verificationTargets: z.array(z.strictObject({ device: z.string(), target: ipv4 })).optional(),
     stpDesign: z
       .strictObject({ root: z.string(), vlan: z.number().int(), edges: z.array(z.string()).min(1) })
       .optional(),
@@ -309,6 +334,7 @@ export const scenarioSchema = z
     fault: z.object({ cause: diagnosisSchema.shape.cause, devices: z.array(z.string()), interface: z.string() }),
     acceptedFixes: z.array(diagnosisSchema.shape.fix),
     repair: z.union([
+      natRepairActionSchema.extend({ reason: z.literal("static-translation") }),
       z.strictObject({
         kind: z.literal("port-security-mac"),
         device: z.string(),
@@ -396,6 +422,21 @@ export const scenarioSchema = z
     }
     validateEtherChannelTopology(s, fail);
     validateStp(s, fail);
+    validateNat(s, fail);
+    if (
+      s.verificationTargets &&
+      (s.schemaVersion !== 12 ||
+        s.verificationTargets.length !== 2 ||
+        s.verificationTargets.some(
+          (p) =>
+            !s.devices.some((d) => d.id === p.device && d.kind === "pc" && d.commands.includes("ping")) ||
+            !s.devices.some(
+              (d) =>
+                d.interfaces.some((i) => i.ip === p.target) || d.nat?.mappings.some((m) => m.insideGlobal === p.target),
+            ),
+        ))
+    )
+      fail("Invalid static NAT verification targets");
     validateHsrp(s, fail);
     validatePortSecurity(s, fail);
     if (
@@ -577,7 +618,10 @@ export const scenarioSchema = z
     }
     const repair = s.repair;
     const repairedDevice = s.devices.find((d) => d.id === repair.device);
-    if ("kind" in repair && repair.kind === "port-security-mac") {
+    if ("kind" in repair && repair.kind === "nat-static-local") {
+      if (s.schemaVersion !== 12 || !repairedDevice?.nat?.mappings.some((m) => m.id === repair.mappingId))
+        fail("NAT repair requires an existing static mapping");
+    } else if ("kind" in repair && repair.kind === "port-security-mac") {
       if (
         s.schemaVersion !== 11 ||
         !repairedDevice?.ports?.find((p) => p.name === repair.interface)?.portSecurity?.enabled
@@ -739,6 +783,7 @@ export const portSecurityRepairActionSchema = z.strictObject({
   mac: secureMacSchema,
 });
 export const repairActionSchema = z.union([
+  natRepairActionSchema,
   portSecurityRepairActionSchema,
   hsrpRepairActionSchema,
   lacpRepairActionSchema,
@@ -750,6 +795,7 @@ export const attemptSchema = z.object({
   repairs: z
     .array(
       z.union([
+        natRepairActionSchema.extend({ at: z.number() }),
         portSecurityRepairActionSchema.extend({ at: z.number() }),
         lacpRepairActionSchema.extend({ at: z.number() }),
         aclRepairActionSchema.extend({ at: z.number() }),

@@ -1,5 +1,9 @@
 # Architecture and boundaries
 
+## Milestone 3O update
+
+Schema 12 adds one [bounded static NAT model](nat-model.md). Pure `nat.ts` transforms configured addresses; shared forwarding carries ingress, current packet identity, transformations and actual delivery endpoint. It performs independent routing/L2 delivery, outward post-route source translation and inward pre-route destination translation. Replies originate at the delivered endpoint, preserving original sender expectations. No dynamic session store or route-engine replacement is introduced. Strict local-slot trials, authenticated original/fresh grading, private preview service targets and new pack ID reuse existing journal/Assessment/Blobs-CAS/worker architecture. All twelve earlier authored cases and Academy revisions remain intact; unsupported mixed protocols are rejected. See [implementation](milestone-3o.md).
+
 ## Milestone 3G update
 
 Schema v8 adds one [bounded outbound standard ACL model](acl-model.md). `acl.ts` evaluates source rules at the routed egress; existing source-aware traversal handles requests and replies. The same `repair-trial.ts` reducer accepts a strict sequence-change variant, while `acl-grading.ts` checks unchanged policy content, actual positive/negative controls and fresh server-recorded observations. Recovery status is distinct from score. LAB 001–008 state, Academy, service-worker implementation, dependencies and durable assessment storage remain unchanged. Offline Practice remains deliberately inspectable; Assessment stays server-owned and online. See [implementation record](milestone-3g.md).

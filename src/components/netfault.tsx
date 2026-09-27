@@ -29,6 +29,9 @@ import StpRepair, { StpDiagnosis } from "./stp-repair";
 import StpPrimer from "./stp-primer";
 import HsrpRepair, { HsrpDiagnosis } from "./hsrp-repair";
 import PortSecurityRepair, { PortSecurityDiagnosis } from "./port-security-repair";
+import NatRepair, { NatDiagnosis } from "./nat-repair";
+import NatPrimer from "./nat-primer";
+import { natCauses, natFixes } from "@/lib/catalog";
 import PortSecurityPrimer from "./port-security-primer";
 import { portSecurityCauses, portSecurityFixes } from "@/lib/catalog";
 import HsrpPrimer from "./hsrp-primer";
@@ -132,53 +135,58 @@ export default function NetFault() {
   const isEtherChannel = lab.id === "etherchannel-01";
   const isAcl = lab.id === "acl-01";
   const isStp = lab.id === "stp-01";
+  const isNat = lab.id === "nat-static-01";
   const isPortSecurity = lab.id === "port-security-01";
   const isHsrp = lab.id === "hsrp-01";
-  const isTrial = isEtherChannel || isAcl || isStp || isHsrp || isPortSecurity;
+  const isTrial = isNat || isEtherChannel || isAcl || isStp || isHsrp || isPortSecurity;
   const protocolReasons = isTimer ? timerReasons : passiveReasons;
   const singleDeviceFault = lab.id !== "ospf-01" && !isEtherChannel;
   const supportsPingSource = isRouting || isPassive || isTimer || isAcl || isHsrp || isPortSecurity;
   const hintCount = isRouting || isPassive || isTimer || isTrial ? 4 : 3;
-  const causeChoices = isPortSecurity
-    ? portSecurityCauses
-    : isHsrp
-      ? hsrpCauses
-      : isStp
-        ? stpCauses
-        : isAcl
-          ? aclCauses
-          : isEtherChannel
-            ? etherChannelCauses
-            : isNextHop
-              ? nextHopCauses
-              : isPassive || isTimer
-                ? passiveCauses
-                : isRouting
-                  ? returnCauses
-                  : isVlan
-                    ? vlanCauses
-                    : causes;
-  const repairChoices = isPortSecurity
-    ? portSecurityFixes
-    : isHsrp
-      ? hsrpFixes
-      : isStp
-        ? stpFixes
-        : isAcl
-          ? aclFixes
-          : isEtherChannel
-            ? etherChannelFixes
-            : isNextHop
-              ? nextHopFixes
-              : isPassive || isTimer
-                ? passiveFixes
-                : isRouting
-                  ? returnFixes
-                  : isVlan
-                    ? vlanFixes
-                    : isGateway
-                      ? gatewayFixes
-                      : fixes;
+  const causeChoices = isNat
+    ? natCauses
+    : isPortSecurity
+      ? portSecurityCauses
+      : isHsrp
+        ? hsrpCauses
+        : isStp
+          ? stpCauses
+          : isAcl
+            ? aclCauses
+            : isEtherChannel
+              ? etherChannelCauses
+              : isNextHop
+                ? nextHopCauses
+                : isPassive || isTimer
+                  ? passiveCauses
+                  : isRouting
+                    ? returnCauses
+                    : isVlan
+                      ? vlanCauses
+                      : causes;
+  const repairChoices = isNat
+    ? natFixes
+    : isPortSecurity
+      ? portSecurityFixes
+      : isHsrp
+        ? hsrpFixes
+        : isStp
+          ? stpFixes
+          : isAcl
+            ? aclFixes
+            : isEtherChannel
+              ? etherChannelFixes
+              : isNextHop
+                ? nextHopFixes
+                : isPassive || isTimer
+                  ? passiveFixes
+                  : isRouting
+                    ? returnFixes
+                    : isVlan
+                      ? vlanFixes
+                      : isGateway
+                        ? gatewayFixes
+                        : fixes;
   const inFlight = useRef(false),
     timeoutRequested = useRef(false);
   const latestAttempt = useRef<Attempt | undefined>(undefined);
@@ -449,6 +457,7 @@ export default function NetFault() {
             timerPractice: localStorage.getItem("netfault.practice.timer-01.v1"),
             passivePractice: localStorage.getItem("netfault.practice.passive-01.v1"),
             etherChannelPractice: localStorage.getItem("netfault.practice.etherchannel-01.v1"),
+            natPractice: localStorage.getItem("netfault.practice.nat-static-01.v1"),
             portSecurityPractice: localStorage.getItem("netfault.practice.port-security-01.v1"),
             hsrpPractice: localStorage.getItem("netfault.practice.hsrp-01.v1"),
             stpPractice: localStorage.getItem("netfault.practice.stp-01.v1"),
@@ -547,7 +556,7 @@ export default function NetFault() {
           <span className="connection">
             <span className={online ? "status-dot" : "status-dot offline"} />
             {online ? "Workspace online" : "Offline"}
-            <span className="desktop-only"> · Milestone 3M</span>
+            <span className="desktop-only"> · Milestone 3O</span>
           </span>
         </header>
         <main id="main" tabIndex={-1}>
@@ -734,6 +743,7 @@ export default function NetFault() {
               </section>
               {isStp && !locked && <StpPrimer />}
               {isHsrp && !locked && <HsrpPrimer />}
+              {isNat && !locked && <NatPrimer />}
               {isPortSecurity && !locked && <PortSecurityPrimer />}
               <details className="offline-details">
                 <summary>Offline practice & assessment limits</summary>
@@ -825,6 +835,7 @@ export default function NetFault() {
                   <h2>{"heading" in lab ? lab.heading : "PC-A cannot reach PC-B."}</h2>
                   {isStp && !locked && <StpPrimer />}
                   {isHsrp && !locked && <HsrpPrimer />}
+                  {isNat && !locked && <NatPrimer />}
                   {isPortSecurity && !locked && <PortSecurityPrimer />}
                   <p>{lab.incident}</p>
                   <details>
@@ -832,23 +843,25 @@ export default function NetFault() {
                     <p>{lab.design}</p>
                     <p>
                       Use commands to inspect each device. Save observations as evidence,{" "}
-                      {isPortSecurity
-                        ? "compare endpoint identity with access policy, apply a justified static-slot replacement, then verify fresh controls, resolution and reciprocal delivery."
-                        : isHsrp
-                          ? "compare observed gateway roles with the approved design, apply a justified change and verify fresh roles, virtual resolution and reciprocal delivery."
-                          : isStp
-                            ? "compare the observed tree with the approved design, apply a justified priority change, and verify fresh roles plus connectivity."
-                            : isAcl
-                              ? "identify the policy location and first matching entry, apply an order change, then verify permitted and restricted traffic."
-                              : isPassive || isTimer
-                                ? "identify the router, interface and configuration fault, then explain the effect of your correction."
-                                : isRouting
-                                  ? "identify the device, destination prefix and next hop, then explain how the repair restores communication."
-                                  : isVlan
-                                    ? "identify the device, interface and observed configuration, then propose the intended configuration."
-                                    : isGateway
-                                      ? "identify the device and incorrect setting, then propose an address and explain the repair."
-                                      : "identify both affected adjacency endpoints, then propose a repair."}{" "}
+                      {isNat
+                        ? "compare addressing, routes and both address views; apply one mapping correction and verify fresh bidirectional delivery."
+                        : isPortSecurity
+                          ? "compare endpoint identity with access policy, apply a justified static-slot replacement, then verify fresh controls, resolution and reciprocal delivery."
+                          : isHsrp
+                            ? "compare observed gateway roles with the approved design, apply a justified change and verify fresh roles, virtual resolution and reciprocal delivery."
+                            : isStp
+                              ? "compare the observed tree with the approved design, apply a justified priority change, and verify fresh roles plus connectivity."
+                              : isAcl
+                                ? "identify the policy location and first matching entry, apply an order change, then verify permitted and restricted traffic."
+                                : isPassive || isTimer
+                                  ? "identify the router, interface and configuration fault, then explain the effect of your correction."
+                                  : isRouting
+                                    ? "identify the device, destination prefix and next hop, then explain how the repair restores communication."
+                                    : isVlan
+                                      ? "identify the device, interface and observed configuration, then propose the intended configuration."
+                                      : isGateway
+                                        ? "identify the device and incorrect setting, then propose an address and explain the repair."
+                                        : "identify both affected adjacency endpoints, then propose a repair."}{" "}
                       Outputs are deterministic, condensed IOS-style or PC-style views; no live network traffic is sent.
                     </p>
                   </details>
@@ -998,9 +1011,19 @@ export default function NetFault() {
                           <label htmlFor="destination">
                             Destination IPv4{" "}
                             <span className="muted">
-                              {isAcl || isStp || isHsrp || isPortSecurity ? "for ping" : "for ping / trace"}
+                              {isNat || isAcl || isStp || isHsrp || isPortSecurity ? "for ping" : "for ping / trace"}
                             </span>
                           </label>
+                          {isNat && (
+                            <>
+                              <label htmlFor="nat-target-choice">Service destination</label>
+                              <select id="nat-target-choice" value="" onChange={(e) => setTarget(e.target.value)}>
+                                <option value="">Choose a destination</option>
+                                <option value="198.51.100.10">Outside destination · PC-B</option>
+                                <option value="203.0.113.10">Inside global · assigned external identity</option>
+                              </select>
+                            </>
+                          )}
                           <input
                             id="destination"
                             inputMode="decimal"
@@ -1207,6 +1230,15 @@ export default function NetFault() {
                               : "Policy recovery not established."}
                         </p>
                       )}
+                      {isNat && (
+                        <p className="recovery-status">
+                          {attempt.feedback.recovery === "verified"
+                            ? "Both service directions verified with private NIC, global identity and routes retained."
+                            : attempt.feedback.recovery === "recovered-unverified"
+                              ? "Recovered configuration; fresh verification is incomplete."
+                              : "Service recovery not established."}
+                        </p>
+                      )}
                       {isPortSecurity && (
                         <p className="recovery-status">
                           {attempt.feedback.recovery === "verified"
@@ -1332,6 +1364,14 @@ export default function NetFault() {
                           Submitted timer profile: Hello {answer.hello ?? "—"} / Dead {answer.dead ?? "—"} seconds.
                         </p>
                       )}
+                      {isNat && (
+                        <p>
+                          Initial inside local: {answer.observedLocal ?? "Not submitted"}; inside global:{" "}
+                          {answer.observedGlobal ?? "Not submitted"}; mapping: {answer.mappingId ?? "Not submitted"};
+                          proposed inside local: {answer.insideLocal ?? "Not submitted"}. Mechanism:{" "}
+                          {answer.reason ?? "Not submitted"}.
+                        </p>
+                      )}
                       {isPortSecurity && (
                         <p>
                           Initial static secure MAC: {answer.observedSecureMac ?? "Not submitted"}; access interface:{" "}
@@ -1444,6 +1484,17 @@ export default function NetFault() {
                             onInspect={() => setTab("inspect")}
                           />
                           <HsrpDiagnosis answer={answer} onChange={editAnswer} />
+                        </>
+                      )}
+                      {isNat && (
+                        <>
+                          <NatRepair
+                            attempt={attempt}
+                            disabled={disabled}
+                            onApply={applyRepair}
+                            onInspect={() => setTab("inspect")}
+                          />
+                          <NatDiagnosis attempt={attempt} answer={answer} onChange={editAnswer} />
                         </>
                       )}
                       {isPortSecurity && (

@@ -15,6 +15,8 @@ test("fresh production assets exclude all authored private teaching and rubric c
     return results;
   }
   const scripts = (await assets(".next/static")).join("\n");
+  expect(scripts).not.toContain("192.168.40.99");
+  expect(scripts).not.toContain("192.168.40.10");
   expect(scripts).not.toContain("only R2's static routing configuration changes");
   for (const mac of ["0200.0012.009a", "0200.0012.000a"]) expect(scripts).not.toContain(mac);
   for (const lab of labs) {

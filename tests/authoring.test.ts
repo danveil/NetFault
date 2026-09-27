@@ -26,6 +26,7 @@ it.each(labs)(
       "stp-01": 9,
       "hsrp-01": 10,
       "port-security-01": 11,
+      "nat-static-01": 12,
     };
     expect(s.schemaVersion).toBe(expectedVersions[s.id]);
     expect(s.links.map((l) => l.subnet)).toEqual(lab.subnets);
@@ -53,6 +54,16 @@ it.each(labs)(
           output: execute(s, p.device, "ping", p.target),
           at: 1,
         });
+    for (const p of s.verificationTargets ?? [])
+      evidence.push({
+        id: `service-${p.device}`,
+        scenario: s.id,
+        device: p.device,
+        command: "ping",
+        target: p.target,
+        output: execute(s, p.device, "ping", p.target),
+        at: 1,
+      });
     if (s.schemaVersion === 11)
       for (const d of s.devices.filter((d) => d.kind === "pc"))
         evidence.push({
@@ -72,7 +83,15 @@ it.each(labs)(
     expect(feedback.parts.find((p) => p.name === "Supporting evidence")?.earned).toBe(30);
     expect(connectivity(s, "PC-A", lab.target).ok).toBe(s.schemaVersion === 9 || s.schemaVersion === 10);
     expect(connectivity(repaired(s), "PC-A", lab.target).ok).toBe(true);
-    expect(connectivity(repaired(s), "PC-B", s.devices.find((d) => d.id === "PC-A")!.interfaces[0].ip).ok).toBe(true);
+    const insidePhysical = s.devices.find((d) => d.id === "PC-A")!.interfaces[0].ip;
+    expect(
+      connectivity(
+        repaired(s),
+        "PC-B",
+        s.verificationTargets?.find((p) => p.device === "PC-B")?.target ?? insidePhysical,
+      ).ok,
+    ).toBe(true);
+    if (s.verificationTargets) expect(connectivity(repaired(s), "PC-B", insidePhysical).ok).toBe(false);
   },
 );
 it("behavioral authoring contract catches a structurally plausible but ineffective timer repair", () => {

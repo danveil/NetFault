@@ -1,5 +1,11 @@
 # Network correctness: OSPF lab 001
 
+## Milestone 3O implementation delta — 27 September 2026
+
+[LAB 013 — Beyond the gate](milestone-3o.md) now implements one reusable bounded permanent static NAT pair, explicit inside/outside roles, outward source translation after routing and inward destination translation before routing. Replies use actual delivered endpoint/address identity; routes and directed L2 delivery remain independent. One wrong inside-local slot explains both service failures. Minimal applied correction plus authentic original and fresh bidirectional evidence is required. There are now thirteen playable cases; earlier authored scenarios and Academy revisions are unchanged.
+
+Coverage is **partial static NAT investigation**, not full NAT/PAT competence. An unrelated tiny primer supports identity/routing reasoning; the original [device companion](nat-device-companion.md) is UNEXECUTED. Dynamic NAT, PAT, pools, transport/timer state, policy NAT and mixed protocols remain gaps. See [model bounds](nat-model.md) and [executed checks](verification.md). Historical planning records below describe their own earlier baseline and are superseded only for this explicit scope.
+
 **Milestone 3M update:** [LAB 012 — The quiet desk](milestone-3m.md) adds one static, maximum-one, protect-mode access-edge investigation with real ingress admission/resolution and applied repair verification. See the [bounded model](port-security-model.md). Sticky/dynamic learning, aging, counters, restrict/shutdown/recovery, trunks and broader LAN security remain uncovered. The optional original [switch companion](port-security-device-companion.md) is UNEXECUTED. Earlier planning tables below are historical; no NAT, GRE, later lab or Academy expansion was added.
 
 **Milestone 3K update:** [LAB 011 and bounded HSRPv2](milestone-3k.md) provide partial priority/virtual-gateway investigation with explicit preemption and independent routing. The [model](hsrp-model.md) supports one group/two members and settled unequal-priority roles, actual virtual forwarding and fresh design verification. General preemption/incumbency, timers, failure history, tracking, VRRP/GLBP and IPv6 remain deferred. This does not establish full FHRP coverage or failover competence; prior audit statements below retain their dates.

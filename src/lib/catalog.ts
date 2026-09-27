@@ -438,6 +438,46 @@ export const portSecurityReasons = [
   ["same-address", "The secure MAC makes remote hosts part of the same IP subnet."],
 ] as const;
 
+export const natLab = {
+  id: "nat-static-01",
+  number: "013",
+  topic: "Boundary connectivity investigation",
+  target: "198.51.100.10",
+  title: "Beyond the gate",
+  subtitle: "Two desks can reach their gateways but cannot exchange traffic.",
+  incident:
+    "PC-A cannot exchange traffic with partner workstation PC-B. The partner also cannot reach PC-A through its assigned external address. Both desks can reach their local gateway. Investigate and restore the agreed service without changing workstation addressing or the routed design.",
+  design:
+    "PC-A must keep its private NIC identity and use assigned external identity 203.0.113.10. PC-B is reached at 198.51.100.10. Preserve workstation and router addresses, interface roles, all links, the existing static mapping's global value and the routed design. External traffic uses the assigned representation rather than a route to the private LAN.",
+  devices: [
+    { id: "PC-A", kind: "pc", role: "Inside desk" },
+    { id: "R1", kind: "router", role: "Boundary router" },
+    { id: "R2", kind: "router", role: "Partner router" },
+    { id: "PC-B", kind: "pc", role: "Partner desk" },
+  ],
+  subnets: ["192.168.40.0/24", "192.0.2.0/30", "198.51.100.0/24"],
+} as const;
+export const natCauses = [
+  ["missing-route", "Missing destination route"],
+  ["wrong-gateway", "Incorrect PC gateway"],
+  ["nat-local", "Static mapping does not identify the intended inside host"],
+  ["interface-down", "An interface is down"],
+] as const;
+export const natFixes = [
+  ["gateway", "Change the PC default gateway"],
+  ["nat-local", "Replace the existing static mapping's inside-local value"],
+  ["static-route", "Add a destination route"],
+  ["no-shutdown", "Enable an interface"],
+] as const;
+export const natReasons = [
+  [
+    "static-translation",
+    "The private host gets its intended outward source representation; inbound packets to that representation regain the inside destination. Routes remain independent.",
+  ],
+  ["reverse-automatically", "The mapping automatically creates missing return routes."],
+  ["same-address", "The host NIC becomes the external address."],
+] as const;
+
 export const labs = [
   lab,
   gatewayLab,
@@ -451,6 +491,7 @@ export const labs = [
   stpLab,
   hsrpLab,
   portSecurityLab,
+  natLab,
 ] as const;
 export type PublicLab = (typeof labs)[number];
 export function catalog(id: ScenarioId): PublicLab {
@@ -459,6 +500,15 @@ export function catalog(id: ScenarioId): PublicLab {
 export function commandsFor(id: ScenarioId, deviceId: string): string[] {
   const d = catalog(id).devices.find((d) => d.id === deviceId);
   if (!d) return [];
+  if (id === "nat-static-01")
+    return d.kind === "pc"
+      ? ["ipconfig", "ipconfig /all", "route print", "ping"]
+      : [
+          "show ip interface brief",
+          "show ip route",
+          "show running-config",
+          ...(deviceId === "R1" ? ["show ip nat translations"] : []),
+        ];
   if (id === "port-security-01")
     return d.kind === "switch"
       ? [

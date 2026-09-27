@@ -1,8 +1,20 @@
 # NetFault completion roadmap
 
+## Milestone 3O implementation delta — 27 September 2026
+
+[LAB 013 — Beyond the gate](milestone-3o.md) now implements one reusable bounded permanent static NAT pair, explicit inside/outside roles, outward source translation after routing and inward destination translation before routing. Replies use actual delivered endpoint/address identity; routes and directed L2 delivery remain independent. One wrong inside-local slot explains both service failures. Minimal applied correction plus authentic original and fresh bidirectional evidence is required. There are now thirteen playable cases; earlier authored scenarios and Academy revisions are unchanged.
+
+Coverage is **partial static NAT investigation**, not full NAT/PAT competence. An unrelated tiny primer supports identity/routing reasoning; the original [device companion](nat-device-companion.md) is UNEXECUTED. Dynamic NAT, PAT, pools, transport/timer state, policy NAT and mixed protocols remain gaps. See [model bounds](nat-model.md) and [executed checks](verification.md). Historical planning records below describe their own earlier baseline and are superseded only for this explicit scope.
+
+## Current planning position — Milestone 3N, 27 September 2026
+
+**PLANNED ONLY — NO NAT ENGINE OR LAB 013 IMPLEMENTED.** Exactly one next recommendation: **LAB 013 — Beyond the gate**, an incorrect inside-local member of a static one-to-one mapping. The [current-material and architecture audit](nat-feasibility.md) compares static/dynamic/PAT and six fault families; the [proposed 3O contract](milestone-3n-plan.md) defines four devices, routed global identity, both translation directions, minimal trial, fresh recovery proof, a tiny unrelated primer and an UNEXECUTED device companion. Model tests must precede the case. Separate implementation authorization is required.
+
+Twelve labs and Academy remain accepted and unchanged. NAT/PAT remains a coverage gap; the integrated Week 7 dynamic NAT practical is not fulfilled by this proposal. No further lab, Academy branch or protocol is authorized. The dated 3L recommendation below is historical and its LAB 012 implementation is recorded by 3M.
+
 **Milestone 3M update:** [LAB 012 — The quiet desk](milestone-3m.md) adds one static, maximum-one, protect-mode access-edge investigation with real ingress admission/resolution and applied repair verification. See the [bounded model](port-security-model.md). Sticky/dynamic learning, aging, counters, restrict/shutdown/recovery, trunks and broader LAN security remain uncovered. The optional original [switch companion](port-security-device-companion.md) is UNEXECUTED. Earlier planning tables below are historical; no NAT, GRE, later lab or Academy expansion was added.
 
-## Current planning position — Milestone 3L, 26 September 2026
+## Historical planning position — Milestone 3L, 26 September 2026
 
 **PLANNED ONLY — NO LAB 012 OR NEW ENGINE CAPABILITY IMPLEMENTED.** Exactly one next proposal: **LAB 012 — The quiet desk**, a wrong static secure MAC with explicit protect mode and a fully occupied one-address limit. The [source-grounded comparison](lab012-feasibility.md) selects a new endpoint-admission mental model over static NAT, GRE and management/IPv6/QoS/automation challengers. The [implementation-ready 3M specification](milestone-3l-plan.md) defines actual forwarding/resolution effects, structured replacement, fresh evidence and retained protection, a tiny unrelated primer and an UNEXECUTED authentic companion brief. Eleven labs/Academy remain accepted and unchanged; separate 3M authorization is required.
 

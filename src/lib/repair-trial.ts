@@ -1,3 +1,4 @@
+import { validateNat } from "./nat";
 import { repairActionSchema, type RepairAction, type Scenario, type Attempt } from "./schema";
 import { hsrpPriority, validateHsrp } from "./hsrp";
 import { moveAclEntry } from "./acl";
@@ -11,6 +12,7 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
     original.schemaVersion !== 8 &&
     original.schemaVersion !== 9 &&
     original.schemaVersion !== 10 &&
+    original.schemaVersion !== 12 &&
     original.schemaVersion !== 11
   )
     throw Error("Configuration trials are not supported by this scenario");
@@ -20,6 +22,17 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
     const request = { ...raw } as RepairAction & { at?: number };
     delete request.at;
     const change = repairActionSchema.parse(request);
+    if ("kind" in change && change.kind === "nat-static-local") {
+      const m = result.devices
+        .find((d) => d.id === change.device)
+        ?.nat?.mappings.find((m) => m.id === change.mappingId);
+      if (original.schemaVersion !== 12 || !m) throw Error("Select an existing static mapping");
+      m.insideLocal = change.insideLocal;
+      validateNat(result, (message) => {
+        throw Error(message);
+      });
+      continue;
+    }
     if ("kind" in change && change.kind === "port-security-mac") {
       const policy = result.devices
         .find((d) => d.id === change.device)
@@ -79,6 +92,8 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
   return result;
 }
 export function repairDescription(change: RepairAction) {
+  if ("kind" in change && change.kind === "nat-static-local")
+    return `${change.device}, mapping ${change.mappingId}, inside local -> ${change.insideLocal}`;
   if ("kind" in change && change.kind === "port-security-mac")
     return `${change.device}, ${change.interface}, static secure MAC → ${change.mac}`;
   if ("kind" in change && change.kind === "hsrp-priority")

@@ -1,4 +1,5 @@
 import "server-only";
+import { natScenario } from "./nat-scenario";
 import { portSecurityScenario } from "./port-security-scenario";
 import { hsrpScenario } from "./hsrp-scenario";
 import { stpScenario } from "./stp-scenario";
@@ -14,6 +15,7 @@ import { etherChannelScenario } from "./etherchannel-scenario";
 import { aclScenario } from "./acl-scenario";
 import { catalog, commandsFor } from "@/lib/catalog";
 export const scenarios: Record<ScenarioId, Scenario> = {
+  "nat-static-01": natScenario,
   "port-security-01": portSecurityScenario,
   "ospf-01": scenario,
   "gateway-01": gatewayScenario,
