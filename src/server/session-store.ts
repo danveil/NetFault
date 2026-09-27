@@ -58,7 +58,22 @@ async function save(a: Attempt) {
   await mkdir(root, { recursive: true });
   const file = path.join(root, `${a.id}.json`);
   await writeFile(file + ".tmp", JSON.stringify(a), "utf8");
-  await rename(file + ".tmp", file);
+  // Windows may briefly deny replacing a closed file (for example while a scanner holds it).
+  // Keep the atomic replacement and never acknowledge a failed write. Hosted Blobs/CAS is unaffected.
+  for (let retry = 0; ; retry++) {
+    try {
+      await rename(file + ".tmp", file);
+      break;
+    } catch (error) {
+      if (
+        process.platform !== "win32" ||
+        retry >= 4 ||
+        !["EPERM", "EACCES", "EBUSY"].includes((error as NodeJS.ErrnoException).code ?? "")
+      )
+        throw error;
+      await new Promise((resolve) => setTimeout(resolve, 25 * (retry + 1)));
+    }
+  }
 }
 const localStore: SessionStore = {
   create: save,

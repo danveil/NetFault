@@ -1,5 +1,7 @@
 # LAB 012 topic selection and feasibility — Milestone 3L
 
+**Implementation follow-up:** separately authorized [Milestone 3M](milestone-3m.md) implements the bounded proposal. This document remains the historical 3L planning/source record; its PLANNED ONLY status describes that milestone. Current behavior and limits are in the [port-security model](port-security-model.md), with actual checks in [verification](verification.md).
+
 **PLANNED ONLY — NO LAB 012 OR NEW ENGINE CAPABILITY IMPLEMENTED**
 
 26 September 2026. Clean intake: `acea721` (commit subject `lab 012`; the subject is not evidence of an implemented twelfth lab). The actual registry contains eleven cases, through `hsrp-01`. This audit changes documentation only. The 558 tests / 22 files, 161 full browser checks and 21 final-build checks in [3K](milestone-3k.md) are historical results, not newly executed tests.

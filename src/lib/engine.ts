@@ -13,6 +13,7 @@ import { etherChannelOutput, forwardingLinks, forwardingPorts, channelState, phy
 import { virtualOwner, virtualMac, standbyOutput } from "./hsrp";
 import { stpLinks, stpOutput } from "./stp";
 import { evaluateAcl, aclOutput, aclSource, moveAclEntry } from "./acl";
+import { ethernetDelivery, portSecurityOutput, type AdmissionDrop } from "./port-security";
 
 export type Neighbor = {
   device: string;
@@ -149,6 +150,7 @@ function lookup(s: Scenario, id: string, target: string) {
     .sort((a, b) => Number(b.prefix.split("/")[1]) - Number(a.prefix.split("/")[1]))[0];
 }
 type Path = {
+  admissionDrop?: AdmissionDrop;
   ok: boolean;
   hops: string[];
   reason: string;
@@ -216,6 +218,25 @@ export function forward(
         p.remote.up &&
         (owner ? p.device.id === owner.device.id && p.remote.name === owner.interface.name : p.remote.ip === nextHop),
     );
+    if (peer && s.schemaVersion === 11) {
+      const local = { device: current.id, interface: out.name },
+        remote = { device: peer.device.id, interface: peer.remote.name };
+      for (const phase of ["request", "response", "data"] as const) {
+        const result =
+          phase === "response"
+            ? ethernetDelivery(s, remote, local, peer.remote.mac)
+            : ethernetDelivery(s, local, remote, out.mac);
+        if (!result.ok) {
+          if (nextHop) observe?.({ device: current.id, local: out, ip: nextHop });
+          return {
+            ok: false,
+            hops,
+            reason: "Next-hop Ethernet exchange failed",
+            ...(result.drop ? { admissionDrop: { ...result.drop, phase } } : {}),
+          };
+        }
+      }
+    }
     if (nextHop)
       observe?.({
         device: current.id,
@@ -244,7 +265,7 @@ export function connectivity(s: Scenario, id: string, target: string, requestedS
   const outward = forward(s, id, target, undefined, source),
     destination = s.devices.find((d) => d.interfaces.some((i) => i.ip === target)) ?? virtualOwner(s, target)?.device;
   const returning =
-    destination && (outward.ok || !s.devices.some((d) => d.acls))
+    destination && (outward.ok || (s.schemaVersion !== 11 && !s.devices.some((d) => d.acls)))
       ? forward(s, destination.id, source, undefined, target)
       : undefined;
   return { ok: outward.ok && !!returning?.ok, source, outward, returning };
@@ -270,6 +291,14 @@ export function runningConfig(s: Scenario, id: string) {
           .map((c) => ` channel-group ${c.id} mode ${c.mode}`) ?? []),
         " switchport mode access",
         ` switchport access vlan ${p.vlan}`,
+        ...(p.portSecurity
+          ? [
+              p.portSecurity.enabled ? " switchport port-security" : " no switchport port-security",
+              ` switchport port-security maximum ${p.portSecurity.maximum}`,
+              ` switchport port-security violation ${p.portSecurity.violation}`,
+              ` switchport port-security mac-address ${p.portSecurity.staticMac}`,
+            ]
+          : []),
         p.up ? " no shutdown" : " shutdown",
         "!",
       ]),
@@ -402,6 +431,8 @@ export function execute(
     return `% Unsupported command on ${id}: ${raw}. Use the supported command buttons. This is a bounded simulator, not an IOS shell.`;
   if (source && cmd !== "ping") return "% Explicit source is supported only for router ping.";
   const channelOutput = etherChannelOutput(s, d, cmd);
+  if (cmd.startsWith("show port-security"))
+    return portSecurityOutput(d, cmd, (name) => portStatus(s, id, name) === "connected");
   if (cmd === "show standby brief") return standbyOutput(s, id);
   if (cmd === "show spanning-tree vlan 10") return stpOutput(s, d);
   if (cmd === "show access-lists") return aclOutput(d);
@@ -410,7 +441,9 @@ export function execute(
     const state = arpState(
       s,
       id,
-      s.schemaVersion === 10 ? history.filter((o) => (o.repairIndex ?? 0) === repairIndex) : history,
+      s.schemaVersion === 10 || s.schemaVersion === 11
+        ? history.filter((o) => (o.repairIndex ?? 0) === repairIndex)
+        : history,
     );
     return [
       ...(state.entries.length
@@ -429,7 +462,7 @@ export function execute(
       state.last
         ? `Simulator observation: last next-hop resolution for ${state.last.ip} ${state.last.resolved ? "succeeded" : "failed; no resolved MAC entry was created"}.`
         : "Simulator observation: no locally initiated next-hop resolution yet.",
-      s.schemaVersion === 10
+      s.schemaVersion === 10 || s.schemaVersion === 11
         ? "Bounded current-configuration ARP observations; each actual configuration edit starts a new empty observation epoch. Probe again. No aging, gratuitous ARP or real cache flushing is simulated."
         : "Simplified Windows-style cache: learned entries only; failed attempts are not dynamic entries. Entries persist for this attempt; no aging/background traffic. New attempts and repair previews start empty.",
     ].join("\n");
@@ -495,9 +528,11 @@ export function execute(
         c.ok ? "!!!!!\nSuccess rate is 100 percent (5/5)." : ".....\nSuccess rate is 0 percent (0/5).",
         c.ok
           ? "Echo replies returned."
-          : s.schemaVersion === 8
-            ? "No echo replies returned. Compare addressing, routes and interface policy in both directions."
-            : "No echo replies returned. Inspect routes in both directions.",
+          : s.schemaVersion === 11
+            ? "No echo replies returned. Compare physical state, VLAN, addressing, admission and routes in both directions."
+            : s.schemaVersion === 8
+              ? "No echo replies returned. Compare addressing, routes and interface policy in both directions."
+              : "No echo replies returned. Inspect routes in both directions.",
       ].join("\n");
     // Only display hops whose ICMP responses can route back to the original source.
     const hops = c.outward.hops.map((ip, index) => {
@@ -622,7 +657,9 @@ export function execute(
 export function repaired(s: Scenario): Scenario {
   const next = structuredClone(s);
   const repair = s.repair;
-  if ("kind" in repair && repair.kind === "hsrp-priority") {
+  if ("kind" in repair && repair.kind === "port-security-mac") {
+    device(next, repair.device).ports!.find((p) => p.name === repair.interface)!.portSecurity!.staticMac = repair.mac;
+  } else if ("kind" in repair && repair.kind === "hsrp-priority") {
     device(next, repair.device).interfaces.find((i) => i.name === repair.interface)!.hsrp!.priority = repair.priority;
   } else if ("priority" in repair) {
     device(next, repair.device).stp!.priority = repair.priority;

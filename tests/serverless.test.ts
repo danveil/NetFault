@@ -43,6 +43,28 @@ function remote() {
 }
 
 describe("serverless assessment storage", () => {
+  it("preserves secure MAC replacement and its observed epoch across independent CAS stores", async () => {
+    const r = remote(),
+      a = await startAssessment(r.client(), "port-security-01");
+    const change = {
+      kind: "port-security-mac",
+      device: "SW1",
+      interface: "FastEthernet0/1",
+      mac: "0200.0012.000a",
+    } as const;
+    await Promise.all([
+      assessmentAction(a.id, "repair", change, r.client()),
+      assessmentAction(a.id, "repair", change, r.client()),
+      assessmentAction(a.id, "command", { device: "PC-A", command: "ping", target: "172.30.10.1" }, r.client()),
+    ]);
+    const resumed = await assessmentAction(a.id, "resume", undefined, r.client());
+    expect(resumed.repairs).toHaveLength(1);
+    expect(resumed.history).toHaveLength(1);
+    expect(resumed.history[0].output).toContain(
+      resumed.history[0].repairIndex ? "100 percent (5/5)" : "0 percent (0/5)",
+    );
+    expect(resumed.expiresAt).toBe(a.expiresAt);
+  });
   it("preserves ACL trials and coherent observations across separate invocation stores", async () => {
     const r = remote();
     const a = await startAssessment(r.client(), "acl-01");

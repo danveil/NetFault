@@ -1,5 +1,7 @@
 # Engine capability and course feasibility audit
 
+**Milestone 3M update:** [LAB 012 — The quiet desk](milestone-3m.md) adds one static, maximum-one, protect-mode access-edge investigation with real ingress admission/resolution and applied repair verification. See the [bounded model](port-security-model.md). Sticky/dynamic learning, aging, counters, restrict/shutdown/recovery, trunks and broader LAN security remain uncovered. The optional original [switch companion](port-security-device-companion.md) is UNEXECUTED. Earlier planning tables below are historical; no NAT, GRE, later lab or Academy expansion was added.
+
 ## Milestone 3L planning delta — 26 September 2026
 
 **PLANNED ONLY — NO LAB 012 OR NEW ENGINE CAPABILITY IMPLEMENTED.** The [current audit](lab012-feasibility.md#7-current-code-audit-and-required-seam) confirms eleven cases/schema versions 1–10 and no port-security, NAT or GRE model. It recommends one static secure-MAC/protect case, **The quiet desk**, with a pure ingress predicate plus actual bidirectional Ethernet resolution/admission. Existing `peers` is topology traversal, not source-MAC policy; original IP source must not be reused as frame identity after routing. The [3M proposal](milestone-3l-plan.md) scopes state, commands, trials, grading and model-first tests, preserving older ARP/LACP/STP/HSRP paths and storage architecture. Dynamic learning, counters, shutdown/recovery, NAT translation and GRE logical routing remain unimplemented. This PASS is engineering feasibility, not new executable coverage or authorization.

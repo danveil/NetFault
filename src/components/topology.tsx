@@ -187,7 +187,7 @@ export default function Topology({
   return (
     <>
       <div
-        className={`${compact ? "topology compact" : "topology"}${hsrp ? " topology-hsrp" : stp ? " topology-stp" : "physicalLinks" in lab ? " topology-bundle" : ""}${lab.id === "acl-01" ? " topology-policy" : ""}`}
+        className={`${compact ? "topology compact" : "topology"}${hsrp ? " topology-hsrp" : stp ? " topology-stp" : "physicalLinks" in lab ? " topology-bundle" : ""}${lab.id === "acl-01" ? " topology-policy" : lab.id === "port-security-01" ? " topology-desk" : ""}`}
         aria-label="Interactive network topology"
       >
         <ReactFlow
@@ -217,6 +217,13 @@ export default function Topology({
           Physical cabling: PC-A Ethernet0 — SW1 Gi0/3; SW1 Gi0/1 — SW2 Gi0/1; SW1 Gi0/2 — SW3 Gi0/1; SW2 Gi0/2 — SW3
           Gi0/2; SW3 Gi0/3 — PC-B Ethernet0. All switch links use access VLAN 10. Lines show cables, not forwarding
           state. Inspect each switch for the current tree.
+        </p>
+      )}
+      {lab.id === "port-security-01" && (
+        <p className="topology-text">
+          Physical path: PC-A Ethernet0 — SW1 FastEthernet0/1; SW1 FastEthernet0/24 — R1 Gi0/0; R1 Gi0/1 — PC-B
+          Ethernet0. The two switch ports use access VLAN 10. Lines show cabling, not proof of forwarding. Tap a device
+          or use the device selector to investigate.
         </p>
       )}
       {hsrp && (

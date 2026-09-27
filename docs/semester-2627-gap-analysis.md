@@ -1,5 +1,7 @@
 # NetFault × supplied 2026/27 semester material
 
+**Milestone 3M update:** [LAB 012 — The quiet desk](milestone-3m.md) adds one static, maximum-one, protect-mode access-edge investigation with real ingress admission/resolution and applied repair verification. See the [bounded model](port-security-model.md). Sticky/dynamic learning, aging, counters, restrict/shutdown/recovery, trunks and broader LAN security remain uncovered. The optional original [switch companion](port-security-device-companion.md) is UNEXECUTED. Earlier planning tables below are historical; no NAT, GRE, later lab or Academy expansion was added.
+
 ## Post-3K gap refresh — Milestone 3L, 26 September 2026
 
 **PLANNED ONLY — NO LAB 012 OR NEW ENGINE CAPABILITY IMPLEMENTED.** The [fresh source/feasibility audit](lab012-feasibility.md#2-refreshed-substantial-gap-inventory) compares the actual archive/revision notes, switch-security practical, candidate command screenshots and ExtraLab exercises with all eleven delivered cases. Its current inventory separates concepts, configuration, verification/troubleshooting and executable coverage. Remaining substantial gaps include port security and broader LAN admission/trust controls, NAT/PAT, WAN/GRE/IPsec, management/maintenance, QoS, automation/virtualization, IPv6, general security and the unmodeled parts of switching/routing/redundancy. Original device configuration competence remains external; no percentages or chapter-completion claims are assigned.

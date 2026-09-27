@@ -1,4 +1,5 @@
 import { validateHsrp } from "./hsrp";
+import { normalizeMac, validatePortSecurity } from "./port-security";
 import { z } from "zod";
 import { validateStp } from "./stp";
 import { validateEtherChannelTopology } from "./etherchannel";
@@ -10,6 +11,9 @@ export const ipv4 = z
     "Valid dotted IPv4 required",
   );
 export const commandNames = [
+  "show port-security",
+  "show port-security address",
+  "show port-security interface fastethernet0/1",
   "show standby brief",
   "show spanning-tree vlan 10",
   "show access-lists",
@@ -62,7 +66,18 @@ export const standardAclSchema = z
 export type StandardAcl = z.infer<typeof standardAclSchema>;
 export const hsrpPrioritySchema = z.number().int().min(0).max(255);
 export const hsrpGroupSchema = z.number().int().min(0).max(4095);
+export const secureMacSchema = z
+  .string()
+  .transform((v) => normalizeMac(v) ?? v)
+  .refine((v) => normalizeMac(v) === v, "Valid unicast MAC required");
+export const portSecuritySchema = z.strictObject({
+  enabled: z.boolean(),
+  maximum: z.literal(1),
+  violation: z.literal("protect"),
+  staticMac: z.string().refine((v) => normalizeMac(v) === v, "Canonical unicast MAC required"),
+});
 export const interfaceSchema = z.object({
+  portSecurity: z.never().optional(),
   hsrp: z
     .strictObject({
       version: z.literal(2),
@@ -132,6 +147,9 @@ export const deviceSchema = z.object({
   ports: z
     .array(
       z.object({
+        portSecurity: portSecuritySchema.optional(),
+        mode: z.literal("access").optional(),
+        voiceVlan: z.never().optional(),
         stp: z
           .strictObject({
             number: z.number().int().min(1).max(4095),
@@ -158,6 +176,7 @@ export const linkSchema = z.object({
   subnet: z.string(),
 });
 export const diagnosisSchema = z.object({
+  observedSecureMac: secureMacSchema.optional(),
   observedHsrpPriority: hsrpPrioritySchema.optional(),
   observedGroup: hsrpGroupSchema.optional(),
   observedPriority: bridgePriority.optional(),
@@ -174,6 +193,7 @@ export const diagnosisSchema = z.object({
   gateway: z.string().max(64).optional(),
   reason: z
     .enum([
+      "source-admission",
       "virtual-owner",
       "root-election",
       "first-match-policy",
@@ -193,6 +213,7 @@ export const diagnosisSchema = z.object({
     ])
     .optional(),
   cause: z.enum([
+    "secure-mac",
     "hsrp-priority",
     "bridge-priority",
     "acl-order",
@@ -210,6 +231,7 @@ export const diagnosisSchema = z.object({
   ]),
   devices: z.array(z.string()).max(6),
   fix: z.enum([
+    "secure-mac",
     "hsrp-priority",
     "bridge-priority",
     "acl-sequence",
@@ -230,6 +252,7 @@ export const diagnosisSchema = z.object({
 });
 export type Diagnosis = z.infer<typeof diagnosisSchema>;
 export const scenarioIdSchema = z.enum([
+  "port-security-01",
   "hsrp-01",
   "stp-01",
   "ospf-01",
@@ -259,6 +282,7 @@ export const scenarioSchema = z
       z.literal(8),
       z.literal(9),
       z.literal(10),
+      z.literal(11),
     ]),
     id: scenarioIdSchema,
     revision: z.literal(1),
@@ -285,6 +309,13 @@ export const scenarioSchema = z
     fault: z.object({ cause: diagnosisSchema.shape.cause, devices: z.array(z.string()), interface: z.string() }),
     acceptedFixes: z.array(diagnosisSchema.shape.fix),
     repair: z.union([
+      z.strictObject({
+        kind: z.literal("port-security-mac"),
+        device: z.string(),
+        interface: z.string(),
+        mac: secureMacSchema,
+        reason: z.literal("source-admission"),
+      }),
       z.strictObject({
         kind: z.literal("hsrp-priority"),
         device: z.string(),
@@ -366,6 +397,7 @@ export const scenarioSchema = z
     validateEtherChannelTopology(s, fail);
     validateStp(s, fail);
     validateHsrp(s, fail);
+    validatePortSecurity(s, fail);
     if (
       s.schemaVersion === 9
         ? !s.stpDesign ||
@@ -424,6 +456,7 @@ export const scenarioSchema = z
       const allowed =
         d.kind === "switch"
           ? [
+              ...commandNames.filter((c) => c.startsWith("show port-security")),
               "show spanning-tree vlan 10",
               "show vlan brief",
               "show interfaces status",
@@ -437,6 +470,7 @@ export const scenarioSchema = z
             ? ["ipconfig", "ipconfig /all", "route print", "ping", "tracert", "arp -a"]
             : commandNames.filter(
                 (c) =>
+                  !c.startsWith("show port-security") &&
                   !c.endsWith(" switchport") &&
                   ![
                     "show spanning-tree vlan 10",
@@ -543,7 +577,13 @@ export const scenarioSchema = z
     }
     const repair = s.repair;
     const repairedDevice = s.devices.find((d) => d.id === repair.device);
-    if ("kind" in repair && repair.kind === "hsrp-priority") {
+    if ("kind" in repair && repair.kind === "port-security-mac") {
+      if (
+        s.schemaVersion !== 11 ||
+        !repairedDevice?.ports?.find((p) => p.name === repair.interface)?.portSecurity?.enabled
+      )
+        fail("Secure MAC repair requires an existing enabled access policy");
+    } else if ("kind" in repair && repair.kind === "hsrp-priority") {
       const member = repairedDevice?.interfaces.find((i) => i.name === repair.interface)?.hsrp;
       if (s.schemaVersion !== 10 || member?.group !== repair.group) fail("HSRP repair requires an existing member");
     } else if ("priority" in repair && "vlan" in repair) {
@@ -692,7 +732,14 @@ export const hsrpRepairActionSchema = z.strictObject({
   group: hsrpGroupSchema,
   priority: hsrpPrioritySchema,
 });
+export const portSecurityRepairActionSchema = z.strictObject({
+  kind: z.literal("port-security-mac"),
+  device: z.string().min(1).max(64),
+  interface: z.string().min(1).max(64),
+  mac: secureMacSchema,
+});
 export const repairActionSchema = z.union([
+  portSecurityRepairActionSchema,
   hsrpRepairActionSchema,
   lacpRepairActionSchema,
   aclRepairActionSchema,
@@ -703,6 +750,7 @@ export const attemptSchema = z.object({
   repairs: z
     .array(
       z.union([
+        portSecurityRepairActionSchema.extend({ at: z.number() }),
         lacpRepairActionSchema.extend({ at: z.number() }),
         aclRepairActionSchema.extend({ at: z.number() }),
         stpRepairActionSchema.extend({ at: z.number() }),

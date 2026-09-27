@@ -397,6 +397,47 @@ export const hsrpReasons = [
   ["same-address", "Priority replaces each router's physical address with the client's address."],
 ] as const;
 
+export const portSecurityLab = {
+  id: "port-security-01",
+  number: "012",
+  topic: "Desk connectivity investigation",
+  target: "172.30.20.10",
+  title: "The quiet desk",
+  subtitle: "A connected workstation cannot reach its gateway.",
+  incident:
+    "The workstation at Desk A cannot reach its gateway or PC-B after desk maintenance. PC-B can still reach its own gateway. Investigate the physical path, addressing and configured access policy, then restore the approved service.",
+  design:
+    "PC-A is the approved single endpoint on SW1 FastEthernet0/1. Preserve its NIC identity, IPv4 settings, all cables and VLAN 10. This edge must retain enabled port security, one statically registered endpoint, maximum one and explicit protect mode. SW1 FastEthernet0/24 connects R1 Gi0/0. R1 routes between 172.30.10.0/24 and 172.30.20.0/24 using connected routes; Gi0/1 connects PC-B. Preserve routing and the remote workstation. SW1 has no SVI. Compare observations with this design.",
+  devices: [
+    { id: "PC-A", kind: "pc", role: "Desk A" },
+    { id: "SW1", kind: "switch", role: "Access switch" },
+    { id: "R1", kind: "router", role: "LAN gateway" },
+    { id: "PC-B", kind: "pc", role: "Remote desk" },
+  ],
+  subnets: ["172.30.10.0/24", "172.30.10.0/24", "172.30.20.0/24"],
+} as const;
+export const portSecurityCauses = [
+  ["interface-down", "An interface is down"],
+  ["access-vlan", "Incorrect access VLAN membership"],
+  ["secure-mac", "Static secure MAC does not identify the approved endpoint"],
+  ["wrong-gateway", "Incorrect PC gateway"],
+  ["missing-route", "Missing destination route"],
+] as const;
+export const portSecurityFixes = [
+  ["access-vlan", "Change the access VLAN"],
+  ["secure-mac", "Replace the static secure MAC while retaining the access policy"],
+  ["gateway", "Change the PC default gateway"],
+  ["no-shutdown", "Enable an interface"],
+] as const;
+export const portSecurityReasons = [
+  [
+    "source-admission",
+    "The registered source MAC admits the intended endpoint's Ethernet frames, including resolution; existing VLAN and routing still carry the traffic.",
+  ],
+  ["switch-routing", "The secure MAC creates missing IP routes on the switch."],
+  ["same-address", "The secure MAC makes remote hosts part of the same IP subnet."],
+] as const;
+
 export const labs = [
   lab,
   gatewayLab,
@@ -409,6 +450,7 @@ export const labs = [
   aclLab,
   stpLab,
   hsrpLab,
+  portSecurityLab,
 ] as const;
 export type PublicLab = (typeof labs)[number];
 export function catalog(id: ScenarioId): PublicLab {
@@ -417,6 +459,20 @@ export function catalog(id: ScenarioId): PublicLab {
 export function commandsFor(id: ScenarioId, deviceId: string): string[] {
   const d = catalog(id).devices.find((d) => d.id === deviceId);
   if (!d) return [];
+  if (id === "port-security-01")
+    return d.kind === "switch"
+      ? [
+          ...switchCommands,
+          "show running-config",
+          "show port-security",
+          "show port-security interface fastethernet0/1",
+          "show port-security address",
+        ]
+      : d.kind === "router"
+        ? gatewayRouterCommands
+        : d.id === "PC-A"
+          ? ["ipconfig", "ipconfig /all", "route print", "arp -a", "ping"]
+          : ["ipconfig", "ipconfig /all", "ping"];
   if (id === "hsrp-01")
     return d.kind === "router"
       ? [...gatewayRouterCommands, "traceroute", ...(deviceId === "R3" ? [] : ["show standby brief"])]

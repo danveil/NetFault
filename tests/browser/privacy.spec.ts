@@ -16,6 +16,7 @@ test("fresh production assets exclude all authored private teaching and rubric c
   }
   const scripts = (await assets(".next/static")).join("\n");
   expect(scripts).not.toContain("only R2's static routing configuration changes");
+  for (const mac of ["0200.0012.009a", "0200.0012.000a"]) expect(scripts).not.toContain(mac);
   for (const lab of labs) {
     const { attempt } = await (await request.post("/api/lab", { data: { action: "start", scenario: lab.id } })).json();
     expect(Object.keys(attempt).sort()).toEqual(

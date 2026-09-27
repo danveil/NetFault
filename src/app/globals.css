@@ -1,6 +1,21 @@
 @import url("../styles/base.css");
 @import url("../styles/academy.css");
 
+/* Four-node desk topology leaves a clear control area, independent of fault state. */
+.topology.topology-desk .react-flow__controls {
+  top: 12px !important;
+  bottom: auto !important;
+  flex-direction: row;
+}
+@media (min-width: 681px) {
+  .topology.topology-desk .react-flow__controls {
+    top: auto !important;
+    bottom: 12px !important;
+    left: 12px !important;
+    right: auto !important;
+  }
+}
+
 /* STP's physical triangle is independent of its observed forwarding state. */
 .topology-stp {
   height: 390px;

@@ -25,6 +25,7 @@ it.each(labs)(
       "acl-01": 8,
       "stp-01": 9,
       "hsrp-01": 10,
+      "port-security-01": 11,
     };
     expect(s.schemaVersion).toBe(expectedVersions[s.id]);
     expect(s.links.map((l) => l.subnet)).toEqual(lab.subnets);
@@ -50,6 +51,17 @@ it.each(labs)(
           command: "ping",
           target: p.target,
           output: execute(s, p.device, "ping", p.target),
+          at: 1,
+        });
+    if (s.schemaVersion === 11)
+      for (const d of s.devices.filter((d) => d.kind === "pc"))
+        evidence.push({
+          id: `gateway-${d.id}`,
+          scenario: s.id,
+          device: d.id,
+          command: "ping",
+          target: d.gateway!,
+          output: execute(s, d.id, "ping", d.gateway!),
           at: 1,
         });
     const feedback = grade(

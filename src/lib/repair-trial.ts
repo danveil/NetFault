@@ -1,6 +1,7 @@
 import { repairActionSchema, type RepairAction, type Scenario, type Attempt } from "./schema";
 import { hsrpPriority, validateHsrp } from "./hsrp";
 import { moveAclEntry } from "./acl";
+import { validatePortSecurity } from "./port-security";
 
 // Replay learner-owned practice changes or server-owned assessment changes, never a hidden canonical repair.
 export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): Scenario {
@@ -9,7 +10,8 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
     original.schemaVersion !== 7 &&
     original.schemaVersion !== 8 &&
     original.schemaVersion !== 9 &&
-    original.schemaVersion !== 10
+    original.schemaVersion !== 10 &&
+    original.schemaVersion !== 11
   )
     throw Error("Configuration trials are not supported by this scenario");
   const result = structuredClone(original);
@@ -18,6 +20,18 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
     const request = { ...raw } as RepairAction & { at?: number };
     delete request.at;
     const change = repairActionSchema.parse(request);
+    if ("kind" in change && change.kind === "port-security-mac") {
+      const policy = result.devices
+        .find((d) => d.id === change.device)
+        ?.ports?.find((p) => p.name === change.interface)?.portSecurity;
+      if (original.schemaVersion !== 11 || !policy?.enabled)
+        throw Error("Select an existing enabled secure access port");
+      policy.staticMac = change.mac;
+      validatePortSecurity(result, (message) => {
+        throw Error(message);
+      });
+      continue;
+    }
     if ("kind" in change && change.kind === "hsrp-priority") {
       const intf = result.devices
         .find((d) => d.id === change.device)
@@ -65,6 +79,8 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
   return result;
 }
 export function repairDescription(change: RepairAction) {
+  if ("kind" in change && change.kind === "port-security-mac")
+    return `${change.device}, ${change.interface}, static secure MAC → ${change.mac}`;
   if ("kind" in change && change.kind === "hsrp-priority")
     return `${change.device}, ${change.interface}, HSRPv2 group ${change.group}, priority → ${change.priority}`;
   if ("kind" in change && change.kind === "stp-priority")

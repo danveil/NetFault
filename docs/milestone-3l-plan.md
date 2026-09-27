@@ -1,5 +1,7 @@
 # Milestone 3L record and proposed Milestone 3M
 
+**Implementation follow-up:** separately authorized [Milestone 3M](milestone-3m.md) implements the bounded proposal. This document remains the historical 3L planning/source record; its PLANNED ONLY status describes that milestone. Current behavior and limits are in the [port-security model](port-security-model.md), with actual checks in [verification](verification.md).
+
 **PLANNED ONLY — NO LAB 012 OR NEW ENGINE CAPABILITY IMPLEMENTED**
 
 26 September 2026. This document specifies future work; it does not authorize or begin it. The [feasibility audit](lab012-feasibility.md) records course sources, alternatives, code seams and a **PASS** for exactly one static port-security lab. Intake was clean at `acea721`; eleven labs and all published Academy content remain unchanged. No application suites or build were run in this documentation-only milestone.

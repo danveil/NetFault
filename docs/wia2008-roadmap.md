@@ -1,5 +1,7 @@
 # NetFault completion roadmap
 
+**Milestone 3M update:** [LAB 012 — The quiet desk](milestone-3m.md) adds one static, maximum-one, protect-mode access-edge investigation with real ingress admission/resolution and applied repair verification. See the [bounded model](port-security-model.md). Sticky/dynamic learning, aging, counters, restrict/shutdown/recovery, trunks and broader LAN security remain uncovered. The optional original [switch companion](port-security-device-companion.md) is UNEXECUTED. Earlier planning tables below are historical; no NAT, GRE, later lab or Academy expansion was added.
+
 ## Current planning position — Milestone 3L, 26 September 2026
 
 **PLANNED ONLY — NO LAB 012 OR NEW ENGINE CAPABILITY IMPLEMENTED.** Exactly one next proposal: **LAB 012 — The quiet desk**, a wrong static secure MAC with explicit protect mode and a fully occupied one-address limit. The [source-grounded comparison](lab012-feasibility.md) selects a new endpoint-admission mental model over static NAT, GRE and management/IPv6/QoS/automation challengers. The [implementation-ready 3M specification](milestone-3l-plan.md) defines actual forwarding/resolution effects, structured replacement, fresh evidence and retained protection, a tiny unrelated primer and an UNEXECUTED authentic companion brief. Eleven labs/Academy remain accepted and unchanged; separate 3M authorization is required.

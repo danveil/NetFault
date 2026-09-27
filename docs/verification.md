@@ -1,5 +1,30 @@
 # NetFault verification
 
+## Milestone 3M — 26–27 September 2026
+
+Current implementation: [3M record](milestone-3m.md), [port-security model](port-security-model.md), [UNEXECUTED companion](port-security-device-companion.md). Windows, Node 24.15.0, pinned pnpm 11.19.0; installed Edge/Chromium. All results below were executed for this milestone; older records retain their historical dates.
+
+| Check                                             | Final result                                                                                                                                           |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm lint`                                       | Passed; zero errors/warnings                                                                                                                           |
+| `pnpm typecheck`                                  | Passed, including a final check after the production build                                                                                             |
+| `pnpm test`                                       | **641 passed, 25 files**; zero failed/skipped; 5.72 seconds                                                                                            |
+| `pnpm build`                                      | Passed; final build `3OgknbvmY-UYbNxsgRZbv`, generated offline worker and dynamic `/api/lab` retained                                                  |
+| Full production browser suite                     | **176 passed, 17 spec files**, zero failed/flaky/skipped; 660.572 seconds (11.0 minutes)                                                               |
+| Focused LAB 012 browser run before final full run | 15 passed; zero failed/flaky/skipped; 1.5 minutes. The full final-build run repeats all 15                                                             |
+| Final-build visual checks                         | Security diagnostics captured and field/overflow checks passed at 1440px, 414px and 360px; mobile MAC/interface/maximum/mode fields visually inspected |
+| `git diff --check`                                | Passed                                                                                                                                                 |
+
+The full browser command was `$env:CI='true'; $env:PW_PRODUCTION='1'; pnpm test:browser`, using a fresh local `next start`, one worker and the final build above. The saved HTML report contains 176 expected outcomes, 0 unexpected, 0 flaky, 0 skipped; `.last-run.json` reports passed. This was confirmed from the saved report after the terminal session handle became unavailable. No application code changed after that run. Desktop, 414px and 360px tests include complete new-lab Practice with wrong/correct/no-op trials, fresh evidence, score 100, requested explanation, repaired preview and reopened journal; resumed timed Assessment; unverified recovery without fresh evidence; offline completion; and the unrelated primer. Existing labs/Academy, all-pack retention, static private-content scans, API no-store headers and worker updates also passed.
+
+Documentation checks passed for 283 local references across 12 changed Markdown files, including 21 existing line anchors. External links were not bulk retested.
+
+The new independent model has 34 tests using different names, addresses, MACs, ports and VLAN. LAB 012 has 41 case/integration tests. One additional independent CAS-store test covers new repair/command interleaving. Five fault-injection tests cover local Windows atomic-write contention. Authoring/readiness catalog iteration adds the twelfth case without weakening earlier assertions.
+
+Initial failures and corrections: the authoring check needed real gateway probes for the stronger evidence contract; primer JSX needed an escaped/reworded apostrophe; the first focused browser run passed 12 and failed three topology-control overlap assertions, corrected with LAB-012-only positioning. Two intermediate full unit runs encountered Windows EPERM in local session replacement, in different labs. A bounded Windows-only atomic rename retry now preserves committed state and fails after exhaustion; hosted Blobs/CAS is unchanged. The final unit and browser runs are clean. Browser color-environment warnings are tooling output, not failed assertions. Full details are in [3M](milestone-3m.md).
+
+Final screenshots are under `test-results/port-security-*/desk-investigation.png`, `desk-repair.png`, and `test-results/desk-security-{1440,414,360}.png`. The default `playwright-report/index.html` retains the full run. These generated artifacts are ignored, not application assets. No physical iPhone, Safari, VoiceOver, Cisco switch, Packet Tracer/CML or live Netlify validation was performed. Source/vendor review is not device execution. No dependencies, commits, pushes, deployments or Netlify credit use occurred.
+
 ## Milestone 3K — 26 September 2026
 
 Current HSRP implementation: [3K record](milestone-3k.md), [bounded model](hsrp-model.md). Windows, Node 24.15.0, pinned pnpm 11.19.0; installed Edge/Chromium. Prior milestone counts below remain historical.
