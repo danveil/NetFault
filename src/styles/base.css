@@ -2287,3 +2287,61 @@ footer > span:last-child {
   max-width: 100%;
   min-height: 44px;
 }
+
+/* GRE reserves a separate logical lane without changing older topologies. */
+.investigate-grid.gre-investigation {
+  grid-template-columns: minmax(0, 1fr);
+}
+.topology-gre .network-device {
+  width: 140px;
+}
+.topology-gre .network-device strong {
+  font-size: 18px;
+}
+.topology-gre .network-device span {
+  font-size: 14px;
+}
+.topology.topology-gre .react-flow__controls {
+  display: flex;
+  flex-direction: row;
+  top: 12px !important;
+  left: 12px !important;
+  right: auto !important;
+  bottom: auto !important;
+}
+.topology.topology-gre,
+.topology.compact.topology-gre {
+  height: 340px;
+}
+.gre-primer-logical {
+  border: 2px dashed var(--muted, #889caf);
+  padding: 1rem;
+  border-radius: 12px;
+}
+.gre-primer-physical {
+  border-bottom: 2px solid #889caf;
+  padding: 1rem;
+}
+.gre-journey {
+  display: grid;
+  gap: 0.75rem;
+  padding-inline-start: 1.5rem;
+}
+.gre-journey li {
+  padding: 0.5rem;
+  border: 1px solid #536a80;
+  border-radius: 8px;
+}
+@media (max-width: 680px) {
+  .topology.topology-gre .react-flow__controls {
+    flex-direction: column;
+    top: auto !important;
+    left: auto !important;
+    right: 15px !important;
+    bottom: 70px !important;
+  }
+  .topology.topology-gre,
+  .topology.compact.topology-gre {
+    height: 850px;
+  }
+}

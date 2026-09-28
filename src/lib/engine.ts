@@ -1,3 +1,4 @@
+import { grePhysicalUp, greLocalState, greOutput } from "./gre";
 import { natSource, natDestination, natOutput } from "./nat";
 import {
   dotted,
@@ -97,18 +98,20 @@ export function neighbors(s: Scenario, id: string): Neighbor[] {
     ];
   });
 }
-export function routes(s: Scenario, id: string): Route[] {
+export function routes(s: Scenario, id: string, physicalOnly = false): Route[] {
   const d = device(s, id);
   if (d.kind !== "router") return [];
   const result: Route[] = d.interfaces
-    .filter((i) => i.up)
+    .filter((i) => i.up && (s.schemaVersion !== 13 || grePhysicalUp(s, id, i.name)))
     .flatMap((i) => [
       { prefix: network(i.ip, i.prefix), kind: "C" as const, interface: i.name, cost: 0 },
       { prefix: `${i.ip}/32`, kind: "L" as const, interface: i.name, cost: 0 },
     ]);
   // Connected (AD 0), then static (AD 1), then OSPF (AD 110) for the same prefix.
   for (const r of d.staticRoutes ?? []) {
-    const out = d.interfaces.find((i) => i.up && sameSubnet(i.ip, r.nextHop, i.prefix));
+    const out = d.interfaces.find(
+      (i) => i.up && (s.schemaVersion !== 13 || grePhysicalUp(s, id, i.name)) && sameSubnet(i.ip, r.nextHop, i.prefix),
+    );
     const prefix = `${r.network}/${r.prefix}`;
     if (out && !result.some((existing) => existing.prefix === prefix))
       result.push({ prefix, kind: "S", via: r.nextHop, interface: out.name, cost: 0 });
@@ -140,10 +143,35 @@ export function routes(s: Scenario, id: string): Route[] {
         queue.push({ id: n.device, cost: current.cost + n.cost, first: current.first ?? n });
     }
   }
+  if (!physicalOnly && d.gre && greLocalState(s, d, result).lineUp) {
+    result.push(
+      { prefix: network(d.gre.ip, d.gre.prefix), kind: "C", interface: d.gre.name, cost: 0 },
+      { prefix: `${d.gre.ip}/32`, kind: "L", interface: d.gre.name, cost: 0 },
+    );
+    for (const r of d.tunnelRoutes ?? [])
+      if (!result.some((e) => e.prefix === `${r.network}/${r.prefix}`))
+        result.push({ prefix: `${r.network}/${r.prefix}`, kind: "S", interface: r.interface, cost: 0 });
+  }
   return result;
 }
-function lookup(s: Scenario, id: string, target: string) {
-  return routes(s, id)
+export function tunnelState(s: Scenario, id: string) {
+  return greLocalState(s, device(s, id), routes(s, id, true));
+}
+export function l3Interfaces(s: Scenario, id: string, physicalOnly = false) {
+  const d = device(s, id);
+  const physical = d.interfaces.map((i) => ({
+    ...i,
+    up: i.up && (s.schemaVersion !== 13 || grePhysicalUp(s, id, i.name)),
+  }));
+  return [
+    ...physical,
+    ...(!physicalOnly && d.gre
+      ? [{ name: d.gre.name, ip: d.gre.ip, prefix: d.gre.prefix, up: tunnelState(s, id).lineUp }]
+      : []),
+  ];
+}
+function lookup(s: Scenario, id: string, target: string, physicalOnly = false) {
+  return routes(s, id, physicalOnly)
     .filter((r) => {
       const [ip, p] = r.prefix.split("/");
       return sameSubnet(ip, target, Number(p));
@@ -151,7 +179,16 @@ function lookup(s: Scenario, id: string, target: string) {
     .sort((a, b) => Number(b.prefix.split("/")[1]) - Number(a.prefix.split("/")[1]))[0];
 }
 export type Translation = { device: string; field: "source" | "destination"; before: string; after: string };
+export type TunnelTraversal = {
+  device: string;
+  source: string;
+  destination: string;
+  underlay: string[];
+  outerReceiver?: string;
+  accepted: boolean;
+};
 type Path = {
+  tunnels?: TunnelTraversal[];
   packet?: { source: string; destination: string };
   delivered?: { device: string; interface: string; source: string; destination: string };
   translations?: Translation[];
@@ -174,25 +211,31 @@ export function forward(
   target: string,
   observe?: (r: Resolution) => void,
   packetSource?: string,
+  physicalOnly = false,
 ): Path {
   let current = device(s, start);
   let source =
     packetSource ??
-    (current.interfaces.find((i) => i.name === lookup(s, start, target)?.interface) ?? current.interfaces[0])?.ip;
+    (
+      l3Interfaces(s, start, physicalOnly).find((i) => i.name === lookup(s, start, target, physicalOnly)?.interface) ??
+      current.interfaces[0]
+    )?.ip;
   const translating = s.devices.some((d) => d.nat);
+  const tunneling = s.schemaVersion === 13;
+  const tunnels: TunnelTraversal[] = [];
   let ingress: string | undefined;
   const translations: Translation[] = [];
   const finish = (p: Path): Path =>
-    translating
+    translating || tunneling
       ? {
           ...p,
           packet: { source: source!, destination: target },
-          translations,
+          ...(translating ? { translations } : { tunnels }),
           ...(p.ok
             ? {
                 delivered: {
                   device: current.id,
-                  interface: current.interfaces.find((i) => i.ip === target)!.name,
+                  interface: l3Interfaces(s, current.id, physicalOnly).find((i) => i.ip === target)!.name,
                   source: source!,
                   destination: target,
                 },
@@ -209,7 +252,10 @@ export function forward(
       translations.push({ device: current.id, field: "destination", before: target, after: destination });
       target = destination;
     }
-    if (current.interfaces.some((i) => i.up && i.ip === target) || virtualOwner(s, target)?.device.id === current.id)
+    if (
+      l3Interfaces(s, current.id, physicalOnly).some((i) => i.up && i.ip === target) ||
+      virtualOwner(s, target)?.device.id === current.id
+    )
       return finish({ ok: true, hops, reason: "Delivered" });
     const key = translating ? `${current.id}:${ingress}:${source}:${target}` : current.id;
     if (seen.has(key)) return finish({ ok: false, hops, reason: "Routing loop" });
@@ -219,12 +265,43 @@ export function forward(
       out = current.interfaces[0];
       nextHop = sameSubnet(out.ip, target, out.prefix) ? target : current.gateway;
     } else {
-      const route = lookup(s, current.id, target);
+      const route = lookup(s, current.id, target, physicalOnly);
       if (!route) return finish({ ok: false, hops, reason: `${current.id}: no route to destination` });
+      if (current.gre && route.interface === current.gre.name) {
+        if (physicalOnly || tunnels.length)
+          return finish({ ok: false, hops, reason: "Nested or repeated tunnel traversal is unsupported" });
+        const g = current.gre,
+          outerSource = tunnelState(s, current.id).source!;
+        const outer = forward(s, current.id, g.destination, undefined, outerSource, true);
+        const receiver = outer.delivered && device(s, outer.delivered.device);
+        const state = receiver?.gre ? tunnelState(s, receiver.id) : undefined;
+        const accepted = !!(
+          outer.ok &&
+          receiver?.gre &&
+          state?.lineUp &&
+          state.source === g.destination &&
+          receiver.gre.destination === outerSource
+        );
+        tunnels.push({
+          device: current.id,
+          source: outerSource,
+          destination: g.destination,
+          underlay: outer.hops,
+          outerReceiver: outer.delivered?.device,
+          accepted,
+        });
+        if (!accepted || !receiver?.gre)
+          return finish({ ok: false, hops, reason: "Logical transport did not deliver to a matching GRE receiver" });
+        hops.push(receiver.gre.ip);
+        ingress = receiver.gre.name;
+        current = receiver;
+        continue;
+      }
       out = current.interfaces.find((i) => i.name === route.interface);
       nextHop = route.via ?? target;
     }
-    if (!out?.up) return finish({ ok: false, hops, reason: `${current.id}: interface down` });
+    if (!out?.up || (tunneling && !grePhysicalUp(s, current.id, out.name)))
+      return finish({ ok: false, hops, reason: `${current.id}: interface down` });
     if (inward && out.name !== current.nat?.inside)
       return finish({ ok: false, hops, reason: "Translated destination has no inside egress" });
     const translated = natSource(current, ingress, out.name, source!);
@@ -258,7 +335,7 @@ export function forward(
         p.remote.up &&
         (owner ? p.device.id === owner.device.id && p.remote.name === owner.interface.name : p.remote.ip === nextHop),
     );
-    if (peer && (s.schemaVersion === 11 || translating)) {
+    if (peer && (s.schemaVersion === 11 || translating || tunneling)) {
       const local = { device: current.id, interface: out.name },
         remote = { device: peer.device.id, interface: peer.remote.name };
       for (const phase of ["request", "response", "data"] as const) {
@@ -296,16 +373,16 @@ export function connectivity(s: Scenario, id: string, target: string, requestedS
   const d = device(s, id),
     route = d.kind === "router" ? lookup(s, id, target) : undefined;
   const explicit = requestedSource
-    ? d.interfaces.find(
+    ? l3Interfaces(s, id).find(
         (i) => i.up && (i.ip === requestedSource || i.name.toLowerCase() === requestedSource.toLowerCase()),
       )
     : undefined;
   if (requestedSource && (d.kind !== "router" || !explicit))
     throw Error("Source must be an active interface or IPv4 address on this router.");
-  const source = (explicit ?? d.interfaces.find((i) => i.name === route?.interface) ?? d.interfaces[0]).ip;
+  const source = (explicit ?? l3Interfaces(s, id).find((i) => i.name === route?.interface) ?? d.interfaces[0]).ip;
   if (s.devices.some((d) => d.nat) && d.kind !== "pc") throw Error("Router-originated NAT probes are unsupported");
   const outward = forward(s, id, target, undefined, source);
-  if (s.devices.some((d) => d.nat)) {
+  if (s.devices.some((d) => d.nat) || s.schemaVersion === 13) {
     const end = outward.delivered;
     const returning = end ? forward(s, end.device, end.source, undefined, end.destination) : undefined;
     const reply = returning?.delivered;
@@ -397,6 +474,18 @@ export function runningConfig(s: Scenario, id: string) {
     ...(d.nat?.mappings ?? []).map(
       (m) => `! Mapping ${m.id}\nip nat inside source static ${m.insideLocal} ${m.insideGlobal}`,
     ),
+    ...(d.gre
+      ? [
+          `interface ${d.gre.name}`,
+          ` ip address ${d.gre.ip} ${dotted(mask(d.gre.prefix))}`,
+          ` tunnel source ${d.gre.sourceInterface}`,
+          ` tunnel destination ${d.gre.destination}`,
+          " tunnel mode gre ip",
+          ...(d.gre.adminUp ? [] : [" shutdown"]),
+          "!",
+        ]
+      : []),
+    ...(d.tunnelRoutes ?? []).map((r) => `ip route ${r.network} ${dotted(mask(r.prefix))} ${r.interface}`),
     ...(d.staticRoutes ?? []).map((r) => `ip route ${r.network} ${dotted(mask(r.prefix))} ${r.nextHop}`),
     ...(d.acls?.flatMap((a) => [
       `ip access-list standard ${a.name}`,
@@ -488,6 +577,7 @@ export function execute(
   if (!d.commands.some((c) => c === cmd))
     return `% Unsupported command on ${id}: ${raw}. Use the supported command buttons. This is a bounded simulator, not an IOS shell.`;
   if (source && cmd !== "ping") return "% Explicit source is supported only for router ping.";
+  if (cmd === "show interfaces tunnel 0") return greOutput(d, tunnelState(s, id));
   const channelOutput = etherChannelOutput(s, d, cmd);
   if (cmd.startsWith("show port-security"))
     return portSecurityOutput(d, cmd, (name) => portStatus(s, id, name) === "connected");
@@ -637,9 +727,9 @@ export function execute(
   if (cmd === "show ip interface brief")
     return [
       "Interface       IP-Address        OK? Method Status  Protocol",
-      ...d.interfaces.map(
+      ...l3Interfaces(s, id).map(
         (i) =>
-          `${i.name.padEnd(15)} ${i.ip.padEnd(17)} YES manual ${i.up ? "up      up" : "administratively down down"}`,
+          `${i.name.padEnd(15)} ${i.ip.padEnd(17)} YES manual ${i.up ? "up      up" : d.gre?.name === i.name && d.gre.adminUp ? "up      down" : d.interfaces.find((p) => p.name === i.name)?.up ? "down    down" : "administratively down down"}`,
       ),
     ].join("\n");
   if (cmd === "show ip nat translations") return natOutput(d);
@@ -708,7 +798,7 @@ export function execute(
       "",
       ...routes(s, id).map(
         (r) =>
-          `${r.kind}${r.prefix === "0.0.0.0/0" ? "*" : ""} ${r.prefix.padEnd(20)} ${r.kind === "O" || r.kind === "S" ? `[${r.kind === "S" ? 1 : 110}/${r.cost}] via ${r.via}, ${r.interface}` : `is directly connected, ${r.interface}`}`,
+          `${r.kind}${r.prefix === "0.0.0.0/0" ? "*" : ""} ${r.prefix.padEnd(20)} ${r.kind === "O" || r.kind === "S" ? `[${r.kind === "S" ? 1 : 110}/${r.cost}] ${r.via ? `via ${r.via}, ` : ""}${r.interface}` : `is directly connected, ${r.interface}`}`,
       ),
     ].join("\n");
   return "% Unsupported command.";
@@ -716,7 +806,9 @@ export function execute(
 export function repaired(s: Scenario): Scenario {
   const next = structuredClone(s);
   const repair = s.repair;
-  if ("kind" in repair && repair.kind === "nat-static-local")
+  if ("kind" in repair && repair.kind === "gre-destination")
+    device(next, repair.device).gre!.destination = repair.destination;
+  else if ("kind" in repair && repair.kind === "nat-static-local")
     device(next, repair.device).nat!.mappings.find((m) => m.id === repair.mappingId)!.insideLocal = repair.insideLocal;
   else if ("kind" in repair && repair.kind === "port-security-mac") {
     device(next, repair.device).ports!.find((p) => p.name === repair.interface)!.portSecurity!.staticMac = repair.mac;
@@ -773,6 +865,13 @@ export function packetJourney(s: Scenario, id: string, target: string) {
           ),
         ]
       : []),
+    ...[c.outward, ...(c.returning ? [c.returning] : [])].flatMap(
+      (p) =>
+        p.tunnels?.map(
+          (t) =>
+            `Logical GRE transport (not traceroute): ${t.device} outer ${t.source} -> ${t.destination}; physical path ${t.underlay.join(" -> ") || "no delivery"}; receiver ${t.outerReceiver ?? "none"}; ${t.accepted ? "inner forwarding resumed" : "no matching inner receiver"}`,
+        ) ?? [],
+    ),
     `Bidirectional communication: ${c.ok ? "successful" : "failed"}`,
   ].join("\n");
 }

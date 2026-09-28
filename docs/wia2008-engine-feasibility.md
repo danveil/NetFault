@@ -1,5 +1,11 @@
 # Engine capability and course feasibility audit
 
+## Milestone 3Q implementation delta — 28 September 2026
+
+**Implemented: LAB 014 — The path above**, following the [3P contract](milestone-3p-plan.md). Fourteen cases now include one bounded GRE-over-IPv4 pair, actual routed outer transport, local-state versus delivery reasoning, static overlay routing, destination-only trials and source-aware original/fresh verification. An unrelated tiny primer adds two diagrams and touch reasoning without changing Academy revisions. See [implementation](milestone-3q.md), [model boundaries](gre-model.md) and [verification](verification.md).
+
+Coverage remains **partial GRE troubleshooting**, not full WAN/VPN or independent device competence. The original [device companion](gre-device-companion.md) is UNEXECUTED. IPsec, OSPF over GRE, dynamic WAN, IPv6, management, QoS, automation, dynamic NAT/PAT and broader security remain gaps; no further milestone is automatically authorized. Earlier planning positions below retain their dated historical meaning. No live deployment or credit use.
+
 ## Milestone 3P GRE feasibility delta — 28 September 2026
 
 **PLANNED ONLY — NO GRE ENGINE OR LAB 014 IMPLEMENTED.** Current `7f5ab1e` code has thirteen cases/schema 1–12, physical C/L/S/O routing, source-aware replies and NAT delivery identity, but no routed tunnel interface or exit-interface overlay route. LACP logical L2 edges, HSRP virtual ownership and a drawn topology line do not supply GRE transport. The [fresh code audit and extension matrix](gre-feasibility.md#4-current-architecture-and-actual-missing-seams) identifies the exact route/local-delivery/source/trial/grading/UI seams.

@@ -1,5 +1,9 @@
 # iPhone, HTTPS and manual QA
 
+## Milestone 3Q physical-device acceptance — pending
+
+Run the [LAB 014 manual checklist](milestone-3q.md#open-and-manually-verify) on the updated trusted-HTTPS app. Check the separate dashed logical gutter/solid physical path, labels, focus/VoiceOver, observation/source/target selectors, wrong and correct trials, fresh-version evidence, feedback/preview, journal and offline reload. Desktop/414px/360px Chromium results are recorded in [verification](verification.md); they are not Safari or physical iPhone acceptance. No live release is part of 3Q.
+
 ## Milestone 3G physical-device acceptance — pending
 
 - [ ] On the updated trusted-HTTPS app, open LAB 009 and read the four-device diagram/text alternative. Inspect every device at normal and increased text size; scroll long ACL/config output without page overflow.

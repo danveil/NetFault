@@ -15,6 +15,14 @@ test("fresh production assets exclude all authored private teaching and rubric c
     return results;
   }
   const scripts = (await assets(".next/static")).join("\n");
+  for (const privateValue of [
+    "10.14.0.1",
+    "10.14.0.2",
+    "0200.0014.0001",
+    "tunnel destination 198.51.100.2",
+    "tunnel destination 198.51.100.1",
+  ])
+    expect(scripts).not.toContain(privateValue);
   expect(scripts).not.toContain("192.168.40.99");
   expect(scripts).not.toContain("192.168.40.10");
   expect(scripts).not.toContain("only R2's static routing configuration changes");

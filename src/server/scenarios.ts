@@ -1,3 +1,4 @@
+import { greScenario } from "./gre-scenario";
 import "server-only";
 import { natScenario } from "./nat-scenario";
 import { portSecurityScenario } from "./port-security-scenario";
@@ -15,6 +16,7 @@ import { etherChannelScenario } from "./etherchannel-scenario";
 import { aclScenario } from "./acl-scenario";
 import { catalog, commandsFor } from "@/lib/catalog";
 export const scenarios: Record<ScenarioId, Scenario> = {
+  "gre-01": greScenario,
   "nat-static-01": natScenario,
   "port-security-01": portSecurityScenario,
   "ospf-01": scenario,

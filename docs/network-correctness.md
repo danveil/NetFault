@@ -1,5 +1,11 @@
 # Network correctness: OSPF lab 001
 
+## Milestone 3Q implementation delta — 28 September 2026
+
+[LAB 014](milestone-3q.md) adds the [bounded GRE model](gre-model.md). Outer traffic follows actual physical route/L2 traversal; the delivered receiver must match the fixed GRE pair before inner routing resumes. Replies originate from the delivered inner endpoint and follow independent routes. Local source/routability controls Tunnel0 line state; remote reachability does not. In the authored sole fault, a reachable transport destination keeps up/up and routes installed but cannot accept inner delivery. Destination correction leaves addresses/sources/routes unchanged and restores reciprocal logical and PC exchanges.
+
+Independent model fixtures, exact case invariants, source-aware evidence replay and all earlier protocol regressions are covered in [verification](verification.md). No GRE headers, liveness, timers, encryption, MTU, trace, mixed NAT/ACL or dynamic overlay routing is modeled. Reference review is not device execution. Earlier scenario revisions remain unchanged.
+
 ## Milestone 3O implementation delta — 27 September 2026
 
 [LAB 013 — Beyond the gate](milestone-3o.md) now implements one reusable bounded permanent static NAT pair, explicit inside/outside roles, outward source translation after routing and inward destination translation before routing. Replies use actual delivered endpoint/address identity; routes and directed L2 delivery remain independent. One wrong inside-local slot explains both service failures. Minimal applied correction plus authentic original and fresh bidirectional evidence is required. There are now thirteen playable cases; earlier authored scenarios and Academy revisions are unchanged.

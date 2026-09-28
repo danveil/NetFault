@@ -1,5 +1,11 @@
 # NetFault × supplied 2026/27 semester material
 
+## Milestone 3Q implementation delta — 28 September 2026
+
+**Implemented: LAB 014 — The path above**, following the [3P contract](milestone-3p-plan.md). Fourteen cases now include one bounded GRE-over-IPv4 pair, actual routed outer transport, local-state versus delivery reasoning, static overlay routing, destination-only trials and source-aware original/fresh verification. An unrelated tiny primer adds two diagrams and touch reasoning without changing Academy revisions. See [implementation](milestone-3q.md), [model boundaries](gre-model.md) and [verification](verification.md).
+
+Coverage remains **partial GRE troubleshooting**, not full WAN/VPN or independent device competence. The original [device companion](gre-device-companion.md) is UNEXECUTED. IPsec, OSPF over GRE, dynamic WAN, IPv6, management, QoS, automation, dynamic NAT/PAT and broader security remain gaps; no further milestone is automatically authorized. Earlier planning positions below retain their dated historical meaning. No live deployment or credit use.
+
 ## Milestone 3P planning delta — 28 September 2026
 
 **PLANNED ONLY — NO GRE ENGINE OR LAB 014 IMPLEMENTED.** The [focused source audit](gre-feasibility.md#2-what-the-current-material-actually-supports) freshly reviews current `8.WAN.ppt` / `8.WANrv.txt`, `9.VPN.ppt` / `9.VPNrv.txt`, selected images and both ExtraLab slides; practical text is relevance-checked. GRE and IPsec PKA internals remain uninspected. V26–28 establish GRE configuration/verification independently of IPsec; V27 uses OSPF over GRE, so the proposed static overlay is an original bounded teaching choice. V27/V28 use different destinations and are not one verified experiment.

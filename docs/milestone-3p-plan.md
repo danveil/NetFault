@@ -1,5 +1,7 @@
 # Milestone 3P record and proposed Milestone 3Q specification
 
+**Historical planning record.** Milestone 3Q was subsequently authorized and implemented this bounded design. See [3Q implementation](milestone-3q.md), [actual model](gre-model.md) and [executed verification](verification.md). The planning-only statements and historical test/source claims below describe 3P, not the current application.
+
 **PLANNED ONLY — NO GRE ENGINE OR LAB 014 IMPLEMENTED**
 
 28 September 2026. The [source/architecture audit](gre-feasibility.md) returns **PASS** for one bounded GRE-over-IPv4 model and LAB 014, **The path above**. This document is an implementation-ready proposal requiring separate authorization. 3P stops at documentation: thirteen labs, Academy, app/tests, storage, dependencies and Netlify configuration remain unchanged.

@@ -22,7 +22,16 @@ const subscribe = (callback: () => void) => {
   return () => media.removeEventListener("change", callback);
 };
 type DeviceNode = Node<
-  { label: string; kind: string; role: string; active: boolean; incoming: Position; outgoing: Position },
+  {
+    label: string;
+    kind: string;
+    role: string;
+    active: boolean;
+    incoming: Position;
+    outgoing: Position;
+    logical?: boolean;
+    mobile?: boolean;
+  },
   "device"
 >;
 function NetworkDevice({ data }: NodeProps<DeviceNode>) {
@@ -34,6 +43,12 @@ function NetworkDevice({ data }: NodeProps<DeviceNode>) {
       <strong>{data.label}</strong>
       <span>{data.role}</span>
       <Handle type="source" position={data.outgoing} />
+      {data.logical && (
+        <>
+          <Handle id="logical-out" type="source" position={data.mobile ? Position.Right : Position.Top} />
+          <Handle id="logical-in" type="target" position={data.mobile ? Position.Right : Position.Top} />
+        </>
+      )}
     </div>
   );
 }
@@ -62,7 +77,31 @@ function PhysicalEdge({ id, sourceX, sourceY, targetX, targetY, label, data, sty
     </>
   );
 }
-const edgeTypes = { physical: PhysicalEdge };
+function LogicalEdge({ id, sourceX, sourceY, targetX, targetY, data, label }: EdgeProps) {
+  const mobile = !!data?.mobile;
+  const x = mobile ? Math.max(sourceX, targetX) + 100 : (sourceX + targetX) / 2;
+  const y = mobile ? (sourceY + targetY) / 2 : Math.min(sourceY, targetY) - 100;
+  const path = mobile
+    ? `M ${sourceX},${sourceY} C ${x},${sourceY} ${x},${targetY} ${targetX},${targetY}`
+    : `M ${sourceX},${sourceY} C ${sourceX},${y} ${targetX},${y} ${targetX},${targetY}`;
+  return (
+    <>
+      <BaseEdge id={id} path={path} style={{ stroke: "#a5b9d0", strokeWidth: 2, strokeDasharray: "7 6" }} />
+      <EdgeLabelRenderer>
+        <span
+          className="physical-link-label"
+          style={{
+            position: "absolute",
+            transform: `translate(-50%, -50%) translate(${mobile ? sourceX + 75 : x}px,${mobile ? y : sourceY - 75}px)`,
+          }}
+        >
+          {label}
+        </span>
+      </EdgeLabelRenderer>
+    </>
+  );
+}
+const edgeTypes = { physical: PhysicalEdge, logical: LogicalEdge };
 export default function Topology({
   lab,
   selected,
@@ -81,62 +120,65 @@ export default function Topology({
   );
   const stp = lab.id === "stp-01";
   const hsrp = lab.id === "hsrp-01";
-  const positions = hsrp
-    ? mobile
-      ? [
-          [115, 0],
-          [115, 160],
-          [0, 345],
-          [230, 345],
-          [115, 550],
-          [115, 720],
-        ]
-      : [
-          [0, 145],
-          [220, 145],
-          [440, 0],
-          [440, 290],
-          [680, 145],
-          [900, 145],
-        ]
-    : stp
+  const logical = "logicalLinks" in lab;
+  const positions = logical
+    ? lab.devices.map((_, i) => (mobile ? [0, i * 180] : [i * 220, 110]))
+    : hsrp
       ? mobile
         ? [
-            [0, 0],
-            [0, 155],
-            [230, 270],
-            [0, 385],
-            [0, 540],
+            [115, 0],
+            [115, 160],
+            [0, 345],
+            [230, 345],
+            [115, 550],
+            [115, 720],
           ]
         : [
-            [0, 0],
-            [0, 170],
-            [210, 340],
-            [420, 170],
-            [420, 0],
+            [0, 145],
+            [220, 145],
+            [440, 0],
+            [440, 290],
+            [680, 145],
+            [900, 145],
           ]
-      : mobile
-        ? [
-            [0, 0],
-            [235, 0],
-            [235, 180],
-            [0, 180],
-            [0, 360],
-          ]
-        : [
-            [0, 0],
-            [225, 0],
-            [450, 0],
-            [450, 195],
-            [225, 195],
-          ];
+      : stp
+        ? mobile
+          ? [
+              [0, 0],
+              [0, 155],
+              [230, 270],
+              [0, 385],
+              [0, 540],
+            ]
+          : [
+              [0, 0],
+              [0, 170],
+              [210, 340],
+              [420, 170],
+              [420, 0],
+            ]
+        : mobile
+          ? [
+              [0, 0],
+              [235, 0],
+              [235, 180],
+              [0, 180],
+              [0, 360],
+            ]
+          : [
+              [0, 0],
+              [225, 0],
+              [450, 0],
+              [450, 195],
+              [225, 195],
+            ];
   const incoming = mobile
     ? [Position.Left, Position.Left, Position.Top, Position.Right, Position.Top]
     : [Position.Left, Position.Left, Position.Left, Position.Top, Position.Right];
   const outgoing = mobile
     ? [Position.Right, Position.Bottom, Position.Left, Position.Bottom, Position.Right]
     : [Position.Right, Position.Right, Position.Bottom, Position.Left, Position.Left];
-  const nodes: DeviceNode[] = lab.devices.map((d, i) => ({
+  const nodes: Node[] = lab.devices.map((d, i) => ({
     id: d.id,
     type: "device",
     position: { x: positions[i][0], y: positions[i][1] },
@@ -145,20 +187,30 @@ export default function Topology({
       kind: d.kind,
       role: d.role,
       active: selected === d.id,
-      incoming: hsrp
+      logical,
+      mobile,
+      incoming: logical
         ? mobile
           ? Position.Top
           : Position.Left
-        : stp && !mobile
-          ? [Position.Top, Position.Top, Position.Top, Position.Left, Position.Bottom][i]
-          : incoming[i],
-      outgoing: hsrp
+        : hsrp
+          ? mobile
+            ? Position.Top
+            : Position.Left
+          : stp && !mobile
+            ? [Position.Top, Position.Top, Position.Top, Position.Left, Position.Bottom][i]
+            : incoming[i],
+      outgoing: logical
         ? mobile
           ? Position.Bottom
           : Position.Right
-        : stp && !mobile
-          ? [Position.Bottom, Position.Right, Position.Right, Position.Top, Position.Top][i]
-          : outgoing[i],
+        : hsrp
+          ? mobile
+            ? Position.Bottom
+            : Position.Right
+          : stp && !mobile
+            ? [Position.Bottom, Position.Right, Position.Right, Position.Top, Position.Top][i]
+            : outgoing[i],
     },
     ariaLabel: `Inspect ${d.id}`,
   }));
@@ -184,10 +236,32 @@ export default function Topology({
           labelBgStyle: { fill: "#101923" },
           labelBgPadding: [5, 7] as [number, number],
         }));
+  if (logical) {
+    nodes.push({
+      id: "logical-gutter",
+      position: mobile ? { x: 270, y: 310 } : { x: 500, y: 0 },
+      data: { label: "" },
+      style: { width: 1, height: 1, opacity: 0 },
+      selectable: false,
+      focusable: false,
+      draggable: false,
+    });
+    for (const link of lab.logicalLinks)
+      edges.push({
+        id: `logical-${link.source}-${link.target}`,
+        source: link.source,
+        target: link.target,
+        sourceHandle: "logical-out",
+        targetHandle: "logical-in",
+        type: "logical",
+        label: link.label,
+        data: { mobile },
+      });
+  }
   return (
     <>
       <div
-        className={`${compact ? "topology compact" : "topology"}${hsrp ? " topology-hsrp" : stp ? " topology-stp" : "physicalLinks" in lab ? " topology-bundle" : ""}${lab.id === "acl-01" ? " topology-policy" : ["port-security-01", "nat-static-01"].includes(lab.id) ? " topology-desk" : ""}`}
+        className={`${compact ? "topology compact" : "topology"}${logical ? " topology-gre" : hsrp ? " topology-hsrp" : stp ? " topology-stp" : "physicalLinks" in lab ? " topology-bundle" : ""}${lab.id === "acl-01" ? " topology-policy" : ["port-security-01", "nat-static-01"].includes(lab.id) ? " topology-desk" : ""}`}
         aria-label="Interactive network topology"
       >
         <ReactFlow
@@ -196,12 +270,14 @@ export default function Topology({
           edges={edges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
-          onNodeClick={(_, node) => onSelect(node.id)}
+          onNodeClick={(_, node) => {
+            if (lab.devices.some((d) => d.id === node.id)) onSelect(node.id);
+          }}
           nodesDraggable={false}
           nodesConnectable={false}
           edgesFocusable={false}
           fitView
-          fitViewOptions={{ padding: 0.17 }}
+          fitViewOptions={{ padding: logical ? 0.1 : 0.17 }}
           minZoom={0.25}
           maxZoom={1.6}
           colorMode="dark"
@@ -212,6 +288,13 @@ export default function Topology({
           <Controls position="bottom-right" showInteractive={false} />
         </ReactFlow>
       </div>
+      {logical && (
+        <p className="topology-text">
+          Solid physical path: PC-A — R1 — T1 — R2 — PC-B. Dashed Tunnel0: intended logical path between R1 and R2,
+          carried over the physical transport. It is not a cable or proof of delivery. Tap a device or use the device
+          selector.
+        </p>
+      )}
       {stp && (
         <p className="topology-text">
           Physical cabling: PC-A Ethernet0 — SW1 Gi0/3; SW1 Gi0/1 — SW2 Gi0/1; SW1 Gi0/2 — SW3 Gi0/1; SW2 Gi0/2 — SW3

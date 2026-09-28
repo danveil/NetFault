@@ -27,9 +27,10 @@ it.each(labs)(
       "hsrp-01": 10,
       "port-security-01": 11,
       "nat-static-01": 12,
+      "gre-01": 13,
     };
     expect(s.schemaVersion).toBe(expectedVersions[s.id]);
-    expect(s.links.map((l) => l.subnet)).toEqual(lab.subnets);
+    if (!("logicalLinks" in lab)) expect(s.links.map((l) => l.subnet)).toEqual(lab.subnets);
     if ("physicalLinks" in lab) {
       expect(s.links.map((l) => [l.a.device, l.b.device])).toEqual(lab.physicalLinks.map((l) => [l.source, l.target]));
     } else
@@ -74,6 +75,22 @@ it.each(labs)(
           target: d.gateway!,
           output: execute(s, d.id, "ping", d.gateway!),
           at: 1,
+        });
+    if (s.schemaVersion === 13)
+      for (const [device, target, source] of [
+        ["R1", "198.51.100.1", "Gi0/1"],
+        ["R1", "198.51.100.2", "Gi0/1"],
+        ["PC-A", lab.target, ""],
+      ])
+        evidence.push({
+          id: `gre-${target}`,
+          scenario: s.id,
+          device,
+          command: "ping",
+          target,
+          source,
+          at: 1,
+          output: execute(s, device, "ping", target, [], source),
         });
     const feedback = grade(
       s,

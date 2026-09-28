@@ -478,6 +478,48 @@ export const natReasons = [
   ["same-address", "The host NIC becomes the external address."],
 ] as const;
 
+export const greLab = {
+  id: "gre-01",
+  number: "014",
+  topic: "Layered path investigation",
+  target: "172.31.20.10",
+  title: "The path above",
+  subtitle: "A routed transport connects two sites, but the desks cannot exchange traffic.",
+  incident:
+    "PC-A cannot reach PC-B across the site-to-site service. Investigate the physical transport, logical interfaces and service routes, then apply a justified correction and verify both directions.",
+  design:
+    "PC-A — R1 — T1 — R2 — PC-B is the physical path. R1 and R2 are intended GRE endpoints, each using Tunnel0. T1 carries ordinary IPv4 transport. LAN-to-LAN traffic must use the logical tunnel. Preserve all addressing, sources, routes and physical links. Inspect configuration to establish endpoint identities. Local tunnel state alone is not proof of remote delivery.",
+  devices: [
+    { id: "PC-A", kind: "pc", role: "Site A desk" },
+    { id: "R1", kind: "router", role: "Site A endpoint" },
+    { id: "T1", kind: "router", role: "Transport" },
+    { id: "R2", kind: "router", role: "Site B endpoint" },
+    { id: "PC-B", kind: "pc", role: "Site B desk" },
+  ],
+  subnets: ["Site A LAN", "IPv4 transport", "IPv4 transport", "Site B LAN"],
+  logicalLinks: [{ source: "R1", target: "R2", label: "Tunnel0" }],
+} as const;
+export const greCauses = [
+  ["missing-route", "Missing destination route"],
+  ["incorrect-tunnel-destination", "Incorrect tunnel destination"],
+  ["wrong-gateway", "Incorrect PC gateway"],
+  ["interface-down", "An interface is down"],
+] as const;
+export const greFixes = [
+  ["static-route", "Change a static route"],
+  ["gateway", "Change a PC gateway"],
+  ["gre-destination", "Change an existing tunnel destination"],
+  ["no-shutdown", "Enable an interface"],
+] as const;
+export const greReasons = [
+  [
+    "gre-endpoint",
+    "The outer destination must identify the far tunnel source. Local up/up and ordinary IP reachability alone do not establish inner delivery.",
+  ],
+  ["reverse-automatically", "A tunnel automatically creates all missing routes."],
+  ["same-address", "The tunnel makes both remote LANs one local subnet."],
+] as const;
+
 export const labs = [
   lab,
   gatewayLab,
@@ -492,6 +534,7 @@ export const labs = [
   hsrpLab,
   portSecurityLab,
   natLab,
+  greLab,
 ] as const;
 export type PublicLab = (typeof labs)[number];
 export function catalog(id: ScenarioId): PublicLab {
@@ -500,6 +543,16 @@ export function catalog(id: ScenarioId): PublicLab {
 export function commandsFor(id: ScenarioId, deviceId: string): string[] {
   const d = catalog(id).devices.find((d) => d.id === deviceId);
   if (!d) return [];
+  if (id === "gre-01")
+    return d.kind === "pc"
+      ? ["ipconfig", "ipconfig /all", "ping"]
+      : [
+          "show ip interface brief",
+          "show ip route",
+          "show running-config",
+          "ping",
+          ...(deviceId === "T1" ? [] : ["show interfaces tunnel 0"]),
+        ];
   if (id === "nat-static-01")
     return d.kind === "pc"
       ? ["ipconfig", "ipconfig /all", "route print", "ping"]

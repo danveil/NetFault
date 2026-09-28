@@ -1,3 +1,4 @@
+import { validateGre } from "./gre";
 import { validateNat } from "./nat";
 import { repairActionSchema, type RepairAction, type Scenario, type Attempt } from "./schema";
 import { hsrpPriority, validateHsrp } from "./hsrp";
@@ -12,6 +13,7 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
     original.schemaVersion !== 8 &&
     original.schemaVersion !== 9 &&
     original.schemaVersion !== 10 &&
+    original.schemaVersion !== 13 &&
     original.schemaVersion !== 12 &&
     original.schemaVersion !== 11
   )
@@ -22,6 +24,16 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
     const request = { ...raw } as RepairAction & { at?: number };
     delete request.at;
     const change = repairActionSchema.parse(request);
+    if ("kind" in change && change.kind === "gre-destination") {
+      const g = result.devices.find((d) => d.id === change.device)?.gre;
+      if (original.schemaVersion !== 13 || !g || g.name !== change.interface)
+        throw Error("Select an existing GRE tunnel");
+      g.destination = change.destination;
+      validateGre(result, (m) => {
+        throw Error(m);
+      });
+      continue;
+    }
     if ("kind" in change && change.kind === "nat-static-local") {
       const m = result.devices
         .find((d) => d.id === change.device)
@@ -92,6 +104,8 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
   return result;
 }
 export function repairDescription(change: RepairAction) {
+  if ("kind" in change && change.kind === "gre-destination")
+    return `${change.device}, ${change.interface}, destination -> ${change.destination}`;
   if ("kind" in change && change.kind === "nat-static-local")
     return `${change.device}, mapping ${change.mappingId}, inside local -> ${change.insideLocal}`;
   if ("kind" in change && change.kind === "port-security-mac")

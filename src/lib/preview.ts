@@ -13,12 +13,26 @@ export function repairPreview(original: Scenario) {
       commands.push([d.id, "ping", d.gateway]);
       if (d.commands.includes("arp -a")) commands.push([d.id, "arp -a"]);
     }
-    if (!original.verificationTargets && d.commands.includes("ping"))
+    if (
+      !original.verificationTargets &&
+      (!original.devices.some((x) => x.gre) || d.kind === "pc") &&
+      d.commands.includes("ping")
+    )
       for (const host of hosts.filter((h) => h.id !== d.id)) {
         commands.push([d.id, "ping", host.interfaces[0].ip]);
         const trace = d.kind === "pc" ? "tracert" : "traceroute";
         if (d.commands.includes(trace)) commands.push([d.id, trace, host.interfaces[0].ip]);
       }
+  }
+  for (const d of original.devices.filter((d) => d.gre)) {
+    const remote = original.devices.find((r) => r.gre && r.id !== d.id)!;
+    commands.push([d.id, "ping", remote.gre!.ip, "Tunnel0"]);
+    commands.push([
+      d.id,
+      "ping",
+      remote.interfaces.find((i) => i.name === remote.gre!.sourceInterface)!.ip,
+      d.gre!.sourceInterface,
+    ]);
   }
   for (const p of original.verificationTargets ?? []) commands.push([p.device, "ping", p.target]);
   for (const p of original.policyChecks ?? []) if (p.source) commands.push([p.device, "ping", p.target, p.source]);

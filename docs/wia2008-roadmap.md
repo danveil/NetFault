@@ -1,5 +1,11 @@
 # NetFault completion roadmap
 
+## Milestone 3Q implementation delta — 28 September 2026
+
+**Implemented: LAB 014 — The path above**, following the [3P contract](milestone-3p-plan.md). Fourteen cases now include one bounded GRE-over-IPv4 pair, actual routed outer transport, local-state versus delivery reasoning, static overlay routing, destination-only trials and source-aware original/fresh verification. An unrelated tiny primer adds two diagrams and touch reasoning without changing Academy revisions. See [implementation](milestone-3q.md), [model boundaries](gre-model.md) and [verification](verification.md).
+
+Coverage remains **partial GRE troubleshooting**, not full WAN/VPN or independent device competence. The original [device companion](gre-device-companion.md) is UNEXECUTED. IPsec, OSPF over GRE, dynamic WAN, IPv6, management, QoS, automation, dynamic NAT/PAT and broader security remain gaps; no further milestone is automatically authorized. Earlier planning positions below retain their dated historical meaning. No live deployment or credit use.
+
 ## Current planning position — Milestone 3P, 28 September 2026
 
 **PLANNED ONLY — NO GRE ENGINE OR LAB 014 IMPLEMENTED.** Exactly one next proposal: **LAB 014 — The path above**, R1's incorrect GRE destination to a reachable transport address. The [source/feasibility audit](gre-feasibility.md) compares five fault candidates and remaining major gaps and returns **PASS**. The [implementation-ready 3Q specification](milestone-3p-plan.md) defines one tunnel pair, physical underlay, static overlay, separate local state/delivery, destination-only trial, fresh evidence, a tiny unrelated primer and an optional UNEXECUTED companion plan. Separate implementation authorization is required.

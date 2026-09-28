@@ -1,5 +1,7 @@
 # Milestone 3P — GRE/WAN feasibility audit
 
+**Historical planning record.** Milestone 3Q was subsequently authorized and implemented this bounded design. See [3Q implementation](milestone-3q.md), [actual model](gre-model.md) and [executed verification](verification.md). The planning-only statements and historical test/source claims below describe 3P, not the current application.
+
 **PLANNED ONLY — NO GRE ENGINE OR LAB 014 IMPLEMENTED**
 
 Audit: 28 September 2026, clean intake at `7f5ab1e` (`lab 013`). Verdict: **PASS** for one bounded GRE-over-IPv4 extension and **LAB 014 — The path above**. The sole proposed fault is R1's incorrect Tunnel0 destination. The [Milestone 3Q specification](milestone-3p-plan.md) defines the exact original case and acceptance gates; it is not implementation authorization.

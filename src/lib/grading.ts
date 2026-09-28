@@ -1,3 +1,4 @@
+import { gradeGre } from "./gre-grading";
 import { gradeNat } from "./nat-grading";
 import type { Diagnosis, Feedback, Observation, Scenario, RepairAction } from "./schema";
 import { channelState } from "./etherchannel";
@@ -14,6 +15,7 @@ export function grade(
   timedOut = false,
   repairs: RepairAction[] = [],
 ): Feedback {
+  if ("kind" in s.repair && s.repair.kind === "gre-destination") return gradeGre(s, answer, history, timedOut, repairs);
   if ("kind" in s.repair && s.repair.kind === "nat-static-local")
     return gradeNat(s, answer, history, timedOut, repairs);
   if ("kind" in s.repair && s.repair.kind === "port-security-mac")

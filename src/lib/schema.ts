@@ -1,3 +1,4 @@
+import { validateGre } from "./gre";
 import { validateNat } from "./nat";
 import { validateHsrp } from "./hsrp";
 import { normalizeMac, validatePortSecurity } from "./port-security";
@@ -12,6 +13,7 @@ export const ipv4 = z
     "Valid dotted IPv4 required",
   );
 export const commandNames = [
+  "show interfaces tunnel 0",
   "show ip nat translations",
   "show port-security",
   "show port-security address",
@@ -127,7 +129,26 @@ export const natRepairActionSchema = z.strictObject({
   mappingId: z.string().min(1).max(32),
   insideLocal: z.string().trim().pipe(ipv4),
 });
+export const greSchema = z.strictObject({
+  name: z.literal("Tunnel0"),
+  mode: z.literal("gre-ip"),
+  sourceInterface: z.string().min(1),
+  destination: ipv4,
+  ip: ipv4,
+  prefix: z.literal(30),
+  adminUp: z.boolean(),
+});
+export const greRepairActionSchema = z.strictObject({
+  kind: z.literal("gre-destination"),
+  device: z.string().min(1).max(64),
+  interface: z.literal("Tunnel0"),
+  destination: z.string().trim().pipe(ipv4),
+});
 export const deviceSchema = z.object({
+  gre: greSchema.optional(),
+  tunnelRoutes: z
+    .array(z.strictObject({ network: ipv4, prefix: z.number().int().min(1).max(32), interface: z.literal("Tunnel0") }))
+    .optional(),
   nat: natSchema.optional(),
   stp: z
     .strictObject({
@@ -191,6 +212,8 @@ export const linkSchema = z.object({
   subnet: z.string(),
 });
 export const diagnosisSchema = z.object({
+  observedDestination: z.string().trim().pipe(ipv4).optional(),
+  tunnelDestination: z.string().trim().pipe(ipv4).optional(),
   mappingId: z.string().max(32).optional(),
   observedLocal: z.string().trim().pipe(ipv4).optional(),
   observedGlobal: z.string().trim().pipe(ipv4).optional(),
@@ -212,6 +235,7 @@ export const diagnosisSchema = z.object({
   gateway: z.string().max(64).optional(),
   reason: z
     .enum([
+      "gre-endpoint",
       "static-translation",
       "source-admission",
       "virtual-owner",
@@ -233,6 +257,7 @@ export const diagnosisSchema = z.object({
     ])
     .optional(),
   cause: z.enum([
+    "incorrect-tunnel-destination",
     "nat-local",
     "secure-mac",
     "hsrp-priority",
@@ -252,6 +277,7 @@ export const diagnosisSchema = z.object({
   ]),
   devices: z.array(z.string()).max(6),
   fix: z.enum([
+    "gre-destination",
     "nat-local",
     "secure-mac",
     "hsrp-priority",
@@ -274,6 +300,7 @@ export const diagnosisSchema = z.object({
 });
 export type Diagnosis = z.infer<typeof diagnosisSchema>;
 export const scenarioIdSchema = z.enum([
+  "gre-01",
   "nat-static-01",
   "port-security-01",
   "hsrp-01",
@@ -307,6 +334,7 @@ export const scenarioSchema = z
       z.literal(10),
       z.literal(11),
       z.literal(12),
+      z.literal(13),
     ]),
     id: scenarioIdSchema,
     revision: z.literal(1),
@@ -334,6 +362,7 @@ export const scenarioSchema = z
     fault: z.object({ cause: diagnosisSchema.shape.cause, devices: z.array(z.string()), interface: z.string() }),
     acceptedFixes: z.array(diagnosisSchema.shape.fix),
     repair: z.union([
+      greRepairActionSchema.extend({ reason: z.literal("gre-endpoint") }),
       natRepairActionSchema.extend({ reason: z.literal("static-translation") }),
       z.strictObject({
         kind: z.literal("port-security-mac"),
@@ -423,6 +452,7 @@ export const scenarioSchema = z
     validateEtherChannelTopology(s, fail);
     validateStp(s, fail);
     validateNat(s, fail);
+    validateGre(s, fail);
     if (
       s.verificationTargets &&
       (s.schemaVersion !== 12 ||
@@ -609,6 +639,7 @@ export const scenarioSchema = z
         !s.fault.devices.includes(id) ||
         !(
           (s.schemaVersion === 9 && d?.stp && name === `VLAN${d.stp.vlan}`) ||
+          d?.gre?.name === name ||
           d?.interfaces.some((i) => i.name === name) ||
           d?.ports?.some((p) => p.name === name) ||
           d?.portChannels?.some((p) => `Port-channel${p.id}` === name)
@@ -618,7 +649,10 @@ export const scenarioSchema = z
     }
     const repair = s.repair;
     const repairedDevice = s.devices.find((d) => d.id === repair.device);
-    if ("kind" in repair && repair.kind === "nat-static-local") {
+    if ("kind" in repair && repair.kind === "gre-destination") {
+      if (s.schemaVersion !== 13 || repairedDevice?.gre?.name !== repair.interface)
+        fail("GRE repair requires an existing tunnel");
+    } else if ("kind" in repair && repair.kind === "nat-static-local") {
       if (s.schemaVersion !== 12 || !repairedDevice?.nat?.mappings.some((m) => m.id === repair.mappingId))
         fail("NAT repair requires an existing static mapping");
     } else if ("kind" in repair && repair.kind === "port-security-mac") {
@@ -783,6 +817,7 @@ export const portSecurityRepairActionSchema = z.strictObject({
   mac: secureMacSchema,
 });
 export const repairActionSchema = z.union([
+  greRepairActionSchema,
   natRepairActionSchema,
   portSecurityRepairActionSchema,
   hsrpRepairActionSchema,
@@ -795,6 +830,7 @@ export const attemptSchema = z.object({
   repairs: z
     .array(
       z.union([
+        greRepairActionSchema.extend({ at: z.number() }),
         natRepairActionSchema.extend({ at: z.number() }),
         portSecurityRepairActionSchema.extend({ at: z.number() }),
         lacpRepairActionSchema.extend({ at: z.number() }),

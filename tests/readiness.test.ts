@@ -64,6 +64,7 @@ it.each(labs.map((l) => [l.id] as const))("public catalog/preview boundary and o
       "design",
       "devices",
       "subnets",
+      ...(id === "gre-01" ? ["logicalLinks"] : []),
       ...(id === "etherchannel-01"
         ? ["physicalLinks"]
         : id === "stp-01" || id === "hsrp-01"

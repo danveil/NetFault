@@ -1,5 +1,9 @@
 # Architecture and boundaries
 
+## Milestone 3Q update
+
+Schema 13 adds [bounded GRE](gre-model.md): pure validation/local-state helpers, a separate logical L3 view, physical-only RIB lookups for actual outer forwarding and delivered-receiver matching before inner routing. `gre-grading.ts` replays observations including source and configuration version and verifies minimal preserved state plus actual bidirectional GRE events. `gre-scenario.ts` is server-only; generic public controls/topology and an unrelated primer reuse existing UI. A logicalLinks capability reserves a dashed arc lane without changing physical peer discovery. Journal pack IDs/actions are additive; server sessions, CAS, API/worker architecture and dependencies are unchanged. See [3Q](milestone-3q.md).
+
 ## Milestone 3O update
 
 Schema 12 adds one [bounded static NAT model](nat-model.md). Pure `nat.ts` transforms configured addresses; shared forwarding carries ingress, current packet identity, transformations and actual delivery endpoint. It performs independent routing/L2 delivery, outward post-route source translation and inward pre-route destination translation. Replies originate at the delivered endpoint, preserving original sender expectations. No dynamic session store or route-engine replacement is introduced. Strict local-slot trials, authenticated original/fresh grading, private preview service targets and new pack ID reuse existing journal/Assessment/Blobs-CAS/worker architecture. All twelve earlier authored cases and Academy revisions remain intact; unsupported mixed protocols are rejected. See [implementation](milestone-3o.md).
