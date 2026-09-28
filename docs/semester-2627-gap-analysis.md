@@ -1,5 +1,11 @@
 # NetFault × supplied 2026/27 semester material
 
+## Milestone 3P planning delta — 28 September 2026
+
+**PLANNED ONLY — NO GRE ENGINE OR LAB 014 IMPLEMENTED.** The [focused source audit](gre-feasibility.md#2-what-the-current-material-actually-supports) freshly reviews current `8.WAN.ppt` / `8.WANrv.txt`, `9.VPN.ppt` / `9.VPNrv.txt`, selected images and both ExtraLab slides; practical text is relevance-checked. GRE and IPsec PKA internals remain uninspected. V26–28 establish GRE configuration/verification independently of IPsec; V27 uses OSPF over GRE, so the proposed static overlay is an original bounded teaching choice. V27/V28 use different destinations and are not one verified experiment.
+
+Exactly one next recommendation: **LAB 014 — The path above**, wrong tunnel destination to a reachable transport address. Verdict **PASS** and [3Q specification](milestone-3p-plan.md) are planning, not coverage or authorization. Underlay reachability, local up/up and inner delivery remain distinct; no keepalives/liveness or encryption. Thirteen labs and Academy remain unchanged. IPv6, management, QoS, automation, IPsec, dynamic NAT/PAT and broader switch security remain gaps; course weights and PKA requirements are not inferred.
+
 ## Milestone 3O implementation delta — 27 September 2026
 
 [LAB 013 — Beyond the gate](milestone-3o.md) now implements one reusable bounded permanent static NAT pair, explicit inside/outside roles, outward source translation after routing and inward destination translation before routing. Replies use actual delivered endpoint/address identity; routes and directed L2 delivery remain independent. One wrong inside-local slot explains both service failures. Minimal applied correction plus authentic original and fresh bidirectional evidence is required. There are now thirteen playable cases; earlier authored scenarios and Academy revisions are unchanged.

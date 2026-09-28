@@ -1,5 +1,11 @@
 # Engine capability and course feasibility audit
 
+## Milestone 3P GRE feasibility delta — 28 September 2026
+
+**PLANNED ONLY — NO GRE ENGINE OR LAB 014 IMPLEMENTED.** Current `7f5ab1e` code has thirteen cases/schema 1–12, physical C/L/S/O routing, source-aware replies and NAT delivery identity, but no routed tunnel interface or exit-interface overlay route. LACP logical L2 edges, HSRP virtual ownership and a drawn topology line do not supply GRE transport. The [fresh code audit and extension matrix](gre-feasibility.md#4-current-architecture-and-actual-missing-seams) identifies the exact route/local-delivery/source/trial/grading/UI seams.
+
+**PASS** for [proposed 3Q](milestone-3p-plan.md): one strict GRE pair, separate local state and directed transport/receiver checks, static overlay routes and actual nested forwarding with independent replies. Local up/up must not depend on remote reachability or imply success. This is substantive bounded forwarding work, not a catalog-only lab; model-first tests gate case/UI work. No storage redesign, new engine capability or test execution occurs in 3P. Preserve old schema behavior and all thirteen labs; reject mixed/recursive/timer/security extensions.
+
 ## Milestone 3O implementation delta — 27 September 2026
 
 [LAB 013 — Beyond the gate](milestone-3o.md) now implements one reusable bounded permanent static NAT pair, explicit inside/outside roles, outward source translation after routing and inward destination translation before routing. Replies use actual delivered endpoint/address identity; routes and directed L2 delivery remain independent. One wrong inside-local slot explains both service failures. Minimal applied correction plus authentic original and fresh bidirectional evidence is required. There are now thirteen playable cases; earlier authored scenarios and Academy revisions are unchanged.

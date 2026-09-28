@@ -1,12 +1,18 @@
 # NetFault completion roadmap
 
+## Current planning position — Milestone 3P, 28 September 2026
+
+**PLANNED ONLY — NO GRE ENGINE OR LAB 014 IMPLEMENTED.** Exactly one next proposal: **LAB 014 — The path above**, R1's incorrect GRE destination to a reachable transport address. The [source/feasibility audit](gre-feasibility.md) compares five fault candidates and remaining major gaps and returns **PASS**. The [implementation-ready 3Q specification](milestone-3p-plan.md) defines one tunnel pair, physical underlay, static overlay, separate local state/delivery, destination-only trial, fresh evidence, a tiny unrelated primer and an optional UNEXECUTED companion plan. Separate implementation authorization is required.
+
+GRE is selected for distinct underlay/overlay reasoning using current IPv4 foundations; no claim of higher academic weighting or complete WAN/VPN coverage. Thirteen labs and Academy remain unchanged. IPsec, IPv6, management, QoS, automation, dynamic NAT/PAT and broader security remain separate gaps. Earlier dated planning positions below are historical, superseded only by their explicitly recorded implementations. No automatic 3Q, further lab, commit, push or deployment.
+
 ## Milestone 3O implementation delta — 27 September 2026
 
 [LAB 013 — Beyond the gate](milestone-3o.md) now implements one reusable bounded permanent static NAT pair, explicit inside/outside roles, outward source translation after routing and inward destination translation before routing. Replies use actual delivered endpoint/address identity; routes and directed L2 delivery remain independent. One wrong inside-local slot explains both service failures. Minimal applied correction plus authentic original and fresh bidirectional evidence is required. There are now thirteen playable cases; earlier authored scenarios and Academy revisions are unchanged.
 
 Coverage is **partial static NAT investigation**, not full NAT/PAT competence. An unrelated tiny primer supports identity/routing reasoning; the original [device companion](nat-device-companion.md) is UNEXECUTED. Dynamic NAT, PAT, pools, transport/timer state, policy NAT and mixed protocols remain gaps. See [model bounds](nat-model.md) and [executed checks](verification.md). Historical planning records below describe their own earlier baseline and are superseded only for this explicit scope.
 
-## Current planning position — Milestone 3N, 27 September 2026
+## Historical planning position — Milestone 3N, 27 September 2026
 
 **PLANNED ONLY — NO NAT ENGINE OR LAB 013 IMPLEMENTED.** Exactly one next recommendation: **LAB 013 — Beyond the gate**, an incorrect inside-local member of a static one-to-one mapping. The [current-material and architecture audit](nat-feasibility.md) compares static/dynamic/PAT and six fault families; the [proposed 3O contract](milestone-3n-plan.md) defines four devices, routed global identity, both translation directions, minimal trial, fresh recovery proof, a tiny unrelated primer and an UNEXECUTED device companion. Model tests must precede the case. Separate implementation authorization is required.
 
