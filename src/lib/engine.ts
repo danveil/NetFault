@@ -1,3 +1,4 @@
+import { connectivity6, execute6 } from "./ipv6";
 import { grePhysicalUp, greLocalState, greOutput } from "./gre";
 import { natSource, natDestination, natOutput } from "./nat";
 import {
@@ -187,7 +188,7 @@ export type TunnelTraversal = {
   outerReceiver?: string;
   accepted: boolean;
 };
-type Path = {
+export type Path = {
   tunnels?: TunnelTraversal[];
   packet?: { source: string; destination: string };
   delivered?: { device: string; interface: string; source: string; destination: string };
@@ -370,6 +371,7 @@ export function forward(
   return finish({ ok: false, hops, reason: "Hop limit exceeded" });
 }
 export function connectivity(s: Scenario, id: string, target: string, requestedSource = "") {
+  if (s.schemaVersion === 14) return connectivity6(s, id, target, requestedSource);
   const d = device(s, id),
     route = d.kind === "router" ? lookup(s, id, target) : undefined;
   const explicit = requestedSource
@@ -577,6 +579,7 @@ export function execute(
   if (!d.commands.some((c) => c === cmd))
     return `% Unsupported command on ${id}: ${raw}. Use the supported command buttons. This is a bounded simulator, not an IOS shell.`;
   if (source && cmd !== "ping") return "% Explicit source is supported only for router ping.";
+  if (s.schemaVersion === 14) return execute6(s, id, cmd, target, source);
   if (cmd === "show interfaces tunnel 0") return greOutput(d, tunnelState(s, id));
   const channelOutput = etherChannelOutput(s, d, cmd);
   if (cmd.startsWith("show port-security"))
@@ -806,7 +809,9 @@ export function execute(
 export function repaired(s: Scenario): Scenario {
   const next = structuredClone(s);
   const repair = s.repair;
-  if ("kind" in repair && repair.kind === "gre-destination")
+  if ("kind" in repair && repair.kind === "ipv6-forwarding")
+    device(next, repair.device).ipv6!.forwarding = repair.enabled;
+  else if ("kind" in repair && repair.kind === "gre-destination")
     device(next, repair.device).gre!.destination = repair.destination;
   else if ("kind" in repair && repair.kind === "nat-static-local")
     device(next, repair.device).nat!.mappings.find((m) => m.id === repair.mappingId)!.insideLocal = repair.insideLocal;

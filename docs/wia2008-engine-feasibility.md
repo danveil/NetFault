@@ -1,5 +1,11 @@
 # Engine capability and course feasibility audit
 
+## Milestone 3R gate and implemented boundary — 30 September 2026
+
+**PASS**, followed by implementation of exactly LAB 015. [Scope/fault comparisons and current-source evidence](milestone-3r.md) prefer connected IPv6 delivery with a disabled transit-forwarding setting over static routes, wrong prefixes, scoped link-local next hops and OSPFv3. The [separate IPv6 model](ipv6-model.md) uses runtime parsing/128-bit arithmetic, explicit manual on-link routes and actual-link neighbor resolution; IPv4 arithmetic, ARP and route lookup are not reused for IPv6. Local reception/origination differs from transit; requests and replies traverse independently. Existing schema/trial/evidence/session/journal architecture is retained.
+
+This adds fifteen-case readiness, not a topology builder or complete IPv6 stack. Static router routes, RA/SLAAC/DHCPv6, link-local delivery, ND lifecycle, OSPFv3 and IPv6 ACL/translation/tunnel semantics remain unsupported. Full regression evidence is in [verification](verification.md); device companion UNEXECUTED. Earlier feasibility positions below are historical.
+
 ## Milestone 3Q implementation delta — 28 September 2026
 
 **Implemented: LAB 014 — The path above**, following the [3P contract](milestone-3p-plan.md). Fourteen cases now include one bounded GRE-over-IPv4 pair, actual routed outer transport, local-state versus delivery reasoning, static overlay routing, destination-only trials and source-aware original/fresh verification. An unrelated tiny primer adds two diagrams and touch reasoning without changing Academy revisions. See [implementation](milestone-3q.md), [model boundaries](gre-model.md) and [verification](verification.md).

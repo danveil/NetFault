@@ -286,6 +286,18 @@ it("API rejects bypass and never caches assessment output", async () => {
   expect(r.status).toBe(200);
   for (const h of ["cache-control", "cdn-cache-control", "netlify-cdn-cache-control"])
     expect(r.headers.get(h)).toBe("no-store");
+  const transport = await call({
+    action: "command",
+    id: a.id,
+    device: "T1",
+    command: "show ip interface brief",
+    target: "",
+  });
+  expect(transport.status).toBe(200);
+  expect((await transport.json()).attempt.history.at(-1)).toMatchObject({
+    device: "T1",
+    command: "show ip interface brief",
+  });
 });
 it("late attempts cannot apply repairs or replace expired grades", async () => {
   vi.useFakeTimers({ toFake: ["Date"] });

@@ -117,21 +117,23 @@ test("all cached packs survive offline and timer lab completes offline", async (
         .getByRole("button", { name: "Open attempt" })
         .click();
       await expect(await run(page, "PC-A", "ipconfig")).toContainText(
-        lab.id === "gre-01"
-          ? "172.31.10.10"
-          : lab.id === "nat-static-01"
-            ? "192.168.40.10"
-            : lab.id === "port-security-01"
-              ? "172.30.10.10"
-              : lab.id === "hsrp-01"
-                ? "172.28.10.10"
-                : lab.id === "stp-01"
-                  ? "172.26.10.10"
-                  : lab.id === "acl-01"
-                    ? "172.24.10.10"
-                    : lab.id === "etherchannel-01"
-                      ? "172.22.40.10"
-                      : "192.168.10.10",
+        lab.id === "ipv6-01"
+          ? "2001:db8:15:10::10"
+          : lab.id === "gre-01"
+            ? "172.31.10.10"
+            : lab.id === "nat-static-01"
+              ? "192.168.40.10"
+              : lab.id === "port-security-01"
+                ? "172.30.10.10"
+                : lab.id === "hsrp-01"
+                  ? "172.28.10.10"
+                  : lab.id === "stp-01"
+                    ? "172.26.10.10"
+                    : lab.id === "acl-01"
+                      ? "172.24.10.10"
+                      : lab.id === "etherchannel-01"
+                        ? "172.22.40.10"
+                        : "192.168.10.10",
       );
       if (lab.id === "timer-01") {
         await collect(page);

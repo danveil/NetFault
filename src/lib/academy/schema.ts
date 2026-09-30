@@ -21,6 +21,15 @@ export const interfaceTableSchema = z.strictObject({
 });
 export const diagramSchema = z.discriminatedUnion("kind", [
   z.strictObject({
+    kind: z.literal("concept-map"),
+    title: text,
+    cards: z
+      .array(z.strictObject({ label: text, detail: text }))
+      .min(2)
+      .max(6),
+    caption: text,
+  }),
+  z.strictObject({
     kind: z.literal("ospf-match"),
     selector: z.ipv4(),
     wildcard: z.enum(["0.0.0.0", "0.0.0.3", "0.0.0.255"]),
@@ -95,11 +104,12 @@ export const lessonSchema = z
     exercises: z.array(exerciseSchema).min(2),
     relatedLabs: z.array(labLinkSchema),
     sources: z.array(z.strictObject({ title: text, url: z.url() })).min(1),
+    courseAnchor: text.optional(),
     companion: z
       .strictObject({
         title: text,
         introduction: text,
-        interfaceTable: interfaceTableSchema,
+        interfaceTable: interfaceTableSchema.optional(),
         steps: z.array(text).min(1),
       })
       .optional(),

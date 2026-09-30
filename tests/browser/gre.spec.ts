@@ -17,7 +17,11 @@ async function run(page: Page, device: string, command: string, target = "", sou
 }
 async function collect(page: Page) {
   for (const d of ["PC-A", "PC-B"]) await run(page, d, "ipconfig", "", "", false);
-  for (const d of ["R1", "T1", "R2"]) await run(page, d, "show ip interface brief", "", "", false);
+  for (const d of ["R1", "T1", "R2"]) {
+    const output = await run(page, d, "show ip interface brief", "", "", false);
+    await expect(output).toContainText(`${d}# show ip interface brief`);
+    await expect(output).toContainText("IP-Address");
+  }
   for (const d of ["R1", "R2"]) await run(page, d, "show running-config");
   await run(page, "R1", "show interfaces tunnel 0");
   for (const d of ["R1", "R2"]) await run(page, d, "show ip route");

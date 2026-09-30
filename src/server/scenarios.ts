@@ -1,5 +1,6 @@
 import { greScenario } from "./gre-scenario";
 import "server-only";
+import { ipv6Scenario } from "./ipv6-scenario";
 import { natScenario } from "./nat-scenario";
 import { portSecurityScenario } from "./port-security-scenario";
 import { hsrpScenario } from "./hsrp-scenario";
@@ -16,6 +17,7 @@ import { etherChannelScenario } from "./etherchannel-scenario";
 import { aclScenario } from "./acl-scenario";
 import { catalog, commandsFor } from "@/lib/catalog";
 export const scenarios: Record<ScenarioId, Scenario> = {
+  "ipv6-01": ipv6Scenario,
   "gre-01": greScenario,
   "nat-static-01": natScenario,
   "port-security-01": portSecurityScenario,

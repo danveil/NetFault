@@ -1,5 +1,9 @@
 # Scenario authoring contract
 
+## Milestone 3R schema-14 authoring
+
+Only LAB 015 is authorized. Read [source gate](milestone-3r.md) and [IPv6 contract](ipv6-model.md). Device `ipv6` holds manual global interfaces/prefixes and host gateway or router forwarding flag; IPv4 interfaces remain empty. Validate unique normalized identities, unique linked endpoints, an attached direct-link tree, supported device roles/commands and no mixed protocols. Manual address/prefix explicitly configures an on-link route; it is not inferred RA/SLAAC state. Trials may edit only a router's forwarding flag. Retain authentic original observations and current-epoch config/routes/local controls/reciprocal service proof. Case values/rubric stay server-only. Do not copy authoring documents into `public`, worker assets or primer content; don't add another lab without authorization.
+
 ## Milestone 3Q schema-13 authoring
 
 Read the exact [model](gre-model.md) and [approved case/rubric](milestone-3p-plan.md). One strict `gre` object per endpoint and strict `tunnelRoutes` exit-interface entries are separate from existing physical interfaces/static next hops. Require two endpoint routers, one intermediate transport router, two directly attached PCs, four links, distinct /30 transport sources and a separate usable logical /30. A reachable wrong non-GRE destination is valid configuration; do not prevalidate the answer. Reject unsupported/mixed/recursive configurations and GRE trace/ARP commands. Preserve other scenario revisions and ID-specific packs.

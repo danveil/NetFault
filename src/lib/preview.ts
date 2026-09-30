@@ -9,6 +9,7 @@ export function repairPreview(original: Scenario) {
   const hosts = original.devices.filter((d) => d.kind === "pc");
   for (const d of original.devices) {
     for (const c of d.commands.filter((c) => !["ping", "traceroute", "tracert"].includes(c))) commands.push([d.id, c]);
+    if (d.kind === "pc" && d.ipv6?.gateway) commands.push([d.id, "ping", d.ipv6.gateway]);
     if (d.kind === "pc" && d.gateway) {
       commands.push([d.id, "ping", d.gateway]);
       if (d.commands.includes("arp -a")) commands.push([d.id, "arp -a"]);
@@ -19,7 +20,7 @@ export function repairPreview(original: Scenario) {
       d.commands.includes("ping")
     )
       for (const host of hosts.filter((h) => h.id !== d.id)) {
-        commands.push([d.id, "ping", host.interfaces[0].ip]);
+        commands.push([d.id, "ping", host.ipv6?.interfaces[0].address ?? host.interfaces[0].ip]);
         const trace = d.kind === "pc" ? "tracert" : "traceroute";
         if (d.commands.includes(trace)) commands.push([d.id, trace, host.interfaces[0].ip]);
       }
@@ -45,7 +46,9 @@ export function repairPreview(original: Scenario) {
       ...(s.verificationTargets
         ? s.verificationTargets.map((p) => packetJourney(s, p.device, p.target))
         : hosts.flatMap((a) =>
-            hosts.filter((b) => b.id !== a.id).map((b) => packetJourney(s, a.id, b.interfaces[0].ip)),
+            hosts
+              .filter((b) => b.id !== a.id)
+              .map((b) => packetJourney(s, a.id, b.ipv6?.interfaces[0].address ?? b.interfaces[0].ip)),
           )),
     ].join("\n\n");
   return [

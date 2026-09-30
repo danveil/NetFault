@@ -27,8 +27,11 @@ const independent = {
 describe("3E bounded content and authored network examples", () => {
   it("adds exactly one revision-1 lesson and two exercises while retaining the IPv4 archive", () => {
     expect(academySchema.parse(academy)).toEqual(academy);
-    expect(academy.modules.map((m) => m.id)).toEqual(["ipv4", "ospfv2"]);
-    expect(academy.lessons.map((l) => l.id)).toEqual([
+    expect(academy.modules.filter((m) => ["ipv4", "ospfv2"].includes(m.id)).map((m) => m.id)).toEqual([
+      "ipv4",
+      "ospfv2",
+    ]);
+    expect(academy.lessons.filter((l) => ["ipv4", "ospfv2"].includes(l.moduleId)).map((l) => l.id)).toEqual([
       "ipv4-addresses",
       "ipv4-subnets",
       "ipv4-gateway-arp",
@@ -54,7 +57,7 @@ describe("3E bounded content and authored network examples", () => {
   it("uses distinct valid host addresses and paired transits in each original table", () => {
     const tables = [
       ...lesson.sections.flatMap((s) => (s.interfaceTable ? [s.interfaceTable] : [])),
-      lesson.companion!.interfaceTable,
+      lesson.companion!.interfaceTable!,
     ];
     expect(tables).toHaveLength(4);
     const allAddresses: string[] = [];

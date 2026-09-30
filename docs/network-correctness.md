@@ -1,5 +1,11 @@
 # Network correctness: OSPF lab 001
 
+## Milestone 3R IPv6 boundary — 30 September 2026
+
+LAB 015 adds a **separate** IPv6-only forwarding model; all earlier IPv4/OSPF behavior remains under existing regression tests. [The model](ipv6-model.md) documents 128-bit identity, explicit manual on-link prefixes, actual-link ND resolution (not ARP), connected router delivery and independent return paths. R1's only fault is disabled IPv6 transit forwarding; local reception/origination remains possible. No IOS RIB, multicast, RA, DAD, link-local or timing output is fabricated. Every implemented command derives from current configuration and link state. The effective config view includes defaults and is labeled educational.
+
+[Current course evidence and competing designs](milestone-3r.md) are distinct from Cisco/RFC semantic verification and from **unexecuted** external device practice. See [fresh tests](verification.md); no physical device or Netlify execution claim follows from source review.
+
 ## Milestone 3Q implementation delta — 28 September 2026
 
 [LAB 014](milestone-3q.md) adds the [bounded GRE model](gre-model.md). Outer traffic follows actual physical route/L2 traversal; the delivered receiver must match the fixed GRE pair before inner routing resumes. Replies originate from the delivered inner endpoint and follow independent routes. Local source/routability controls Tunnel0 line state; remote reachability does not. In the authored sole fault, a reachable transport destination keeps up/up and routes installed but cannot accept inner delivery. Destination correction leaves addresses/sources/routes unchanged and restores reciprocal logical and PC exchanges.

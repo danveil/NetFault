@@ -16,6 +16,10 @@ test("fresh production assets exclude all authored private teaching and rubric c
   }
   const scripts = (await assets(".next/static")).join("\n");
   for (const privateValue of [
+    "2001:db8:15:10::10",
+    "2001:db8:15:10::1",
+    "2001:db8:15:20::1",
+    "0200.0015.0001",
     "10.14.0.1",
     "10.14.0.2",
     "0200.0014.0001",

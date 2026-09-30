@@ -1,5 +1,17 @@
 # NetFault completion roadmap
 
+## Milestone 3S completion delta — 30 September 2026
+
+[Three Academy modules](milestone-3s.md) now provide source-grounded management, QoS and virtualization/automation reasoning. The [coverage matrix](management-qos-automation-coverage.md) identifies what is taught/practiced, merely introduced, external-only or deferred. All fifteen labs and prior Academy revisions are retained. No new engine or LAB 016.
+
+Exactly one proposed future executable candidate: **bounded syslog severity admission**, separating event generation, threshold filtering and collector delivery. It needs a separately authorized event/collector model and fresh post-trial proof; a reachable collector alone is insufficient. QoS timing and live automation are not appropriate small extensions and remain external practice. Other outstanding course gaps remain IPv6/OSPFv3/dynamic addressing, NAT/PAT, IPsec/WAN, security/design and independently verified device work. Three new companions are UNEXECUTED. Rough learning-support estimate ~88% is a planning judgment, not mastery. Stop after 3S; no automatic next milestone.
+
+## Milestone 3R completion delta — 30 September 2026
+
+The first bounded IPv6 foundation and **LAB 015 — Between two shores** are implemented after the [current-material gate](milestone-3r.md). This fills one executable local-versus-transit troubleshooting gap, with a tiny touch primer, minimal trial and fresh reciprocal verification. All earlier fourteen scenarios and published Academy revisions are retained. [Model limits](ipv6-model.md), [verification](verification.md) and [UNEXECUTED external practice](ipv6-device-companion.md) define the actual coverage.
+
+Next work requires separate authorization and another source/engine decision. IPv6 static routing, scoped link-local delivery, OSPFv3, RA/SLAAC/DHCPv6 and IPv6 ACLs remain uncovered. Do not automatically begin another lab or mark IPv6/WIA2008 complete. Earlier recommendations below describe their historical state.
+
 ## Milestone 3Q implementation delta — 28 September 2026
 
 **Implemented: LAB 014 — The path above**, following the [3P contract](milestone-3p-plan.md). Fourteen cases now include one bounded GRE-over-IPv4 pair, actual routed outer transport, local-state versus delivery reasoning, static overlay routing, destination-only trials and source-aware original/fresh verification. An unrelated tiny primer adds two diagrams and touch reasoning without changing Academy revisions. See [implementation](milestone-3q.md), [model boundaries](gre-model.md) and [verification](verification.md).

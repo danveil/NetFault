@@ -118,60 +118,63 @@ export default function Topology({
     () => window.matchMedia("(max-width:680px)").matches,
     () => false,
   );
+  const ipv6 = lab.id === "ipv6-01";
   const stp = lab.id === "stp-01";
   const hsrp = lab.id === "hsrp-01";
   const logical = "logicalLinks" in lab;
-  const positions = logical
-    ? lab.devices.map((_, i) => (mobile ? [0, i * 180] : [i * 220, 110]))
-    : hsrp
-      ? mobile
-        ? [
-            [115, 0],
-            [115, 160],
-            [0, 345],
-            [230, 345],
-            [115, 550],
-            [115, 720],
-          ]
-        : [
-            [0, 145],
-            [220, 145],
-            [440, 0],
-            [440, 290],
-            [680, 145],
-            [900, 145],
-          ]
-      : stp
+  const positions = ipv6
+    ? lab.devices.map((_, i) => (mobile ? [0, i * 180] : [i * 260, 0]))
+    : logical
+      ? lab.devices.map((_, i) => (mobile ? [0, i * 180] : [i * 220, 110]))
+      : hsrp
         ? mobile
           ? [
-              [0, 0],
-              [0, 155],
-              [230, 270],
-              [0, 385],
-              [0, 540],
+              [115, 0],
+              [115, 160],
+              [0, 345],
+              [230, 345],
+              [115, 550],
+              [115, 720],
             ]
           : [
-              [0, 0],
-              [0, 170],
-              [210, 340],
-              [420, 170],
-              [420, 0],
+              [0, 145],
+              [220, 145],
+              [440, 0],
+              [440, 290],
+              [680, 145],
+              [900, 145],
             ]
-        : mobile
-          ? [
-              [0, 0],
-              [235, 0],
-              [235, 180],
-              [0, 180],
-              [0, 360],
-            ]
-          : [
-              [0, 0],
-              [225, 0],
-              [450, 0],
-              [450, 195],
-              [225, 195],
-            ];
+        : stp
+          ? mobile
+            ? [
+                [0, 0],
+                [0, 155],
+                [230, 270],
+                [0, 385],
+                [0, 540],
+              ]
+            : [
+                [0, 0],
+                [0, 170],
+                [210, 340],
+                [420, 170],
+                [420, 0],
+              ]
+          : mobile
+            ? [
+                [0, 0],
+                [235, 0],
+                [235, 180],
+                [0, 180],
+                [0, 360],
+              ]
+            : [
+                [0, 0],
+                [225, 0],
+                [450, 0],
+                [450, 195],
+                [225, 195],
+              ];
   const incoming = mobile
     ? [Position.Left, Position.Left, Position.Top, Position.Right, Position.Top]
     : [Position.Left, Position.Left, Position.Left, Position.Top, Position.Right];
@@ -189,28 +192,36 @@ export default function Topology({
       active: selected === d.id,
       logical,
       mobile,
-      incoming: logical
+      incoming: ipv6
         ? mobile
           ? Position.Top
           : Position.Left
-        : hsrp
+        : logical
           ? mobile
             ? Position.Top
             : Position.Left
-          : stp && !mobile
-            ? [Position.Top, Position.Top, Position.Top, Position.Left, Position.Bottom][i]
-            : incoming[i],
-      outgoing: logical
+          : hsrp
+            ? mobile
+              ? Position.Top
+              : Position.Left
+            : stp && !mobile
+              ? [Position.Top, Position.Top, Position.Top, Position.Left, Position.Bottom][i]
+              : incoming[i],
+      outgoing: ipv6
         ? mobile
           ? Position.Bottom
           : Position.Right
-        : hsrp
+        : logical
           ? mobile
             ? Position.Bottom
             : Position.Right
-          : stp && !mobile
-            ? [Position.Bottom, Position.Right, Position.Right, Position.Top, Position.Top][i]
-            : outgoing[i],
+          : hsrp
+            ? mobile
+              ? Position.Bottom
+              : Position.Right
+            : stp && !mobile
+              ? [Position.Bottom, Position.Right, Position.Right, Position.Top, Position.Top][i]
+              : outgoing[i],
     },
     ariaLabel: `Inspect ${d.id}`,
   }));

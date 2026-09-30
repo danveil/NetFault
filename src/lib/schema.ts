@@ -1,3 +1,5 @@
+import { normalize6 } from "./ipv6-address";
+import { validateIpv6 } from "./ipv6";
 import { validateGre } from "./gre";
 import { validateNat } from "./nat";
 import { validateHsrp } from "./hsrp";
@@ -12,7 +14,17 @@ export const ipv4 = z
     (s) => /^(\d{1,3}\.){3}\d{1,3}$/.test(s) && s.split(".").every((p) => Number(p) <= 255 && String(Number(p)) === p),
     "Valid dotted IPv4 required",
   );
+export const ipv6AddressSchema = z
+  .string()
+  .trim()
+  .refine((v) => !!normalize6(v), "Valid hexadecimal IPv6 address required");
+export const ipv6RepairActionSchema = z.strictObject({
+  kind: z.literal("ipv6-forwarding"),
+  device: z.string().min(1).max(64),
+  enabled: z.boolean(),
+});
 export const commandNames = [
+  "show ipv6 interface brief",
   "show interfaces tunnel 0",
   "show ip nat translations",
   "show port-security",
@@ -145,6 +157,24 @@ export const greRepairActionSchema = z.strictObject({
   destination: z.string().trim().pipe(ipv4),
 });
 export const deviceSchema = z.object({
+  ipv6: z
+    .strictObject({
+      forwarding: z.boolean().optional(),
+      gateway: ipv6AddressSchema.optional(),
+      interfaces: z
+        .array(
+          z.strictObject({
+            name: z.string().min(1).max(64),
+            address: ipv6AddressSchema,
+            prefix: z.number().int().min(1).max(128),
+            up: z.boolean(),
+            mac: secureMacSchema,
+          }),
+        )
+        .min(1)
+        .max(3),
+    })
+    .optional(),
   gre: greSchema.optional(),
   tunnelRoutes: z
     .array(z.strictObject({ network: ipv4, prefix: z.number().int().min(1).max(32), interface: z.literal("Tunnel0") }))
@@ -212,6 +242,8 @@ export const linkSchema = z.object({
   subnet: z.string(),
 });
 export const diagnosisSchema = z.object({
+  observedForwarding: z.boolean().optional(),
+  forwarding: z.boolean().optional(),
   observedDestination: z.string().trim().pipe(ipv4).optional(),
   tunnelDestination: z.string().trim().pipe(ipv4).optional(),
   mappingId: z.string().max(32).optional(),
@@ -235,6 +267,8 @@ export const diagnosisSchema = z.object({
   gateway: z.string().max(64).optional(),
   reason: z
     .enum([
+      "ipv6-transit",
+      "ipv6-local-proves-transit",
       "gre-endpoint",
       "static-translation",
       "source-admission",
@@ -257,6 +291,7 @@ export const diagnosisSchema = z.object({
     ])
     .optional(),
   cause: z.enum([
+    "ipv6-forwarding-disabled",
     "incorrect-tunnel-destination",
     "nat-local",
     "secure-mac",
@@ -277,6 +312,7 @@ export const diagnosisSchema = z.object({
   ]),
   devices: z.array(z.string()).max(6),
   fix: z.enum([
+    "ipv6-forwarding",
     "gre-destination",
     "nat-local",
     "secure-mac",
@@ -300,6 +336,7 @@ export const diagnosisSchema = z.object({
 });
 export type Diagnosis = z.infer<typeof diagnosisSchema>;
 export const scenarioIdSchema = z.enum([
+  "ipv6-01",
   "gre-01",
   "nat-static-01",
   "port-security-01",
@@ -335,6 +372,7 @@ export const scenarioSchema = z
       z.literal(11),
       z.literal(12),
       z.literal(13),
+      z.literal(14),
     ]),
     id: scenarioIdSchema,
     revision: z.literal(1),
@@ -362,6 +400,7 @@ export const scenarioSchema = z
     fault: z.object({ cause: diagnosisSchema.shape.cause, devices: z.array(z.string()), interface: z.string() }),
     acceptedFixes: z.array(diagnosisSchema.shape.fix),
     repair: z.union([
+      ipv6RepairActionSchema.extend({ reason: z.literal("ipv6-transit") }),
       greRepairActionSchema.extend({ reason: z.literal("gre-endpoint") }),
       natRepairActionSchema.extend({ reason: z.literal("static-translation") }),
       z.strictObject({
@@ -434,6 +473,12 @@ export const scenarioSchema = z
   })
   .superRefine((s, ctx) => {
     const fail = (message: string) => ctx.addIssue({ code: "custom", message });
+    if (s.schemaVersion === 14) {
+      validateIpv6(s, fail);
+      return;
+    }
+    if (s.devices.some((d) => d.ipv6) || ("kind" in s.repair && s.repair.kind === "ipv6-forwarding"))
+      fail("IPv6 configuration requires schema 14");
     if (
       s.schemaVersion === 8 &&
       (!s.policyChecks?.some((p) => p.permitted) || !s.policyChecks.some((p) => !p.permitted))
@@ -700,7 +745,7 @@ export const scenarioSchema = z
         !repairedDevice.vlans?.some((v) => v.id === repair.vlan && v.active)
       )
         fail("Repair requires an existing access port and active VLAN");
-    } else {
+    } else if ("gateway" in repair) {
       if (
         repairedDevice?.kind !== "pc" ||
         !repairedDevice.interfaces.some((i) => sameSubnet(i.ip, repair.gateway, i.prefix)) ||
@@ -817,6 +862,7 @@ export const portSecurityRepairActionSchema = z.strictObject({
   mac: secureMacSchema,
 });
 export const repairActionSchema = z.union([
+  ipv6RepairActionSchema,
   greRepairActionSchema,
   natRepairActionSchema,
   portSecurityRepairActionSchema,
@@ -830,6 +876,7 @@ export const attemptSchema = z.object({
   repairs: z
     .array(
       z.union([
+        ipv6RepairActionSchema.extend({ at: z.number() }),
         greRepairActionSchema.extend({ at: z.number() }),
         natRepairActionSchema.extend({ at: z.number() }),
         portSecurityRepairActionSchema.extend({ at: z.number() }),

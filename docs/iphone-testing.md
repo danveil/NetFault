@@ -1,5 +1,18 @@
 # iPhone, HTTPS and manual QA
 
+## Milestone 3R physical-device acceptance — pending
+
+Automated Chromium desktop/414px/360px checks are separate from physical iPhone/Safari/VoiceOver verification. For LAB 015, use [the local walkthrough](milestone-3r.md#open-and-manually-verify), then on iPhone 11:
+
+- Open the HTTPS app, choose **Between two shores**, expand the small primer and complete/retry/reveal with taps. Confirm notation/diagrams remain readable at portrait and landscape sizes.
+- Tap every topology device; inspect host IPv6 routes and router config/brief. Choose observed targets, run local/remote probes and select evidence. Check full addresses, scrolling and keyboard focus/VoiceOver labels.
+- Apply the forwarding-only trial, gather fresh reciprocal evidence, submit, inspect repaired preview and reopen the saved journal. Ensure bottom navigation does not prevent reaching terminal text/controls.
+- In timed Assessment, confirm no primer/hints/answer reveal, resume after refresh and complete online. Do not infer an offline exam capability.
+- After the production shell and LAB 015 Practice pack report offline readiness, use airplane mode, close/reopen or reload and complete Practice. Reconnect and check the requested update flow retains progress.
+- Add to Home Screen, relaunch, repeat portrait/landscape, large-text and VoiceOver checks. Export recovery data before testing rollback to an older schema.
+
+Record iOS/browser version and actual results. These steps remain **manual/unexecuted**, not a physical-device acceptance claim. LAN HTTP does not provide installable/offline PWA security; use trusted HTTPS. No deployment is authorized by this checklist.
+
 ## Milestone 3Q physical-device acceptance — pending
 
 Run the [LAB 014 manual checklist](milestone-3q.md#open-and-manually-verify) on the updated trusted-HTTPS app. Check the separate dashed logical gutter/solid physical path, labels, focus/VoiceOver, observation/source/target selectors, wrong and correct trials, fresh-version evidence, feedback/preview, journal and offline reload. Desktop/414px/360px Chromium results are recorded in [verification](verification.md); they are not Safari or physical iPhone acceptance. No live release is part of 3Q.

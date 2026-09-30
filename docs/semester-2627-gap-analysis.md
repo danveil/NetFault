@@ -1,5 +1,17 @@
 # NetFault × supplied 2026/27 semester material
 
+## Milestone 3S delta — 30 September 2026
+
+Fresh inspection of actual `10.MANAGEMENT.ppt`, `11.QoSrv.ppt`, `12.NETWORKAUTO.ppt`, their revision outlines, selected native images and practical/ExtraLab relevance checks supports three focused Academy modules. [Source matrix and limitations](management-qos-automation-coverage.md) distinguish current evidence, historical context and technical reference corrections. Management tool/evidence/time/recovery reasoning, QoS metrics/treatment and virtualization/API/control relationships now have original examples and tap practice. Seven lessons and three UNEXECUTED companions do not establish real operational competence.
+
+Still open: management design/hardware/maintenance and advanced strategy/tool operation; actual QoS configuration/measurement; real virtual fabrics/controllers/model authoring; broader IPv6/OSPFv3, dynamic NAT/PAT, IPsec/WAN/security and authentic configuration transfer. No engine/LAB 016. Only one future candidate is recommended: bounded syslog severity admission, requiring separate authorization. The new approximate learning-support estimate is ~88% (83–93% range), using the explicit judgment-based rubric in the matrix, not official academic weighting. Earlier gap statements below retain their historical date.
+
+## Milestone 3R implementation delta — 30 September 2026
+
+**Implemented: LAB 015 — Between two shores.** The fresh [IPv6 source audit](milestone-3r.md#actual-current-source-audit) inspected the actual 31-file 26/27 archive, native slide text/revisions/practical documents and selected visuals. OSPFrv slide 59 explicitly introduces IPv6 forwarding; a PASS gate isolates that prerequisite in one original connected-network investigation. Fifteen cases now include 128-bit prefix reasoning, manually configured host routes, bounded direct-link ND, local reception versus transit and fresh reciprocal recovery proof. See [model](ipv6-model.md) and [actual verification](verification.md).
+
+Coverage is **partial IPv6 foundation/troubleshooting**, not full IPv6 or WIA2008. OSPFv3, scoped link-local forwarding, static IPv6 router routes, dynamic host configuration, IPv6 ACLs and transition mechanisms remain gaps. The tiny primer changes no Academy revision; the [device companion](ipv6-device-companion.md) is UNEXECUTED. Historical claims below retain their dates; source support is not real-device competence or confirmed assessment coverage. No further milestone or deployment is authorized.
+
 ## Milestone 3Q implementation delta — 28 September 2026
 
 **Implemented: LAB 014 — The path above**, following the [3P contract](milestone-3p-plan.md). Fourteen cases now include one bounded GRE-over-IPv4 pair, actual routed outer transport, local-state versus delivery reasoning, static overlay routing, destination-only trials and source-aware original/fresh verification. An unrelated tiny primer adds two diagrams and touch reasoning without changing Academy revisions. See [implementation](milestone-3q.md), [model boundaries](gre-model.md) and [verification](verification.md).

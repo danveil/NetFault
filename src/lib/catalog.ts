@@ -520,6 +520,44 @@ export const greReasons = [
   ["same-address", "The tunnel makes both remote LANs one local subnet."],
 ] as const;
 
+export const ipv6Lab = {
+  id: "ipv6-01",
+  number: "015",
+  topic: "IPv6 connectivity",
+  title: "Between two shores",
+  subtitle: "Two local links respond. The cross-network service does not.",
+  target: "2001:db8:15:20::20",
+  incident:
+    "PC-A cannot reach PC-B at 2001:db8:15:20::20. Both users report that their local next hop responds. Investigate each device, retain evidence and test the smallest correction.",
+  design:
+    "Two directly connected IPv6 LANs: PC-A — R1 — PC-B. Hosts have manually configured global addresses, on-link /64 prefixes and global default next hops; automatic addressing is not used. Preserve the two LANs and their addressing. No static router routes, dynamic routing, filtering, translation or tunnels are intended. Link-local traffic, RA/SLAAC and ND timing are outside this model.",
+  devices: [
+    { id: "PC-A", kind: "pc", role: "West workstation" },
+    { id: "R1", kind: "router", role: "Campus gateway" },
+    { id: "PC-B", kind: "pc", role: "East workstation" },
+  ],
+  subnets: ["2001:db8:15:10::/64", "2001:db8:15:20::/64"],
+} as const;
+export const ipv6Causes = [
+  ["ipv6-forwarding-disabled", "IPv6 transit forwarding is disabled"],
+  ["wrong-gateway", "Incorrect host default next hop"],
+  ["interface-down", "An interface is down"],
+  ["missing-route", "A required route is missing"],
+] as const;
+export const ipv6Fixes = [
+  ["ipv6-forwarding", "Change IPv6 unicast forwarding"],
+  ["gateway", "Change a host default next hop"],
+  ["no-shutdown", "Enable an interface"],
+  ["static-route", "Add a static route"],
+] as const;
+export const ipv6Reasons = [
+  [
+    "ipv6-transit",
+    "Local reception and transit forwarding are separate. The router must forward between the configured connected networks.",
+  ],
+  ["ipv6-local-proves-transit", "Any reply from a router proves that it forwards other devices' traffic."],
+  ["reverse-automatically", "One successful outbound packet guarantees a return route."],
+] as const;
 export const labs = [
   lab,
   gatewayLab,
@@ -535,6 +573,7 @@ export const labs = [
   portSecurityLab,
   natLab,
   greLab,
+  ipv6Lab,
 ] as const;
 export type PublicLab = (typeof labs)[number];
 export function catalog(id: ScenarioId): PublicLab {
@@ -543,6 +582,10 @@ export function catalog(id: ScenarioId): PublicLab {
 export function commandsFor(id: ScenarioId, deviceId: string): string[] {
   const d = catalog(id).devices.find((d) => d.id === deviceId);
   if (!d) return [];
+  if (id === "ipv6-01")
+    return d.kind === "router"
+      ? ["show ipv6 interface brief", "show running-config", "ping"]
+      : ["ipconfig", "ipconfig /all", "route print", "ping"];
   if (id === "gre-01")
     return d.kind === "pc"
       ? ["ipconfig", "ipconfig /all", "ping"]

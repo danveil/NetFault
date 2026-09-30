@@ -12,7 +12,7 @@ const requestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("command"),
     id: z.string().uuid(),
-    device: z.enum(["PC-A", "R1", "R2", "R3", "SW1", "SW2", "SW3", "PC-B"]),
+    device: z.enum(["PC-A", "R1", "R2", "R3", "T1", "SW1", "SW2", "SW3", "PC-B"]),
     command: z.string().max(100),
     target: z.string().max(64),
     source: z.string().max(64).optional(),

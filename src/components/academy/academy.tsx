@@ -265,6 +265,7 @@ export default function AcademyView({
                   {status(lesson)}. Activity and exercise completion are not a measure of mastery.
                 </p>
               </div>
+              {lesson.courseAnchor && <p className="academy-course-anchor">Course basis: {lesson.courseAnchor}</p>}
               {lesson.sections.map((section) => (
                 <section key={section.kind} className="academy-section">
                   <h2>{section.title}</h2>
@@ -291,7 +292,7 @@ export default function AcademyView({
                 <details className="panel academy-companion">
                   <summary>{lesson.companion.title}</summary>
                   <p>{lesson.companion.introduction}</p>
-                  <InterfaceTable table={lesson.companion.interfaceTable} />
+                  {lesson.companion.interfaceTable && <InterfaceTable table={lesson.companion.interfaceTable} />}
                   <ol>
                     {lesson.companion.steps.map((step, index) => (
                       <li key={index}>{step}</li>
@@ -307,21 +308,23 @@ export default function AcademyView({
                   Choose another lesson
                 </button>
               </div>
-              <section className="quiet-card">
-                <h2>Take the next step in a lab</h2>
-                <p>
-                  Inspect the incident yourself. No attempt begins until you choose a mode and start it. Assessment
-                  requires internet; practice requires its separately downloaded pack for offline use.
-                </p>
-                {lesson.relatedLabs.map((link) => {
-                  const lab = labs.find((l) => l.id === link.scenarioId)!;
-                  return (
-                    <button className="secondary" key={link.scenarioId} onClick={() => onLab(lab.id)}>
-                      LAB {lab.number} · {lab.title}
-                    </button>
-                  );
-                })}
-              </section>
+              {!!lesson.relatedLabs.length && (
+                <section className="quiet-card">
+                  <h2>Take the next step in a lab</h2>
+                  <p>
+                    Inspect the incident yourself. No attempt begins until you choose a mode and start it. Assessment
+                    requires internet; practice requires its separately downloaded pack for offline use.
+                  </p>
+                  {lesson.relatedLabs.map((link) => {
+                    const lab = labs.find((l) => l.id === link.scenarioId)!;
+                    return (
+                      <button className="secondary" key={link.scenarioId} onClick={() => onLab(lab.id)}>
+                        LAB {lab.number} · {lab.title}
+                      </button>
+                    );
+                  })}
+                </section>
+              )}
               <details className="panel academy-sources">
                 <summary>References and scope</summary>
                 <p>

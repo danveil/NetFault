@@ -10,7 +10,7 @@ export default defineConfig({
   projects: [
     {
       name: "narrow-mobile-chromium",
-      testMatch: /(academy.*|etherchannel|acl|stp|hsrp|port-security|nat|gre)\.spec\.ts/,
+      testMatch: /(academy.*|etherchannel|acl|stp|hsrp|port-security|nat|gre|ipv6)\.spec\.ts/,
       use: {
         ...devices["iPhone 11"],
         defaultBrowserType: "chromium",

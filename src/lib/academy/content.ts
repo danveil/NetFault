@@ -1,6 +1,7 @@
 import { academy as original, references } from "./content-v1";
 import { academySchema, type Exercise, type Lesson, type Diagram } from "./schema";
 import { ospfLesson, ospfModule } from "./ospf-content";
+import { operationsLessons, operationsModules } from "./operations-content";
 export { references };
 
 const hints: Record<string, Record<string, string>> = {
@@ -112,7 +113,7 @@ function paragraphs(body: string) {
     .join("");
 }
 export const academy = academySchema.parse({
-  modules: [...original.modules.map((item) => ({ ...item, revision: 2 })), ospfModule],
+  modules: [...original.modules.map((item) => ({ ...item, revision: 2 })), ospfModule, ...operationsModules],
   lessons: [
     ...original.lessons.map((lesson) => ({
       ...lesson,
@@ -125,6 +126,7 @@ export const academy = academySchema.parse({
       exercises: lesson.exercises.map(touchExercise),
     })),
     ospfLesson,
+    ...operationsLessons,
   ],
 });
 export function lessonRevision(id: string, revision: number): Lesson | undefined {

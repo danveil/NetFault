@@ -14,6 +14,7 @@ it.each(labs)(
     expect([s.id, s.title, s.incident, s.design]).toEqual([lab.id, lab.title, lab.incident, lab.design]);
     expect(s.revision).toBe(1);
     const expectedVersions = {
+      "ipv6-01": 14,
       "ospf-01": 1,
       "gateway-01": 2,
       "vlan-01": 3,
@@ -44,6 +45,18 @@ it.each(labs)(
         .map((c): [string, string] => [d.id, c]),
     );
     const evidence = observations(s, commands);
+    if (s.schemaVersion === 14)
+      for (const d of s.devices.filter((d) => d.kind === "pc"))
+        for (const target of [d.ipv6!.gateway!, lab.target])
+          evidence.push({
+            id: `ipv6-${d.id}-${target}`,
+            scenario: s.id,
+            device: d.id,
+            command: "ping",
+            target,
+            output: execute(s, d.id, "ping", target),
+            at: 1,
+          });
     if (s.policyChecks)
       for (const p of s.policyChecks.filter((p) => p.permitted && !p.source))
         evidence.push({
@@ -100,7 +113,8 @@ it.each(labs)(
     expect(feedback.parts.find((p) => p.name === "Supporting evidence")?.earned).toBe(30);
     expect(connectivity(s, "PC-A", lab.target).ok).toBe(s.schemaVersion === 9 || s.schemaVersion === 10);
     expect(connectivity(repaired(s), "PC-A", lab.target).ok).toBe(true);
-    const insidePhysical = s.devices.find((d) => d.id === "PC-A")!.interfaces[0].ip;
+    const firstHost = s.devices.find((d) => d.id === "PC-A")!;
+    const insidePhysical = firstHost.ipv6?.interfaces[0].address ?? firstHost.interfaces[0].ip;
     expect(
       connectivity(
         repaired(s),

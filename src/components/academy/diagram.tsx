@@ -6,7 +6,19 @@ const binary = (number: number) => number.toString(2).padStart(8, "0");
 export default function LessonDiagram({ diagram }: { diagram: Diagram }) {
   let title: string;
   let visual: React.ReactNode;
-  if (diagram.kind === "ospf-match") {
+  if (diagram.kind === "concept-map") {
+    title = diagram.title;
+    visual = (
+      <ol className="diagram-flow concept-map-cards">
+        {diagram.cards.map((card) => (
+          <li key={card.label}>
+            <strong>{card.label}</strong>
+            <span>{card.detail}</span>
+          </li>
+        ))}
+      </ol>
+    );
+  } else if (diagram.kind === "ospf-match") {
     title = "A network statement selects local interfaces";
     visual = (
       <>

@@ -1,5 +1,9 @@
 # Architecture and boundaries
 
+## Milestone 3R update
+
+Schema 14 `ipv6-01` adds separate `ipv6-address`, `ipv6` and `ipv6-grading` modules, a private server scenario and two small UI components. Dispatch occurs before IPv4 validation/forwarding/output paths. The [bounded model](ipv6-model.md) preserves existing trials, configuration epochs, private Assessment sessions/CAS, offline packs, journals and Academy revisions. No storage/worker/dependency redesign. LAB 015 uses only explicit manual IPv6 configuration, connected forwarding and direct-link ND; read [3R](milestone-3r.md) before extending it. One demonstrated legacy GRE API allowlist omission was corrected to permit T1 inspection, with output assertions added.
+
 ## Milestone 3Q update
 
 Schema 13 adds [bounded GRE](gre-model.md): pure validation/local-state helpers, a separate logical L3 view, physical-only RIB lookups for actual outer forwarding and delivered-receiver matching before inner routing. `gre-grading.ts` replays observations including source and configuration version and verifies minimal preserved state plus actual bidirectional GRE events. `gre-scenario.ts` is server-only; generic public controls/topology and an unrelated primer reuse existing UI. A logicalLinks capability reserves a dashed arc lane without changing physical peer discovery. Journal pack IDs/actions are additive; server sessions, CAS, API/worker architecture and dependencies are unchanged. See [3Q](milestone-3q.md).

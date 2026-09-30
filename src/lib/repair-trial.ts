@@ -1,3 +1,4 @@
+import { validateIpv6 } from "./ipv6";
 import { validateGre } from "./gre";
 import { validateNat } from "./nat";
 import { repairActionSchema, type RepairAction, type Scenario, type Attempt } from "./schema";
@@ -9,6 +10,7 @@ import { validatePortSecurity } from "./port-security";
 export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): Scenario {
   if (!repairs.length) return original;
   if (
+    original.schemaVersion !== 14 &&
     original.schemaVersion !== 7 &&
     original.schemaVersion !== 8 &&
     original.schemaVersion !== 9 &&
@@ -24,6 +26,16 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
     const request = { ...raw } as RepairAction & { at?: number };
     delete request.at;
     const change = repairActionSchema.parse(request);
+    if ("kind" in change && change.kind === "ipv6-forwarding") {
+      const d = result.devices.find((d) => d.id === change.device);
+      if (original.schemaVersion !== 14 || d?.kind !== "router" || !d.ipv6)
+        throw Error("Select an existing IPv6 router");
+      d.ipv6.forwarding = change.enabled;
+      validateIpv6(result, (m) => {
+        throw Error(m);
+      });
+      continue;
+    }
     if ("kind" in change && change.kind === "gre-destination") {
       const g = result.devices.find((d) => d.id === change.device)?.gre;
       if (original.schemaVersion !== 13 || !g || g.name !== change.interface)
@@ -104,6 +116,8 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
   return result;
 }
 export function repairDescription(change: RepairAction) {
+  if ("kind" in change && change.kind === "ipv6-forwarding")
+    return `${change.device}, IPv6 unicast forwarding -> ${change.enabled ? "enabled" : "disabled"}`;
   if ("kind" in change && change.kind === "gre-destination")
     return `${change.device}, ${change.interface}, destination -> ${change.destination}`;
   if ("kind" in change && change.kind === "nat-static-local")

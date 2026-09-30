@@ -19,6 +19,20 @@
     "Segoe UI",
     sans-serif;
 }
+.academy-course-anchor {
+  overflow-wrap: anywhere;
+  font-size: 0.9rem;
+  border-left: 3px solid var(--accent);
+  padding-left: 12px;
+}
+.concept-map-cards {
+  grid-template-columns: 1fr;
+}
+.concept-map-cards li {
+  display: grid;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
 * {
   box-sizing: border-box;
 }
@@ -2343,5 +2357,53 @@ footer > span:last-child {
   .topology.topology-gre,
   .topology.compact.topology-gre {
     height: 850px;
+  }
+}
+.ipv6-reading {
+  overflow-wrap: anywhere;
+}
+.ipv6-groups {
+  display: grid;
+  gap: 12px;
+}
+.ipv6-groups > span {
+  padding: 12px;
+  border: 1px solid #526b83;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 16px;
+}
+.ipv6-groups strong {
+  display: block;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  margin-top: 8px;
+}
+.ipv6-investigation {
+  grid-template-columns: 1fr;
+}
+.ipv6-investigation .terminal-output pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ipv6-investigation .network-device {
+  font-size: 16px;
+}
+.ipv6-investigation .topology {
+  height: 520px;
+}
+.ipv6-investigation .react-flow__edge-text {
+  font-size: 13px;
+}
+.ipv6-investigation select {
+  max-width: 100%;
+}
+@media (max-width: 680px) {
+  .ipv6-investigation .topology {
+    height: 600px;
+  }
+  .ipv6-investigation .react-flow__controls {
+    left: 0;
+    bottom: 8px;
   }
 }
