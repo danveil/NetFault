@@ -1,5 +1,11 @@
 # Learning Academy: Milestones 3B–3E
 
+## Milestone 3T current inventory
+
+Totals: **6 modules, 14 lessons, 28 tap exercises and 17 local diagrams**. `vpn-ipsec` adds revision-1 lessons `vpn-boundaries`, `ipsec-services` and `vpn-evidence`. Six exercises contain eighteen choice fields; three concept maps and one inline UNEXECUTED companion reuse the existing schema/renderer. `vpn-content.ts` owns the public content; the registry appends it without changing old lesson objects or revision lookup. The old 3S inventory test now scopes to its existing modules; a new whole-registry test protects the current inventory.
+
+Concepts follow actual current VPN/revision sources with visible qualifications. No crypto computation, execution endpoint, simulated SA or protected-delivery state exists. Solutions remain requested-only and progress uses the same local key/schema. The production shell caches all new lessons/diagrams/grading/companion text; external references and real device practice require separate connectivity/tools. Active Assessment still blocks Academy. [3T report](milestone-3t.md) and [source gate](ipsec-feasibility.md) explain why no LAB016 was added. Earlier inventory counts below retain their historical context.
+
 ## Milestone 3S current inventory
 
 The Academy now has **5 modules, 11 lessons, 22 tap exercises and 14 local diagrams**. [3S](milestone-3s.md) adds Network Management (2 lessons), Quality of Service (2) and Network Virtualization and Automation (3), each at revision 1. Seven new diagrams, 14 exercises/42 choices and three expandable UNEXECUTED companions reuse the existing grading/progress system. IPv4 revisions 1/2, OSPF revision 1 and historical progress stay intact; Field Guides/primers remain separate.

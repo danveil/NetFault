@@ -9,6 +9,7 @@ import { gradeHsrp } from "./hsrp-grading";
 import { gradePortSecurity } from "./port-security-grading";
 import { gradeStp } from "./stp-grading";
 import { gradeAcl } from "./acl-grading";
+import { gradeFoundation } from "./transfer-grading";
 export function grade(
   s: Scenario,
   answer: Diagnosis,
@@ -16,6 +17,7 @@ export function grade(
   timedOut = false,
   repairs: RepairAction[] = [],
 ): Feedback {
+  if (s.schemaVersion === 15) return gradeFoundation(s, answer, history, timedOut, repairs);
   if ("kind" in s.repair && s.repair.kind === "ipv6-forwarding")
     return gradeIpv6(s, answer, history, timedOut, repairs);
   if ("kind" in s.repair && s.repair.kind === "gre-destination") return gradeGre(s, answer, history, timedOut, repairs);

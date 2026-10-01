@@ -1,3 +1,5 @@
+import { neutralIdSchema } from "./neutral-scenario";
+import { foundationSchema, validateFoundation } from "./transfer-contract";
 import { normalize6 } from "./ipv6-address";
 import { validateIpv6 } from "./ipv6";
 import { validateGre } from "./gre";
@@ -335,7 +337,7 @@ export const diagnosisSchema = z.object({
   notes: z.string().max(2000).default(""),
 });
 export type Diagnosis = z.infer<typeof diagnosisSchema>;
-export const scenarioIdSchema = z.enum([
+export const legacyScenarioIdSchema = z.enum([
   "ipv6-01",
   "gre-01",
   "nat-static-01",
@@ -352,6 +354,7 @@ export const scenarioIdSchema = z.enum([
   "etherchannel-01",
   "acl-01",
 ]);
+export const scenarioIdSchema = z.union([legacyScenarioIdSchema, neutralIdSchema]);
 export type ScenarioId = z.infer<typeof scenarioIdSchema>;
 const lessonSchema = z.array(
   z.object({ title: z.string(), text: z.string(), revealOnRequest: z.boolean().optional() }),
@@ -373,7 +376,9 @@ export const scenarioSchema = z
       z.literal(12),
       z.literal(13),
       z.literal(14),
+      z.literal(15),
     ]),
+    foundation: foundationSchema.optional(),
     id: scenarioIdSchema,
     revision: z.literal(1),
     title: z.string(),
@@ -473,6 +478,7 @@ export const scenarioSchema = z
   })
   .superRefine((s, ctx) => {
     const fail = (message: string) => ctx.addIssue({ code: "custom", message });
+    validateFoundation(s, fail);
     if (s.schemaVersion === 14) {
       validateIpv6(s, fail);
       return;
@@ -480,14 +486,14 @@ export const scenarioSchema = z
     if (s.devices.some((d) => d.ipv6) || ("kind" in s.repair && s.repair.kind === "ipv6-forwarding"))
       fail("IPv6 configuration requires schema 14");
     if (
-      s.schemaVersion === 8 &&
+      (s.schemaVersion === 8 || s.schemaVersion === 15) &&
       (!s.policyChecks?.some((p) => p.permitted) || !s.policyChecks.some((p) => !p.permitted))
     )
       fail("Policy recovery requires both permitted and excluded controls");
     for (const p of s.policyChecks ?? []) {
       const d = s.devices.find((d) => d.id === p.device);
       if (
-        s.schemaVersion !== 8 ||
+        (s.schemaVersion !== 8 && s.schemaVersion !== 15) ||
         !d?.commands.includes("ping") ||
         !s.devices.some((d) => d.interfaces.some((i) => i.ip === p.target)) ||
         (p.source && (d.kind !== "router" || !d.interfaces.some((i) => i.ip === p.source)))
@@ -550,18 +556,21 @@ export const scenarioSchema = z
       )
         fail("Static next hop must be a directly linked on-subnet router; recursive routes are not modeled");
     };
-    if (s.schemaVersion !== 3 && "vlan" in s.repair && !("priority" in s.repair))
+    if (s.schemaVersion !== 3 && s.schemaVersion !== 15 && "vlan" in s.repair && !("priority" in s.repair))
       fail("Access VLAN repair requires schema v3");
     if (s.schemaVersion === 1 && (s.devices.some((d) => d.kind === "switch") || "gateway" in s.repair))
       fail("Layer 2 ports and gateway repair require schema v2");
     for (const d of s.devices) {
       const attached = d.interfaces.filter((i) => i.accessGroup);
-      if ((d.acls || attached.length) && (s.schemaVersion !== 8 || d.kind !== "router"))
+      if ((d.acls || attached.length) && ((s.schemaVersion !== 8 && s.schemaVersion !== 15) || d.kind !== "router"))
         fail("ACLs require a schema v8 router");
       if (attached.length > 1) fail("Only one outbound ACL attachment per router is supported");
       for (const i of attached)
         if (!d.acls?.some((a) => a.name === i.accessGroup!.name)) fail("ACL attachment references absent list");
-      if (s.schemaVersion === 8 && d.commands.some((c) => ["traceroute", "tracert", "arp -a"].includes(c)))
+      if (
+        (s.schemaVersion === 8 || s.schemaVersion === 15) &&
+        d.commands.some((c) => ["traceroute", "tracert", "arp -a"].includes(c))
+      )
         fail("ACL scenarios do not support trace or ARP history commands");
       if (d.staticRoutes) {
         if (s.schemaVersion < 4 || d.kind !== "router") fail("Static routes require a router and schema v4");
@@ -715,7 +724,7 @@ export const scenarioSchema = z
     } else if ("acl" in repair) {
       const acl = repairedDevice?.acls?.find((a) => a.name === repair.acl);
       if (
-        s.schemaVersion !== 8 ||
+        (s.schemaVersion !== 8 && s.schemaVersion !== 15) ||
         !acl?.entries.some((e) => e.id === repair.entryId) ||
         acl.entries.some((e) => e.sequence === repair.newSequence && e.id !== repair.entryId) ||
         repairedDevice?.interfaces.find((i) => i.name === repair.interface)?.accessGroup?.name !== repair.acl
@@ -861,7 +870,14 @@ export const portSecurityRepairActionSchema = z.strictObject({
   interface: z.string().min(1).max(64),
   mac: secureMacSchema,
 });
+export const accessVlanRepairActionSchema = z.strictObject({
+  kind: z.literal("access-vlan"),
+  device: z.string().min(1).max(64),
+  interface: z.string().min(1).max(64),
+  vlan: z.number().int().min(1).max(4094),
+});
 export const repairActionSchema = z.union([
+  accessVlanRepairActionSchema,
   ipv6RepairActionSchema,
   greRepairActionSchema,
   natRepairActionSchema,
@@ -876,6 +892,7 @@ export const attemptSchema = z.object({
   repairs: z
     .array(
       z.union([
+        accessVlanRepairActionSchema.extend({ at: z.number() }),
         ipv6RepairActionSchema.extend({ at: z.number() }),
         greRepairActionSchema.extend({ at: z.number() }),
         natRepairActionSchema.extend({ at: z.number() }),

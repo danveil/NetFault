@@ -8,14 +8,14 @@ import { operationsCases } from "./fixtures/operations-answers";
 describe("3S source-grounded public Academy", () => {
   it("adds only three modules/seven revision-1 lessons with bounded diagrams", () => {
     expect(academySchema.parse(academy)).toEqual(academy);
-    expect(academy.modules.map((m) => m.id)).toEqual([
+    expect(academy.modules.filter((m) => m.id !== "vpn-ipsec").map((m) => m.id)).toEqual([
       "ipv4",
       "ospfv2",
       "network-management",
       "quality-of-service",
       "virtualization-automation",
     ]);
-    expect(academy.lessons).toHaveLength(11);
+    expect(academy.lessons.filter((l) => l.moduleId !== "vpn-ipsec")).toHaveLength(11);
     const lessons = operationsCases.map((c) => lessonRevision(c.id, 1)!);
     expect(lessons.flatMap((l) => l.exercises)).toHaveLength(14);
     expect(lessons.flatMap((l) => l.exercises.flatMap((e) => e.fields))).toHaveLength(42);

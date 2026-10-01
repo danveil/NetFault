@@ -1,3 +1,4 @@
+import { validateDeviceCommand } from "@/lib/capabilities";
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { type Attempt, type Diagnosis, type ScenarioId, type RepairAction } from "@/lib/schema";
@@ -9,6 +10,7 @@ import { LabError, sessionStore, type SessionStore } from "./session-store";
 
 export const ASSESSMENT_MS = 20 * 60 * 1000;
 export async function startAssessment(store: SessionStore = sessionStore(), scenarioId: ScenarioId = "ospf-01") {
+  getScenario(scenarioId); // Fail before persisting an attempt for an unregistered identity.
   const now = Date.now();
   const a: Attempt = {
     version: 1,
@@ -54,8 +56,12 @@ export async function assessmentAction(
     if (action === "command") {
       if (a.history.length >= 100)
         throw new LabError("This attempt has reached its 100-command limit. Review your evidence and submit.");
-      const c = input as { device: string; command: string; target: string; source?: string };
-      if (!scenario.devices.some((d) => d.id === c.device)) throw new LabError("Device is not part of this lab.");
+      const c = { ...(input as { device: string; command: string; target: string; source?: string }) };
+      try {
+        c.command = validateDeviceCommand(scenario, c.device, c.command);
+      } catch (error) {
+        throw new LabError(error instanceof Error ? error.message : "Invalid diagnostic");
+      }
       a.history.push({
         id: observationId,
         scenario: a.scenario,

@@ -16,6 +16,7 @@ import { Monitor, Router, Network } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 import { useSyncExternalStore } from "react";
 import type { PublicLab } from "@/lib/catalog";
+import { explicitGraph, type NeutralPublicScenario } from "@/lib/neutral-scenario";
 const subscribe = (callback: () => void) => {
   const media = window.matchMedia("(max-width:680px)");
   media.addEventListener("change", callback);
@@ -102,6 +103,113 @@ function LogicalEdge({ id, sourceX, sourceY, targetX, targetY, data, label }: Ed
   );
 }
 const edgeTypes = { physical: PhysicalEdge, logical: LogicalEdge };
+// Future neutral callers supply positions and endpoints, never a case-name
+// branch. Existing lab rendering below deliberately keeps its established UX.
+export function ExplicitTopology({
+  scenario,
+  selected,
+  onSelect,
+}: {
+  scenario: NeutralPublicScenario;
+  selected: string;
+  onSelect: (id: string) => void;
+}) {
+  const mobile = useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia("(max-width:680px)").matches,
+    () => false,
+  );
+  const graph = explicitGraph(scenario, mobile);
+  const nodes: DeviceNode[] = graph.nodes.map((n) => ({
+    id: n.id,
+    position: n.position,
+    type: "device",
+    data: {
+      label: n.id,
+      role: n.role,
+      kind: n.kind,
+      active: selected === n.id,
+      logical: n.logical,
+      mobile,
+      incoming: mobile ? Position.Top : Position.Left,
+      outgoing: mobile ? Position.Bottom : Position.Right,
+    },
+  }));
+  const edges: Edge[] = graph.edges.map((e) => {
+    const axis = mobile ? "y" : "x";
+    const reverse =
+      e.kind === "physical" &&
+      graph.nodes.find((n) => n.id === e.source)!.position[axis] >
+        graph.nodes.find((n) => n.id === e.target)!.position[axis];
+    return {
+      id: e.id,
+      source: reverse ? e.target : e.source,
+      target: reverse ? e.source : e.target,
+      label: e.label,
+      type: e.kind,
+      data: { mobile, offset: e.offset },
+      ...(e.kind === "logical" ? { sourceHandle: "logical-out", targetHandle: "logical-in" } : {}),
+      style: { stroke: "#a5b9d0", strokeWidth: 2 },
+    };
+  });
+  return (
+    <>
+      <div
+        className="topology"
+        style={{ height: Math.max(400, ...nodes.map((n) => n.position.y + 180)) }}
+        aria-label="Interactive network topology"
+      >
+        <ReactFlow
+          key={`${scenario.id}-${mobile}`}
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          onNodeClick={(_, n) => onSelect(n.id)}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          edgesFocusable={false}
+          fitView
+          fitViewOptions={{ padding: 0.12 }}
+          minZoom={0.6}
+          maxZoom={1.6}
+          colorMode="dark"
+          zoomOnScroll={false}
+          preventScrolling={false}
+        >
+          <Background color="#2c3a4d" gap={22} />
+          <Controls position="bottom-right" showInteractive={false} />
+        </ReactFlow>
+      </div>
+      <div role="group" aria-label="Topology device selection" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        {scenario.devices.map((d) => (
+          <button
+            key={d.id}
+            type="button"
+            aria-pressed={selected === d.id}
+            style={{ minHeight: 44, minWidth: 44 }}
+            onClick={() => onSelect(d.id)}
+          >
+            {d.id}
+          </button>
+        ))}
+      </div>
+      <p className="topology-text">
+        Lines show declared connections, not proof of forwarding. Select a device to inspect its current state.
+      </p>
+      <details>
+        <summary>Connection list</summary>
+        <ul>
+          {scenario.links.map((l) => (
+            <li key={l.id}>
+              {l.a.device} {l.a.interface} — {l.b.device} {l.b.interface} ({l.kind})
+            </li>
+          ))}
+        </ul>
+      </details>
+    </>
+  );
+}
 export default function Topology({
   lab,
   selected,

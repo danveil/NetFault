@@ -1,5 +1,15 @@
 # NetFault × supplied 2026/27 semester material
 
+## Milestone 3U transfer gap
+
+[Compatibility audit](integrated-model-compatibility.md): **DEFER**, zero new scenarios. The archive hash was reconfirmed and relevant native ACL/OSPF/Management extracts reread; [source anchors and original-design distinction](unfamiliar-network-transfer.md) preserve the difference between supplied skills and proposed NetFault networks. Restricted mixed forwarding works, but neutral multi-family investigation and applied/fresh repair contracts need a bounded foundation before two original cases. No new practical, transfer or source-coverage credit; rough estimate remains ~89% ±5.
+
+## Milestone 3T delta — 30 September 2026
+
+[Current VPN/IPsec source audit](ipsec-feasibility.md) returns **ACADEMY_ONLY**. The supplied deck/revision strongly establish concepts and GRE configuration/verification; the site-to-site IPsec PKA exists but its internals remain uninspected. No exact IPsec CLI/selector/SA troubleshooting requirement is invented. Three lessons add deployment boundaries, security services and complementary protection/delivery evidence. Six exercises and one UNEXECUTED companion improve preparation, not proven device competence. No LAB 016 or IPsec engine.
+
+IPsec construction/verification/repair, broader IPv6/OSPFv3, dynamic NAT/PAT, WAN/security/design variants, real QoS/controller operation and unfamiliar-network transfer remain gaps. The explicit planning rubric now totals **~89% learning support (rough uncertainty ±5 points)**, solely reflecting improved conceptual support, not mastery, marks or executable breadth. Earlier milestone estimates below remain historical.
+
 ## Milestone 3S delta — 30 September 2026
 
 Fresh inspection of actual `10.MANAGEMENT.ppt`, `11.QoSrv.ppt`, `12.NETWORKAUTO.ppt`, their revision outlines, selected native images and practical/ExtraLab relevance checks supports three focused Academy modules. [Source matrix and limitations](management-qos-automation-coverage.md) distinguish current evidence, historical context and technical reference corrections. Management tool/evidence/time/recovery reasoning, QoS metrics/treatment and virtualization/API/control relationships now have original examples and tap practice. Seven lessons and three UNEXECUTED companions do not establish real operational competence.

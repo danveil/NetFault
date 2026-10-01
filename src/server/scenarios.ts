@@ -5,7 +5,7 @@ import { natScenario } from "./nat-scenario";
 import { portSecurityScenario } from "./port-security-scenario";
 import { hsrpScenario } from "./hsrp-scenario";
 import { stpScenario } from "./stp-scenario";
-import { scenarioIdSchema, type Scenario, type ScenarioId } from "@/lib/schema";
+import { legacyScenarioIdSchema, type Scenario, type ScenarioId } from "@/lib/schema";
 import { scenario } from "./scenario";
 import { gatewayScenario } from "./gateway-scenario";
 import { vlanScenario } from "./vlan-scenario";
@@ -34,7 +34,7 @@ export const scenarios: Record<ScenarioId, Scenario> = {
   "hsrp-01": hsrpScenario,
 };
 export function validateRegistry(entries: Record<ScenarioId, Scenario>) {
-  for (const id of scenarioIdSchema.options) {
+  for (const id of legacyScenarioIdSchema.options) {
     const s = entries[id],
       publicLab = catalog(id);
     if (!s || s.id !== id || s.title !== publicLab.title) throw Error("Scenario registry identity mismatch");

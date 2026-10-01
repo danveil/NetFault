@@ -592,7 +592,7 @@ export function execute(
     const state = arpState(
       s,
       id,
-      s.schemaVersion === 10 || s.schemaVersion === 11
+      s.schemaVersion === 3 || s.schemaVersion === 10 || s.schemaVersion === 11
         ? history.filter((o) => (o.repairIndex ?? 0) === repairIndex)
         : history,
     );
@@ -681,7 +681,7 @@ export function execute(
           ? "Echo replies returned."
           : s.schemaVersion === 11
             ? "No echo replies returned. Compare physical state, VLAN, addressing, admission and routes in both directions."
-            : s.schemaVersion === 8
+            : s.schemaVersion === 8 || s.schemaVersion === 15
               ? "No echo replies returned. Compare addressing, routes and interface policy in both directions."
               : "No echo replies returned. Inspect routes in both directions.",
       ].join("\n");

@@ -1,7 +1,7 @@
 import { validateIpv6 } from "./ipv6";
 import { validateGre } from "./gre";
 import { validateNat } from "./nat";
-import { repairActionSchema, type RepairAction, type Scenario, type Attempt } from "./schema";
+import { scenarioSchema, repairActionSchema, type RepairAction, type Scenario, type Attempt } from "./schema";
 import { hsrpPriority, validateHsrp } from "./hsrp";
 import { moveAclEntry } from "./acl";
 import { validatePortSecurity } from "./port-security";
@@ -10,6 +10,8 @@ import { validatePortSecurity } from "./port-security";
 export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): Scenario {
   if (!repairs.length) return original;
   if (
+    original.schemaVersion !== 15 &&
+    original.schemaVersion !== 3 &&
     original.schemaVersion !== 14 &&
     original.schemaVersion !== 7 &&
     original.schemaVersion !== 8 &&
@@ -26,6 +28,23 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
     const request = { ...raw } as RepairAction & { at?: number };
     delete request.at;
     const change = repairActionSchema.parse(request);
+    if ("kind" in change && change.kind === "access-vlan") {
+      const d = result.devices.find((d) => d.id === change.device);
+      const port = d?.ports?.find((p) => p.name === change.interface);
+      if (
+        ![3, 15].includes(original.schemaVersion) ||
+        d?.kind !== "switch" ||
+        !port ||
+        port.portSecurity ||
+        port.stp ||
+        d.portChannels ||
+        !d.vlans?.some((v) => v.id === change.vlan && v.active)
+      )
+        throw Error("Select an existing access port and active VLAN");
+      port.vlan = change.vlan;
+      scenarioSchema.parse(result);
+      continue;
+    }
     if ("kind" in change && change.kind === "ipv6-forwarding") {
       const d = result.devices.find((d) => d.id === change.device);
       if (original.schemaVersion !== 14 || d?.kind !== "router" || !d.ipv6)
@@ -97,7 +116,8 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
       continue;
     }
     if ("kind" in change) {
-      if (original.schemaVersion !== 8) throw Error("ACL changes are not supported by this scenario");
+      if (original.schemaVersion !== 8 && original.schemaVersion !== 15)
+        throw Error("ACL changes are not supported by this scenario");
       moveAclEntry(
         result.devices.find((d) => d.id === change.device),
         change.acl,
@@ -113,9 +133,12 @@ export function trialNetwork(original: Scenario, repairs: RepairAction[] = []): 
     if (!channel) throw Error("Select an existing switch and local channel group");
     channel.mode = change.mode;
   }
+  if (original.schemaVersion === 15) scenarioSchema.parse(result);
   return result;
 }
 export function repairDescription(change: RepairAction) {
+  if ("kind" in change && change.kind === "access-vlan")
+    return `${change.device}, ${change.interface}, access VLAN -> ${change.vlan}`;
   if ("kind" in change && change.kind === "ipv6-forwarding")
     return `${change.device}, IPv6 unicast forwarding -> ${change.enabled ? "enabled" : "disabled"}`;
   if ("kind" in change && change.kind === "gre-destination")

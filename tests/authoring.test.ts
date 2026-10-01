@@ -30,7 +30,7 @@ it.each(labs)(
       "nat-static-01": 12,
       "gre-01": 13,
     };
-    expect(s.schemaVersion).toBe(expectedVersions[s.id]);
+    expect(s.schemaVersion).toBe(expectedVersions[lab.id]);
     if (!("logicalLinks" in lab)) expect(s.links.map((l) => l.subnet)).toEqual(lab.subnets);
     if ("physicalLinks" in lab) {
       expect(s.links.map((l) => [l.a.device, l.b.device])).toEqual(lab.physicalLinks.map((l) => [l.source, l.target]));

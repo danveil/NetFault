@@ -1,5 +1,115 @@
 # NetFault verification
 
+## Milestone 3V — 1 October 2026
+
+Scope: [foundation contracts and repair matrix](transfer-foundation.md), [milestone record](milestone-3v.md), [compatibility re-audit](integrated-model-compatibility.md). No new registered challenge. Windows / Node 24.15.0 / pnpm 11.19.0 / Next 16.3.1 / Edge Chromium. External HEAD `7bf24b5` and dirty completed 3T/3U work preserved.
+
+| Check                                                           | Actual 3V result                                                                                                     |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `pnpm lint`                                                     | Passed; zero errors/warnings                                                                                         |
+| `pnpm typecheck`                                                | Passed                                                                                                               |
+| Focused foundation and actual-route Assessment tests            | **59 passed / 2 files**, zero failures/skips                                                                         |
+| Final `pnpm test`                                               | **947 passed / 36 files**, zero failures/skips; 7.24 seconds                                                         |
+| Compatibility characterization                                  | **22 passed**, included above; the old missing-VLAN-action check is replaced by positive/adversarial replay coverage |
+| Final `pnpm build`                                              | Passed; build `n1BWBGUUhJRBOOUzBQaX_`; generated production worker; 2 local session file-tracing warnings            |
+| Full production browser regression                              | **264 passed / 23 files**, zero failures/skips/flaky; 15.8 minutes; desktop/414px/360px                              |
+| Focused isolated topology browser check                         | **3 passed**, desktop/414/360; 8.9 seconds after accessibility fix; final orientation also included in full run      |
+| Focused final-build legacy/privacy checks                       | **21 passed / 4 files**, zero failures/skips/flaky; 1.3 minutes; 414px/360px                                         |
+| Production static scan for internal fixture IDs/private markers | 10 JavaScript assets scanned; zero fixture ID/private-marker matches                                                 |
+| Documentation links/anchors                                     | **13 documents / 475 local links / 51 anchors / zero errors**                                                        |
+| `git diff --check`                                              | Passed; LF/CRLF normalization notices only                                                                           |
+
+The 59 new focused checks cover two real composed fault families, immutable replay, version changes/no-ops/reversion, original and fresh authentic evidence, missing layers, invalid/foreign/forged observations, actual local-control success, policy-preserving alternative ACL order, unrelated healthy configuration preservation, Practice pack/journal roundtrips, server-owned commands/repair/grading via the actual POST route, independent ETag-aware store clients, concurrency, expiry, finalization, privacy and unregistered identities. The full suite also preserves all fifteen labs, Academy, SDK/transport behavior, Windows session-write retries and worker tests. The service-contract fake is not live Netlify.
+
+Screenshots were visually inspected for 360px VLAN/GRE and the neutral graph, desktop VLAN/neutral graph, and 414px ACL/IPv6. Existing learner controls and output panels remain usable. The neutral graph retains authored-layout limits: long or curved edge labels can require panning; its connection list exposes exact endpoints. This is not an automatic edge-routing guarantee.
+
+The isolated browser harness bundles the actual `ExplicitTopology` component into a test document; it is not a production route or integrated learner challenge. Initial browser checks failed on the unnamed generic selector; a proper named group fixed accessibility and its test locator. Screenshot review also prompted authored edge bends and connection-list support, plus visual endpoint orientation to avoid drawing an upward cable through an intermediate node. Initial unit test failures were fixture issues: epoch zero was serialized explicitly instead of omitted; duplicate ACL move expectations incorrectly assumed VLAN-style no-op behavior. Those expectations were corrected without changing the established ACL identity contract. One PowerShell reporter invocation split an unquoted comma; it failed before running tests and was retried with quoting.
+
+The sandboxed first focused Vitest invocation failed while reading configuration; the approved worker run succeeded. One interrupted file write during development was restored only after confirming the preserved intake hash, then the intended change was reapplied with explicit UTF-8. No external/user content was discarded.
+
+Build warnings concern broad tracing of the existing ignored `.netfault/sessions/*.json` development directory (10,538 matches on the final build), not a failed compile. Session storage implementation was not changed or cleaned. Fresh Git-based deployments do not include this ignored local data; no live Netlify build/deploy was performed. No dependency or deployment setting changed.
+
+Preservation was checked against the 220-file 3V intake: only the intended shared contracts/tests/docs/config subset changed; a separate 34-file protected-content subset had zero changes. All fifteen scenario definitions, catalog, client workflow, Academy source, session-store implementation, worker source, package/lockfile and deployment configuration match intake. New files are enumerated in the milestone contracts. Historical 3T/3U results below are not relabeled as new results.
+
+No physical iPhone, Safari, VoiceOver, Cisco-device, Packet Tracer or live Netlify testing. No commit, push, public deployment, account/project change or Netlify credits used. Learning-support estimate remains ~89% ±5, not mastery.
+
+## Milestone 3U — 30 September 2026
+
+Scope: [composition gate](integrated-model-compatibility.md), [milestone record](milestone-3u.md), [unimplemented transfer design](unfamiliar-network-transfer.md). **DEFER; no runtime/application changes or new challenges.** Windows, Node 24.15.0, pnpm 11.19.0. The completed dirty 3T intake and external HEAD `7bf24b5` were preserved.
+
+| Check                                                  | Actual 3U result                                                                                    |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| `pnpm lint`                                            | Passed, zero errors/warnings                                                                        |
+| `pnpm typecheck`                                       | Passed                                                                                              |
+| Focused `pnpm test -- tests/composition-audit.test.ts` | **23 passed / 1 file**, zero failures/skips; 2.65 seconds                                           |
+| Full `pnpm test`                                       | **889 passed / 34 files**, zero failures/skips; 6.88 seconds                                        |
+| Production build                                       | Not rerun: no application, runtime, configuration or dependency change                              |
+| Full/focused browser tests                             | Not rerun; **0 new browser executions**. No 3U mobile/offline challenge result is claimed           |
+| Formatting                                             | Audit test and three new documents passed Prettier check                                            |
+| Documentation/link validation                          | **11 documents / 434 local references / 51 anchors / zero errors**                                  |
+| `git diff --check`                                     | Passed; existing LF/CRLF normalization notices only                                                 |
+| Runtime/config preservation                            | **88 intake files compared, zero changes**; HEAD remains `7bf24b5c39403dd29bfd7b2f9acc94ad95ce88d7` |
+
+All 23 audit tests passed on their first run. They cover restricted VLAN/OSPF/ACL composition, source-dependent positive/negative controls, immutable ACL trial behavior, route ownership, missing outward/return and GRE underlay/overlay routes, state-derived outputs, explicit mixed-model rejection and missing legacy repair actions. They are engineering probes based on existing cases, not new learner scenarios. The full suite preserves all fifteen cases, six Academy modules, storage/CAS/concurrency, Windows session-file retries, assessment replay/finalization and service-worker contracts. No tests were weakened or skipped to force a pack.
+
+The 3T production build and 257-browser results below remain **historical**, not rerun or relabeled as 3U checks. Runtime preservation was separately confirmed against 88 intake file hashes. No new topology/mobile/privacy/offline behavior is claimed; future transfer implementation must run the full production and desktop/414px/360px/offline acceptance matrix. One read-only audit command used a nonnumeric Select-Object count and was corrected before the missing source range was read; it did not affect files or test execution.
+
+The course archive hash was freshly reconfirmed; selected native-text extracts were reread. Earlier visual ExtraLab inspection remains historical. No physical iPhone, Safari, VoiceOver, Cisco hardware, Packet Tracer or live Netlify testing. No commit, push, deployment, account/project change or Netlify credits consumed.
+
+## Milestone 3T — 30 September 2026
+
+Scope: [VPN/IPsec Academy delivery](milestone-3t.md), [source audit and ACADEMY_ONLY gate](ipsec-feasibility.md). Windows, Node 24.15.0, pnpm 11.19.0, local Edge/Chromium. No IPsec engine or LAB016. Earlier milestone totals remain historical.
+
+| Check                                                           | Actual result                                                                                                         |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `pnpm lint`                                                     | Passed, zero errors/warnings                                                                                          |
+| `pnpm typecheck`                                                | Passed                                                                                                                |
+| `pnpm test`                                                     | **866 passed / 33 files**, zero failures/skips; 11.60 seconds                                                         |
+| `pnpm build`                                                    | Passed; build **`p4pKbdfbQKAoKF2FdhRa9`**, dynamic lab API and existing offline-worker generation retained            |
+| Full production `pnpm test:browser` (`CI=1`, `PW_PRODUCTION=1`) | **257 passed / 22 files**, **1078.36 seconds (17.97 minutes)**; zero failures/skips/flakes and no report-level errors |
+| Focused browser coverage                                        | **12 new VPN checks** passed within the full run; no separate focused rerun                                           |
+| Formatting                                                      | Six affected TypeScript/test files and both new documents passed Prettier check                                       |
+| Local documentation links                                       | **11 documents / 415 local references / 51 anchors / zero errors**                                                    |
+| `git diff --check`                                              | Passed                                                                                                                |
+
+The four new unit tests validate the whole Academy/15-lab inventory and independently specified lesson answers, every wrong alternative, invalid/missing values, deterministic feedback and revision-safe saved progress. The historical 3S inventory check is scoped to its original lessons/modules; a new exact whole-registry assertion protects the expanded inventory. No test was skipped or removed to hide a regression.
+
+The successful production browser run includes the existing fifteen-lab workflows, online server-owned Assessment/resume, original/fresh evidence, trials, repaired previews, journals, private-asset checks and worker updates. Twelve new checks cover all three VPN lessons' two exercises, diagrams, touch targets, page overflow and resumed progress, plus actual offline reload, requested solutions and the UNEXECUTED companion at desktop/414px/360px. They exercise the same existing public Academy machinery; conceptual answers are public study content, not private Assessment secrets. Existing wrong-answer/retry, keyboard, old-revision and active-Assessment Academy-blocking checks also pass.
+
+Screenshot inspection covered all three new diagrams at 360px, the security-service diagram at desktop 1440px, and the boundary/evidence diagrams at 414px. Cards and terminology wrap readably; navigation remains visible. Programmatic checks additionally cover all new diagrams, accessible names, at least 44px choice targets and no horizontal page overflow at all three viewports. No application change was needed after this inspection.
+
+Tooling limitations: `pnpm exec prettier` did not resolve the executable, so the installed `node_modules/prettier/bin/prettier.cjs` was used successfully. Worker/build/browser execution used approved local process permissions. Repeated NO_COLOR/FORCE_COLOR messages and Git line-ending normalization notices are tool warnings, not test failures. No unit/browser test required a retry to pass.
+
+No engine, case, schema, API, session/Blobs/CAS, Windows session-file retry, service-worker source, dependency, lockfile or Netlify configuration change. External HEAD `7bf24b5c39403dd29bfd7b2f9acc94ad95ce88d7` and the pre-existing 3S documentation finalization are preserved. No runtime source change followed the tested build.
+
+Source hashing/native text/selected slide image review and RFC checks are not device validation. The IPsec and GRE PKA internals remain UNINSPECTED; the new external companion remains UNEXECUTED. No physical iPhone, Safari, VoiceOver, Cisco device, Packet Tracer, real IPsec cryptography or live Netlify test was performed. No commit, push, deployment, account change or deployment-credit use.
+
+## Milestone 3S — 30 September 2026
+
+Scope: [Academy implementation](milestone-3s.md) and [current-source audit](management-qos-automation-coverage.md). Windows, Node 24.15.0, pnpm 11.19.0, local Edge/Chromium. These are fresh results, not reused 3R counts.
+
+| Check                                                           | Actual result                                                                                                                                                                                 |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm lint`                                                     | Passed; final rerun also passed, zero warnings/errors                                                                                                                                         |
+| `pnpm typecheck`                                                | Passed after narrowing the new test's choice-field union; final rerun passed                                                                                                                  |
+| `pnpm test`                                                     | **862 passed / 32 files**, zero failures/skips; 10.45 seconds                                                                                                                                 |
+| `pnpm build`                                                    | Passed; Next production routes and offline generation retained; tested build `74tj72QSRIFzvL_Yc7c9x`                                                                                          |
+| Focused production Academy browser run                          | **24 passed / 1 file**, approximately 1 minute; desktop 1440px, mobile 414px and narrow mobile 360px                                                                                          |
+| Full production `pnpm test:browser` (`CI=1`, `PW_PRODUCTION=1`) | **245 passed / 21 files**, 818.30 seconds (13.64 minutes), **zero failed/skipped/flaky**, no report-level errors                                                                              |
+| Formatting                                                      | All 10 affected TypeScript/TSX/CSS/test files and two new documents passed Prettier check                                                                                                     |
+| Local documentation links                                       | Initial complete changed/new inventory: **17 documents / 446 local references / 53 anchors / zero errors**; final 3S scope: **9 documents / 305 local references / 27 anchors / zero errors** |
+| `git diff --check`                                              | Passed; only existing Git LF/CRLF normalization notices appeared                                                                                                                              |
+
+The full run includes all fifteen labs, server-owned timed Assessment/resume, authenticated evidence/freshness, trials, repaired previews, journals, production offline packs, worker updates and private-asset checks. All seven new lessons complete both exercises and reopen progress at all three viewport sizes. The strengthened offline test reads every new lesson, grades its guided exercise, explicitly requests solutions and opens all three UNEXECUTED companions. Earlier IPv4/OSPF revision, keyboard, retry and active-Assessment Academy-blocking tests also pass. Unit fixtures state expected answers independently and reject every alternative; old revision records coexist with completed new lessons.
+
+Screenshot review covered desktop QoS treatment, 414px management relationships and 360px virtualization/automation diagrams. Text wraps within cards; navigation and headings remain readable. Programmatic checks cover all new lesson diagrams, accessible names, 44px choice targets and horizontal overflow. This is Chromium emulation, not physical iPhone, Safari or VoiceOver verification.
+
+Intermediate tooling issues: `pnpm exec prettier` did not resolve the executable in this Windows environment; calling the installed `node_modules/prettier/bin/prettier.cjs` succeeded. The first typecheck found a test-only union-narrowing error, corrected before final checks. Native-source report printing initially hit the console's cp1252 encoding; rerunning with UTF-8 succeeded. No unit or browser test failed or required a retry. The repeated NO_COLOR/FORCE_COLOR messages are tooling warnings, not browser failures.
+
+At intake the verified 3R work was uncommitted. During finalization an external commit `7bf24b5` (`lab 0015`) appeared containing the accumulated 3R/3S files, and a later local build artifact had ID `7cR0hDYYAYeHJDSNhuce-`. This agent did not create that commit or build, revert it, push or deploy. The test result above identifies the build this agent actually produced; the later build is not independently claimed tested. Documentation finalization follows that external commit. No runtime source change was made after the full run.
+
+Technical reference/slide review is not Packet Tracer/Cisco-device execution. All three new companions remain UNEXECUTED. No live Netlify test, deployment, account/project change or deployment-credit use was performed by this agent.
+
 ## Milestone 3R — 30 September 2026
 
 Scope: [current-source gate and implementation](milestone-3r.md), [bounded IPv6 model](ipv6-model.md), original [UNEXECUTED companion](ipv6-device-companion.md). Clean intake `3286e91` (`lab 014`); Windows, Node 24.15.0, pnpm 11.19.0, installed Edge/Chromium. Earlier milestone totals below are historical, not reused as current verification.
@@ -44,7 +154,6 @@ Browser workflows inspect every device, use observed target/source choices, pres
 
 Screenshots are captured for topology, repair controls, current tunnel output and primer at desktop/414px/360px. Screenshot review also led to separate source/destination lines and wider mobile cable gaps. All unit tests and the focused production suite passed again after these refinements and source-name normalization. Final screenshots were visually reviewed for desktop topology, 360px topology/primer/repair and 414px topology/current tunnel/repair. Desktop controls now occupy the clear upper-left lane; mobile controls remain in the side gutter. Node/control nonintersection and touch controls at least 44px are asserted in the final browser run. No physical iPhone, Safari, VoiceOver, Packet Tracer, Cisco device or live Netlify validation was performed. Cisco/RFC reference review is not device execution. No commit, push, deployment, Netlify configuration/storage change or credits used. Manual acceptance: [3Q checklist](milestone-3q.md#open-and-manually-verify).
 
-
 ## Milestone 3O — 27 September 2026
 
 Current scope: [implementation](milestone-3o.md), [bounded NAT model](nat-model.md), [UNEXECUTED companion](nat-device-companion.md). Windows, Node 24.15.0, pnpm 11.19.0; installed Edge/Chromium. Final production build `g-Nekzy8ZgnxIZzsA2jLJ` retains dynamic `/api/lab` and generates the existing offline worker.
@@ -64,7 +173,6 @@ Model verification covers both initiation directions without prior state, source
 Browser workflows cover all thirteen labs and Academy, complete NAT Practice and timed Assessment/resume, wrong repair and incomplete verification, repaired preview, saved/reopened progress, cached offline completion, primer requested reasoning, privacy scans, no-store responses and worker updates. Practice remains inspectable and requires initial successful online caching; Assessment remains online/server-owned.
 
 No physical iPhone, Safari, VoiceOver, Packet Tracer, Cisco device or live Netlify testing was performed. See [manual device checklist](milestone-3o.md#open-and-manually-verify). No commit, push, deployment or Netlify credits were used.
-
 
 ## Milestone 3M — 26–27 September 2026
 
@@ -95,16 +203,16 @@ Final screenshots are under `test-results/port-security-*/desk-investigation.png
 
 Current HSRP implementation: [3K record](milestone-3k.md), [bounded model](hsrp-model.md). Windows, Node 24.15.0, pinned pnpm 11.19.0; installed Edge/Chromium. Prior milestone counts below remain historical.
 
-| Check | Final result |
-| --- | --- |
-| pnpm lint | Passed; zero errors/warnings |
-| pnpm typecheck | Passed |
-| pnpm test | 558 passed, 22 files; zero failed/skipped; 4.38 seconds |
-| pnpm build | Passed; final build WQCgv1iDj4hpgR1OM5wLi; generated worker, dynamic assessment API retained |
+| Check                                                | Final result                                                                                                    |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| pnpm lint                                            | Passed; zero errors/warnings                                                                                    |
+| pnpm typecheck                                       | Passed                                                                                                          |
+| pnpm test                                            | 558 passed, 22 files; zero failed/skipped; 4.38 seconds                                                         |
+| pnpm build                                           | Passed; final build WQCgv1iDj4hpgR1OM5wLi; generated worker, dynamic assessment API retained                    |
 | Final production HSRP/deployment/privacy browser run | 21 passed; zero failed/flaky/skipped; 97.25 seconds. Includes 15 HSRP workflows across desktop, 414px and 360px |
-| Full production browser suite | 161 passed; zero failed/skipped; 10.3 minutes |
-| git diff --check | Passed |
-| Changed Markdown links/anchors | 212 checked; zero errors |
+| Full production browser suite                        | 161 passed; zero failed/skipped; 10.3 minutes                                                                   |
+| git diff --check                                     | Passed                                                                                                          |
+| Changed Markdown links/anchors                       | 212 checked; zero errors                                                                                        |
 
 The complete suite ran on build `gijl90jNZfyQGW568sc_g`. The only subsequent application edit corrected the desktop header from Milestone 3I to 3K. Lint/build and the 21 focused production checks above passed on the final build. Both browser runs used `CI=true` and `PW_PRODUCTION=1`. Investigation screenshots at desktop, 414px and 360px and the narrow repaired preview were visually inspected; touch targets, overflow and topology-control overlap also have automated assertions.
 
@@ -114,21 +222,20 @@ The new browser workflows cover full Practice, resumed timed Assessment, stale v
 
 No physical iPhone, Safari, VoiceOver, Cisco IOS/Packet Tracer/CML or live Netlify validation was performed. No dependencies, commits, pushes or deployments were added. This verifies a settled priority/virtual-gateway investigation, not failover timing or full FHRP coverage.
 
-
 Current evidence is recorded above and in [Milestone 3K](milestone-3k.md). Historical records below are retained rather than relabeled as current test results.
 
 ## Milestone 3I — 25 September 2026
 
 Windows, Node 24.15.0, pinned pnpm 11.19.0, installed Edge/Chromium. Final application build includes exactly one new STP lab and the scoped triangle layout. The complete browser suite runs against `next start`, with `CI=true` preventing reuse of a development server.
 
-| Check | Final result |
-| --- | --- |
-| `pnpm lint` | Passed, zero errors/warnings |
-| `pnpm typecheck` | Passed |
-| `pnpm test` | **474 passed**, 20 files, zero failed/skipped, 4.30 seconds |
-| `pnpm build` | Passed; build `daUyMj-NGaY12h0oG4V1r`, generated production worker and dynamic assessment API retained |
-| `$env:CI='true'; $env:PW_PRODUCTION='1'; pnpm test:browser` | **146 passed**, zero failed/skipped, one complete final run in 7.0 minutes |
-| `git diff --check` | Passed |
+| Check                                                       | Final result                                                                                           |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `pnpm lint`                                                 | Passed, zero errors/warnings                                                                           |
+| `pnpm typecheck`                                            | Passed                                                                                                 |
+| `pnpm test`                                                 | **474 passed**, 20 files, zero failed/skipped, 4.30 seconds                                            |
+| `pnpm build`                                                | Passed; build `daUyMj-NGaY12h0oG4V1r`, generated production worker and dynamic assessment API retained |
+| `$env:CI='true'; $env:PW_PRODUCTION='1'; pnpm test:browser` | **146 passed**, zero failed/skipped, one complete final run in 7.0 minutes                             |
+| `git diff --check`                                          | Passed                                                                                                 |
 
 Seven model-level tests preceded scenario integration. They assert independent initial/repaired role matrices, receiving-port costs, sender-BID ties, order independence, recomputation, forwarding integration and 17,496 finite cost/availability/root-priority combinations. Thirty-one scenario tests cover addressing, initial successful connectivity, all eight equivalent priority repairs, wrong/tied outcomes, actual versus fresh-verified recovery, forged/stale evidence, no-ops/limits, malformed schemas, hints, journal persistence, server-owned attempts and concurrent replay/finalization.
 

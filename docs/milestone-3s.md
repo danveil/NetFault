@@ -10,7 +10,7 @@
 4. Add independent expected-answer, validation/persistence and production mobile/offline regression checks; run the complete existing lab suite.
 5. Record partial coverage, future feasibility, remaining gaps and an explicitly approximate completion estimate; stop without committing or deploying.
 
-The checkout already contained uncommitted, verified 3R work at intake. That work is preserved; the overall Git diff includes 3R and must not be described as wholly authored in 3S.
+The checkout contained uncommitted, verified 3R work at intake. It is preserved. An external commit later captured the accumulated 3R/3S files; this agent did not create it. See the finalization note in [verification](verification.md). Do not attribute all of that commit's changes to 3S.
 
 ## Delivered learning package
 

@@ -1,3 +1,5 @@
+import { deviceIdentity } from "@/lib/capabilities";
+import { publicScenario } from "@/lib/neutral-scenario";
 import { z } from "zod";
 import { diagnosisSchema, scenarioIdSchema, repairActionSchema } from "@/lib/schema";
 import { getScenario } from "@/server/scenarios";
@@ -12,7 +14,7 @@ const requestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("command"),
     id: z.string().uuid(),
-    device: z.enum(["PC-A", "R1", "R2", "R3", "T1", "SW1", "SW2", "SW3", "PC-B"]),
+    device: deviceIdentity,
     command: z.string().max(100),
     target: z.string().max(64),
     source: z.string().max(64).optional(),
@@ -66,7 +68,13 @@ export async function POST(request: Request) {
     if (!parsed.success) return json({ error: "Invalid lab request." }, 400);
     const p = parsed.data;
     if (p.action === "practice-pack") return json({ pack: getScenario(p.scenario) });
-    if (p.action === "start") return json({ attempt: await startAssessment(undefined, p.scenario) });
+    if (p.action === "start") {
+      const scenario = getScenario(p.scenario);
+      return json({
+        attempt: await startAssessment(undefined, p.scenario),
+        ...(scenario.foundation ? { public: publicScenario(scenario) } : {}),
+      });
+    }
     if (p.action === "repair") return json({ attempt: await assessmentAction(p.id, "repair", p.change) });
     if (p.action === "command")
       return json({
@@ -78,7 +86,9 @@ export async function POST(request: Request) {
         }),
       });
     if (p.action === "submit") return json({ attempt: await assessmentAction(p.id, "submit", p.diagnosis) });
-    return json({ attempt: await assessmentAction(p.id, "resume") });
+    const attempt = await assessmentAction(p.id, "resume");
+    const scenario = getScenario(attempt.scenario);
+    return json({ attempt, ...(scenario.foundation ? { public: publicScenario(scenario) } : {}) });
   } catch (e) {
     return json(
       {
